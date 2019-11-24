@@ -1,5 +1,6 @@
 .DS_Store
 compiler.dSYM
+exec.out.dSYM
 .vscode
 
 position.hh
@@ -10,3 +11,4 @@ location.hh
 stack.hh
 scanner.cpp
 lexer.c
+exec.out
