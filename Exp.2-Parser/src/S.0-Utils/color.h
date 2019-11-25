@@ -19,4 +19,4 @@
 #define BOLD_CYAN "\033[1m\033[36m"
 #define BOLD_WHITE "\033[1m\033[37m"
 
-#endif  // _COLOR_H
+#endif // _COLOR_H

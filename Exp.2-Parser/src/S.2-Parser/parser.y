@@ -8,7 +8,7 @@
 %define parse.assert
 
 %code requires {
-    #include "token.h"
+    #include "../S.0-Utils/token.h"
 
     namespace Limc {
         class Scanner;
@@ -17,8 +17,8 @@
 }
 
 %code top {
-    #include "driver.h"
-    #include "color.h"
+    #include "../S.0-Utils/driver.h"
+    #include "../S.0-Utils/color.h"
     using namespace Limc;
 
     static Parser::symbol_type yylex(Scanner &scanner, Driver &driver) {

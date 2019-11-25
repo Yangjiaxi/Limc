@@ -11,8 +11,8 @@ NEWLINE     \n|(\r\n)
 WHITESPACE  [ \t\v\f]
 
 %{
-    #include "driver.h"
-    #include "color.h"
+    #include "../S.0-Utils/driver.h"
+    #include "../S.0-Utils/color.h"
     #define YY_USER_ACTION driver.inc_x(yyleng);
 %}
 %option nodefault

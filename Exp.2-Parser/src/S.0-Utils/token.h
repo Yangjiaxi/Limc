@@ -6,11 +6,9 @@
 
 using namespace std;
 
-namespace Limc
-{
-class Token
-{
-   public:
+namespace Limc {
+class Token {
+  public:
     Token(string name, string value);
 
     Token(string name);
@@ -19,7 +17,7 @@ class Token
 
     ~Token();
 
-    void buildAST(const Token& child);
+    void buildAST(const Token &child);
 
     string prettyPrint(const string prefix = "",
                        const string childPrefix = "") const;
@@ -28,11 +26,11 @@ class Token
 
     string getValue() const;
 
-   private:
+  private:
     string name;
     string value;
     vector<Token> children;
 };
-}  // namespace Limc
+} // namespace Limc
 
-#endif  // _TOKEN_H
+#endif // _TOKEN_H

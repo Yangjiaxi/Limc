@@ -1,9 +1,8 @@
+#include "S.0-Utils/color.h"
+#include "S.0-Utils/driver.h"
 #include <fstream>
-#include "driver.h"
-#include "color.h"
 
-int main(int argc, char** argv)
-{
+int main(int argc, char **argv) {
     Limc::Driver driver;
     ifstream input(argv[1]);
     driver.switchInputStream(argc == 2 ? &input : &cin);

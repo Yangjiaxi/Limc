@@ -1,61 +1,46 @@
-#include <sstream>
 #include "driver.h"
+#include <sstream>
 
 using namespace Limc;
 
 Driver::Driver()
-    : tokens(), scanner(*this), parser(scanner, *this), loc(location())
-{
-}
+    : tokens(), scanner(*this), parser(scanner, *this), loc(location()) {}
 
-int Driver::parse()
-{
+int Driver::parse() {
     loc.initialize();
     return parser.parse();
 }
 
-void Driver::clear()
-{
+void Driver::clear() {
     loc.initialize();
     tokens.clear();
 }
 
-string Driver::prettyPrint() const
-{
+string Driver::prettyPrint() const {
     stringstream s;
     s << "Abstract Syntax Tree:" << endl;
-    for (const auto& token : tokens)
-    {
+    for (const auto &token : tokens) {
         s << token.prettyPrint() << endl;
     }
     return s.str();
 }
 
-void Driver::switchInputStream(istream* is)
-{
+void Driver::switchInputStream(istream *is) {
     loc.initialize();
     scanner.switch_streams(is, nullptr);
     tokens.clear();
 }
 
-void Driver::addToken(const Token& token)
-{
-    tokens.push_back(token);
-}
+void Driver::addToken(const Token &token) { tokens.push_back(token); }
 
-void Driver::inc_x(int x)
-{
+void Driver::inc_x(int x) {
     loc.columns(x);
     loc.step();
 }
 
-void Driver::inc_y(int y)
-{
+void Driver::inc_y(int y) {
     loc.lines(y);
     loc.step();
 }
 
-Limc::location& Driver::getLocation()
-{
-    return loc;
-}
+Limc::location &Driver::getLocation() { return loc; }

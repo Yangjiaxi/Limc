@@ -1,13 +1,11 @@
 #ifndef _DRIVER_H
 #define _DRIVER_H
 
-#include "scanner.h"
+#include "../S.1-Scanner/scanner.h"
 
-namespace Limc
-{
-class Driver
-{
-   public:
+namespace Limc {
+class Driver {
+  public:
     Driver();
 
     int parse();
@@ -16,26 +14,26 @@ class Driver
 
     string prettyPrint() const;
 
-    void switchInputStream(istream* is);
+    void switchInputStream(istream *is);
 
     friend class Parser;
 
     friend class Scanner;
 
-   private:
-    void addToken(const Token& token);
+  private:
+    void addToken(const Token &token);
 
     void inc_x(int x);
 
     void inc_y(int y);
 
-    Limc::location& getLocation();
+    Limc::location &getLocation();
 
     Scanner scanner;
     Parser parser;
     vector<Token> tokens;
     Limc::location loc;
 };
-}  // namespace Limc
+} // namespace Limc
 
-#endif  // _DRIVER_H
+#endif // _DRIVER_H

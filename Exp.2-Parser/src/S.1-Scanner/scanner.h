@@ -1,7 +1,7 @@
 #ifndef SCANNER_H
 #define SCANNER_H
 
-#include "parser.hpp"
+#include "../S.2-Parser/parser.hpp"
 
 #if !defined(yyFlexLexerOnce)
 #undef yyFlexLexer
@@ -12,20 +12,18 @@
 #undef YY_DECL
 #define YY_DECL Limc::Parser::symbol_type Limc::Scanner::get_next_token()
 
-namespace Limc
-{
-class Scanner : public yyFlexLexer
-{
-   public:
-    explicit Scanner(Driver& driver) : driver(driver) {}
+namespace Limc {
+class Scanner : public yyFlexLexer {
+  public:
+    explicit Scanner(Driver &driver) : driver(driver) {}
 
     ~Scanner() override = default;
 
     virtual Limc::Parser::symbol_type get_next_token();
 
-   private:
-    Driver& driver;
+  private:
+    Driver &driver;
 };
-}  // namespace Limc
+} // namespace Limc
 
-#endif  // SCANNER_H
+#endif // SCANNER_H
