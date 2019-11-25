@@ -44,55 +44,55 @@ WHITESPACE  [ \t\v\f]
 {CHAR}          { return ACTION_ARG(LITERAL_CHAR); }
 {STRING}        { return ACTION_ARG(LITERAL_STRING); }
 
-"int"|"float"|"long"|"char"|"double"|"void"|"short" { return ACTION_ARG(KEYWORD_TYPE); }
+"int"|"float"|"long"|"char"|"double"|"void"|"short" { return ACTION_ARG(KW_TYPE); }
 
-"return"    { return ACTION(KEYWORD_RETURN); }
-"break"     { return ACTION(KEYWORD_BREAK); }
-"continue"  { return ACTION(KEYWORD_CONTINUE); }
-"for"       { return ACTION(KEYWORD_FOR); }
-"if"        { return ACTION(KEYWORD_IF); }
-"else"      { return ACTION(KEYWORD_ELSE); }
-"while"     { return ACTION(KEYWORD_WHILE); }
-"do"        { return ACTION(KEYWORD_DO); }
-"switch"    { return ACTION(KEYWORD_SWITCH); }
-"case"      { return ACTION(KEYWORD_CASE); }
-"default"   { return ACTION(KEYWORD_DEFAULT); }
+"return"    { return ACTION(KW_RETURN); }
+"break"     { return ACTION(KW_BREAK); }
+"continue"  { return ACTION(KW_CONTINUE); }
+"for"       { return ACTION(KW_FOR); }
+"if"        { return ACTION(KW_IF); }
+"else"      { return ACTION(KW_ELSE); }
+"while"     { return ACTION(KW_WHILE); }
+"do"        { return ACTION(KW_DO); }
+"switch"    { return ACTION(KW_SWITCH); }
+"case"      { return ACTION(KW_CASE); }
+"default"   { return ACTION(KW_DEFAULT); }
 
 {IDENTIFIER}    { return ACTION_ARG(IDENTIFIER); }
 
-"+="|"-="|"*="|"/="|"%="|"&="|"|="|"^="|"<<="|">>=" { return ACTION_ARG(OPERATOR_COMPOUND_ASSIGNMENT); }
+"+="|"-="|"*="|"/="|"%="|"&="|"|="|"^="|"<<="|">>=" { return ACTION_ARG(OP_COMPOUND_ASSIGNMENT); }
 
-"++"    { return ACTION_ARG(OPERATOR_INCREMENT); }
-"--"    { return ACTION_ARG(OPERATOR_DECREMENT); }
+"++"    { return ACTION_ARG(OP_INCREMENT); }
+"--"    { return ACTION_ARG(OP_DECREMENT); }
 
-">"|"<"|">="|"<="|"=="|"!=" { return ACTION_ARG(OPERATOR_RELATIONAL); }
+">"|"<"|">="|"<="|"=="|"!=" { return ACTION_ARG(OP_RELATIONAL); }
 
-"="     { return ACTION_ARG(OPERATOR_ASSIGNMENT);  }
-">>"    { return ACTION_ARG(OPERATOR_SHIFT_RIGHT); }
-"<<"    { return ACTION_ARG(OPERATOR_SHIFT_LEFT); }
-"+"     { return ACTION_ARG(OPERATOR_PLUS);  }
-"-"     { return ACTION_ARG(OPERATOR_MINUS);  }
-"*"     { return ACTION_ARG(OPERATOR_MULTIPLY);  }
-"/"     { return ACTION_ARG(OPERATOR_DIVIDE);  }
-"%"     { return ACTION_ARG(OPERATOR_MODULUS);  }
-"&&"    { return ACTION_ARG(OPERATOR_LOGICAL_AND); }
-"&"     { return ACTION_ARG(OPERATOR_BITWISE_AND); }
-"||"    { return ACTION_ARG(OPERATOR_LOGICAL_OR); }
-"|"     { return ACTION_ARG(OPERATOR_BITWISE_OR); }
-"^"     { return ACTION_ARG(OPERATOR_BITWISE_XOR); }
-"~"     { return ACTION_ARG(OPERATOR_BITWISE_NOT); }
-"!"     { return ACTION_ARG(OPERATOR_LOGICAL_NOT); }
+"="     { return ACTION_ARG(OP_ASSIGNMENT);  }
+">>"    { return ACTION_ARG(OP_SHIFT_RIGHT); }
+"<<"    { return ACTION_ARG(OP_SHIFT_LEFT); }
+"+"     { return ACTION_ARG(OP_PLUS);  }
+"-"     { return ACTION_ARG(OP_MINUS);  }
+"*"     { return ACTION_ARG(OP_MULTIPLY);  }
+"/"     { return ACTION_ARG(OP_DIVIDE);  }
+"%"     { return ACTION_ARG(OP_MODULUS);  }
+"&&"    { return ACTION_ARG(OP_LOGICAL_AND); }
+"&"     { return ACTION_ARG(OP_BITWISE_AND); }
+"||"    { return ACTION_ARG(OP_LOGICAL_OR); }
+"|"     { return ACTION_ARG(OP_BITWISE_OR); }
+"^"     { return ACTION_ARG(OP_BITWISE_XOR); }
+"~"     { return ACTION_ARG(OP_BITWISE_NOT); }
+"!"     { return ACTION_ARG(OP_LOGICAL_NOT); }
 
-"?"     { return ACTION(OPERATOR_QUESTION); }
-":"     { return ACTION(PUNCTUATOR_COLON); }
-"("     { return ACTION(PUNCTUATOR_PARENTHESIS_LEFT); }
-")"     { return ACTION(PUNCTUATOR_PARENTHESIS_RIGHT); }
-"{"     { return ACTION(PUNCTUATOR_BRACE_LEFT); }
-"}"     { return ACTION(PUNCTUATOR_BRACE_RIGHT); }
-"["     { return ACTION(PUNCTUATOR_BRACKET_LEFT); }
-"]"     { return ACTION(PUNCTUATOR_BRACKET_RIGHT); }
-";"     { return ACTION(PUNCTUATOR_SEMICOLON); }
-","     { return ACTION(PUNCTUATOR_COMMA); }
+"?"     { return ACTION(DELIM_QUESTION); }
+":"     { return ACTION(DELIM_COLON); }
+"("     { return ACTION(DELIM_PARENTHESIS_LEFT); }
+")"     { return ACTION(DELIM_PARENTHESIS_RIGHT); }
+"{"     { return ACTION(DELIM_BRACE_LEFT); }
+"}"     { return ACTION(DELIM_BRACE_RIGHT); }
+"["     { return ACTION(DELIM_BRACKET_LEFT); }
+"]"     { return ACTION(DELIM_BRACKET_RIGHT); }
+";"     { return ACTION(DELIM_SEMICOLON); }
+","     { return ACTION(DELIM_COMMA); }
 
 {NEWLINE}       { driver.inc_y(1); }
 {WHITESPACE}    { }

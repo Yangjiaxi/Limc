@@ -13,7 +13,10 @@ Token::Token() : name(), value(), children() {}
 
 Token::~Token() = default;
 
-void Token::build_AST(const Token &child) { children.push_back(child); }
+Token &Token::build_AST(const Token &child) {
+    children.push_back(child);
+    return *this;
+}
 
 string Token::get_name() const { return name; }
 

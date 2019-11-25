@@ -37,33 +37,34 @@
 %type <Token> Program GlobalDeclDefList GlobalDeclDef Type VarList AssignmentExpr BlockStmt ParamList Param Stmt StmtList SwitchBodyStmt CaseStmtList CaseStmt DefaultStmt LocalDeclDef Expr CallExpr ArgumentList IndexExpr Index Assignable Identifier Literal ArrayLiteral ArrayItemList ArrayItem
 
 %token END 0 "EOF"
-%token PUNCTUATOR_PARENTHESIS_LEFT PUNCTUATOR_PARENTHESIS_RIGHT PUNCTUATOR_BRACE_LEFT PUNCTUATOR_BRACE_RIGHT PUNCTUATOR_BRACKET_LEFT PUNCTUATOR_BRACKET_RIGHT PUNCTUATOR_SEMICOLON PUNCTUATOR_COMMA OPERATOR_QUESTION PUNCTUATOR_COLON
-%token KEYWORD_FOR KEYWORD_IF KEYWORD_ELSE KEYWORD_WHILE KEYWORD_DO KEYWORD_RETURN KEYWORD_BREAK KEYWORD_CONTINUE KEYWORD_SWITCH KEYWORD_DEFAULT KEYWORD_CASE
-%token <string> IDENTIFIER KEYWORD_TYPE LITERAL_FLOAT LITERAL_INTEGER LITERAL_CHAR LITERAL_STRING
-%token <string> OPERATOR_SHIFT_RIGHT OPERATOR_SHIFT_LEFT OPERATOR_BITWISE_AND OPERATOR_BITWISE_OR OPERATOR_BITWISE_XOR OPERATOR_BITWISE_NOT
-%token <string> OPERATOR_LOGICAL_NOT OPERATOR_LOGICAL_AND OPERATOR_LOGICAL_OR
-%token <string> OPERATOR_COMPOUND_ASSIGNMENT OPERATOR_RELATIONAL OPERATOR_ASSIGNMENT
-%token <string> OPERATOR_PLUS OPERATOR_MINUS OPERATOR_MULTIPLY OPERATOR_DIVIDE OPERATOR_MODULUS
-%token <string> OPERATOR_INCREMENT OPERATOR_DECREMENT
+%token DELIM_PARENTHESIS_LEFT DELIM_PARENTHESIS_RIGHT DELIM_BRACE_LEFT DELIM_BRACE_RIGHT DELIM_BRACKET_LEFT DELIM_BRACKET_RIGHT DELIM_SEMICOLON DELIM_COMMA DELIM_QUESTION DELIM_COLON
+%token KW_FOR KW_IF KW_ELSE KW_WHILE KW_DO KW_RETURN KW_BREAK KW_CONTINUE KW_SWITCH KW_DEFAULT KW_CASE
 
-%left OPERATOR_ASSIGNMENT OPERATOR_COMPOUND_ASSIGNMENT
-%left OPERATOR_QUESTION PUNCTUATOR_COLON
-%left OPERATOR_LOGICAL_OR
-%left OPERATOR_LOGICAL_AND
-%left OPERATOR_BITWISE_OR
-%left OPERATOR_BITWISE_XOR
-%left OPERATOR_BITWISE_AND
-%left OPERATOR_RELATIONAL
-%left OPERATOR_SHIFT_RIGHT OPERATOR_SHIFT_LEFT
-%left OPERATOR_PLUS OPERATOR_MINUS
-%left OPERATOR_MULTIPLY OPERATOR_DIVIDE OPERATOR_MODULUS
+%token <string> IDENTIFIER KW_TYPE LITERAL_FLOAT LITERAL_INTEGER LITERAL_CHAR LITERAL_STRING
+%token <string> OP_SHIFT_RIGHT OP_SHIFT_LEFT OP_BITWISE_AND OP_BITWISE_OR OP_BITWISE_XOR OP_BITWISE_NOT
+%token <string> OP_LOGICAL_NOT OP_LOGICAL_AND OP_LOGICAL_OR
+%token <string> OP_COMPOUND_ASSIGNMENT OP_RELATIONAL OP_ASSIGNMENT
+%token <string> OP_PLUS OP_MINUS OP_MULTIPLY OP_DIVIDE OP_MODULUS
+%token <string> OP_INCREMENT OP_DECREMENT
 
-%right OPERATOR_LOGICAL_NOT OPERATOR_BITWISE_NOT
+%left DELIM_QUESTION DELIM_COLON
+%left OP_ASSIGNMENT OP_COMPOUND_ASSIGNMENT
+%left OP_LOGICAL_OR
+%left OP_LOGICAL_AND
+%left OP_BITWISE_OR
+%left OP_BITWISE_XOR
+%left OP_BITWISE_AND
+%left OP_RELATIONAL
+%left OP_SHIFT_RIGHT OP_SHIFT_LEFT
+%left OP_PLUS OP_MINUS
+%left OP_MULTIPLY OP_DIVIDE OP_MODULUS
+
+%right OP_LOGICAL_NOT OP_BITWISE_NOT
 
 %nonassoc IF_END
-%nonassoc KEYWORD_ELSE
-%nonassoc OPERATOR_UNARY_MINUS OPERATOR_UNARY_PLUS
-%nonassoc OPERATOR_INCREMENT OPERATOR_DECREMENT
+%nonassoc KW_ELSE
+%nonassoc OP_UNARY_MINUS OP_UNARY_PLUS
+%nonassoc OP_INCREMENT OP_DECREMENT
 
 %start Program
 
@@ -85,27 +86,27 @@ GlobalDeclDefList:
         $$.build_AST($1);
     };
 GlobalDeclDef:
-    Type VarList PUNCTUATOR_SEMICOLON {
+    Type VarList DELIM_SEMICOLON {
         $$ = Token("GlobalVarDecl");
-        $$.build_AST($1);
-        $$.build_AST($2);
-    } | Type Assignable PUNCTUATOR_PARENTHESIS_LEFT ParamList PUNCTUATOR_PARENTHESIS_RIGHT BlockStmt {
+        $$.build_AST($1)
+          .build_AST($2);
+    } | Type Assignable DELIM_PARENTHESIS_LEFT ParamList DELIM_PARENTHESIS_RIGHT BlockStmt {
         $$ = Token("FunctionDef");
-        $$.build_AST($1);
-        $$.build_AST($2);
-        $$.build_AST($4);
-        $$.build_AST($6);
-    } | Type Assignable PUNCTUATOR_PARENTHESIS_LEFT ParamList PUNCTUATOR_PARENTHESIS_RIGHT PUNCTUATOR_SEMICOLON {
+        $$.build_AST($1)
+          .build_AST($2)
+          .build_AST($4)
+          .build_AST($6);
+    } | Type Assignable DELIM_PARENTHESIS_LEFT ParamList DELIM_PARENTHESIS_RIGHT DELIM_SEMICOLON {
         $$ = Token("FunctionDecl");
-        $$.build_AST($1);
-        $$.build_AST($2);
-        $$.build_AST($4);
-    } | error PUNCTUATOR_SEMICOLON {
+        $$.build_AST($1)
+          .build_AST($2)
+          .build_AST($4);
+    } | error DELIM_SEMICOLON {
         $$ = Token("ErrorStmt");
         yyerrok;
     };
 Type:
-    KEYWORD_TYPE {
+    KW_TYPE {
         const string& value = $1;
         $$ = Token("Type", value);
     };
@@ -126,27 +127,27 @@ VarList:
     } | AssignmentExpr {
         $$ = Token("VarList");
         $$.build_AST($1);
-    } | VarList PUNCTUATOR_COMMA Assignable {
+    } | VarList DELIM_COMMA Assignable {
         $$ = $1;
         $$.build_AST($3);
-    } | VarList PUNCTUATOR_COMMA AssignmentExpr {
+    } | VarList DELIM_COMMA AssignmentExpr {
         $$ = $1;
         $$.build_AST($3);
     };
 AssignmentExpr:
-    Assignable OPERATOR_ASSIGNMENT Expr {
+    Assignable OP_ASSIGNMENT Expr {
         $$ = Token("AssignmentExpr");
-        $$.build_AST($1);
-        $$.build_AST(Token("Operator", $2));
-        $$.build_AST($3);
-    } | Assignable OPERATOR_ASSIGNMENT ArrayLiteral {
+        $$.build_AST($1)
+          .build_AST(Token("Operator", $2))
+          .build_AST($3);
+    } | Assignable OP_ASSIGNMENT ArrayLiteral {
         $$ = Token("AssignmentExpr");
-        $$.build_AST($1);
-        $$.build_AST(Token("Operator", $2));
-        $$.build_AST($3);
+        $$.build_AST($1)
+          .build_AST(Token("Operator", $2))
+          .build_AST($3);
     };
 ParamList:
-    ParamList PUNCTUATOR_COMMA Param {
+    ParamList DELIM_COMMA Param {
         $$ = $1;
         $$.build_AST($3);
     } | Param {
@@ -158,15 +159,15 @@ ParamList:
 Param:
     Type Assignable {
         $$ = Token("ParamDecl");
-        $$.build_AST($1);
-        $$.build_AST($2);
+        $$.build_AST($1)
+          .build_AST($2);
     };
 BlockStmt:
-    PUNCTUATOR_BRACE_LEFT StmtList PUNCTUATOR_BRACE_RIGHT {
+    DELIM_BRACE_LEFT StmtList DELIM_BRACE_RIGHT {
         $$ = $2;
-    } | PUNCTUATOR_BRACE_LEFT PUNCTUATOR_BRACE_RIGHT {
+    } | DELIM_BRACE_LEFT DELIM_BRACE_RIGHT {
         $$ = Token("BlockStmt");
-    } | error PUNCTUATOR_BRACE_RIGHT {
+    } | error DELIM_BRACE_RIGHT {
         $$ = Token("ErrorStmt");
         yyerrok;
     };
@@ -181,58 +182,58 @@ StmtList:
 Stmt:
     LocalDeclDef
       | BlockStmt
-      | Expr PUNCTUATOR_SEMICOLON
-      | KEYWORD_RETURN Expr PUNCTUATOR_SEMICOLON {
+      | Expr DELIM_SEMICOLON
+      | KW_RETURN Expr DELIM_SEMICOLON {
         $$ = Token("ReturnStmt");
         $$.build_AST($2);
-    } | KEYWORD_CONTINUE Expr PUNCTUATOR_SEMICOLON {
+    } | KW_CONTINUE Expr DELIM_SEMICOLON {
         $$ = Token("ContinueStmt");
         $$.build_AST($2);
-    } | KEYWORD_BREAK Expr PUNCTUATOR_SEMICOLON {
+    } | KW_BREAK Expr DELIM_SEMICOLON {
         $$ = Token("BreakStmt");
         $$.build_AST($2);
-    } | KEYWORD_RETURN PUNCTUATOR_SEMICOLON {
+    } | KW_RETURN DELIM_SEMICOLON {
         $$ = Token("ReturnStmt");
-    } | KEYWORD_CONTINUE PUNCTUATOR_SEMICOLON {
+    } | KW_CONTINUE DELIM_SEMICOLON {
         $$ = Token("ContinueStmt");
-    } | KEYWORD_BREAK PUNCTUATOR_SEMICOLON {
+    } | KW_BREAK DELIM_SEMICOLON {
         $$ = Token("BreakStmt");
-    } | KEYWORD_IF PUNCTUATOR_PARENTHESIS_LEFT Expr PUNCTUATOR_PARENTHESIS_RIGHT Stmt %prec IF_END {
+    } | KW_IF DELIM_PARENTHESIS_LEFT Expr DELIM_PARENTHESIS_RIGHT Stmt %prec IF_END {
         $$ = Token("IfStmt");
-        $$.build_AST($3);
-        $$.build_AST($5);
-    } | KEYWORD_IF PUNCTUATOR_PARENTHESIS_LEFT Expr PUNCTUATOR_PARENTHESIS_RIGHT Stmt KEYWORD_ELSE Stmt {
+        $$.build_AST($3)
+          .build_AST($5);
+    } | KW_IF DELIM_PARENTHESIS_LEFT Expr DELIM_PARENTHESIS_RIGHT Stmt KW_ELSE Stmt {
         $$ = Token("IfStmt");
-        $$.build_AST($3);
-        $$.build_AST($5);
-        Token elseStmt("ElseStmt");
-        elseStmt.build_AST($7);
-        $$.build_AST(elseStmt);
-    } | KEYWORD_WHILE PUNCTUATOR_PARENTHESIS_LEFT Expr PUNCTUATOR_PARENTHESIS_RIGHT Stmt {
+        $$.build_AST($3)
+          .build_AST($5);
+        Token else_stmt("ElseStmt");
+        else_stmt.build_AST($7);
+        $$.build_AST(else_stmt);
+    } | KW_WHILE DELIM_PARENTHESIS_LEFT Expr DELIM_PARENTHESIS_RIGHT Stmt {
         $$ = Token("WhileStmt");
-        $$.build_AST($3);
-        $$.build_AST($5);
-    } | KEYWORD_DO Stmt KEYWORD_WHILE PUNCTUATOR_PARENTHESIS_LEFT Expr PUNCTUATOR_PARENTHESIS_RIGHT PUNCTUATOR_SEMICOLON {
+        $$.build_AST($3)
+          .build_AST($5);
+    } | KW_DO Stmt KW_WHILE DELIM_PARENTHESIS_LEFT Expr DELIM_PARENTHESIS_RIGHT DELIM_SEMICOLON {
         $$ = Token("DoWhileStmt");
-        $$.build_AST($2);
-        $$.build_AST($5);
-    } | KEYWORD_FOR PUNCTUATOR_PARENTHESIS_LEFT LocalDeclDef Expr PUNCTUATOR_SEMICOLON Expr PUNCTUATOR_PARENTHESIS_RIGHT Stmt {
+        $$.build_AST($2)
+          .build_AST($5);
+    } | KW_FOR DELIM_PARENTHESIS_LEFT LocalDeclDef Expr DELIM_SEMICOLON Expr DELIM_PARENTHESIS_RIGHT Stmt {
         $$ = Token("ForStmt");
-        $$.build_AST($3);
-        $$.build_AST($4);
-        $$.build_AST($6);
-        $$.build_AST($8);
-    } | KEYWORD_FOR PUNCTUATOR_PARENTHESIS_LEFT Expr PUNCTUATOR_SEMICOLON Expr PUNCTUATOR_SEMICOLON Expr PUNCTUATOR_PARENTHESIS_RIGHT Stmt {
+        $$.build_AST($3)
+          .build_AST($4)
+          .build_AST($6)
+          .build_AST($8);
+    } | KW_FOR DELIM_PARENTHESIS_LEFT Expr DELIM_SEMICOLON Expr DELIM_SEMICOLON Expr DELIM_PARENTHESIS_RIGHT Stmt {
         $$ = Token("ForStmt");
-        $$.build_AST($3);
-        $$.build_AST($5);
-        $$.build_AST($7);
-        $$.build_AST($9);
-    } | KEYWORD_SWITCH PUNCTUATOR_PARENTHESIS_LEFT Expr PUNCTUATOR_PARENTHESIS_RIGHT PUNCTUATOR_BRACE_LEFT SwitchBodyStmt PUNCTUATOR_BRACE_RIGHT {
+        $$.build_AST($3)
+          .build_AST($5)
+          .build_AST($7)
+          .build_AST($9);
+    } | KW_SWITCH DELIM_PARENTHESIS_LEFT Expr DELIM_PARENTHESIS_RIGHT DELIM_BRACE_LEFT SwitchBodyStmt DELIM_BRACE_RIGHT {
         $$ = Token("SwitchStmt");
-        $$.build_AST($3);
-        $$.build_AST($6);
-    } | error PUNCTUATOR_SEMICOLON {
+        $$.build_AST($3)
+          .build_AST($6);
+    } | error DELIM_SEMICOLON {
         $$ = Token("ErrorStmt");
         yyerrok;
     };
@@ -256,141 +257,141 @@ CaseStmtList:
         $$.build_AST($1);
     };
 CaseStmt:
-    KEYWORD_CASE Expr PUNCTUATOR_COLON StmtList {
+    KW_CASE Expr DELIM_COLON StmtList {
         $$ = Token("CaseStmt");
-        $$.build_AST($2);
-        $$.build_AST($4);
-    } | KEYWORD_CASE Expr PUNCTUATOR_COLON {
+        $$.build_AST($2)
+          .build_AST($4);
+    } | KW_CASE Expr DELIM_COLON {
         $$ = Token("CaseStmt");
         $$.build_AST($2);
     };
 DefaultStmt:
-    KEYWORD_DEFAULT PUNCTUATOR_COLON StmtList {
+    KW_DEFAULT DELIM_COLON StmtList {
         $$ = Token("DefaultStmt");
         $$.build_AST($3);
-    } | KEYWORD_DEFAULT PUNCTUATOR_COLON {
+    } | KW_DEFAULT DELIM_COLON {
         $$ = Token("DefaultStmt");
     };
 LocalDeclDef:
-    Type VarList PUNCTUATOR_SEMICOLON {
+    Type VarList DELIM_SEMICOLON {
         $$ = Token("LocalVarDecl");
-        $$.build_AST($1);
-        $$.build_AST($2);
+        $$.build_AST($1)
+          .build_AST($2);
     };
 Expr:
     Assignable | Literal | CallExpr | AssignmentExpr
-    | Assignable OPERATOR_COMPOUND_ASSIGNMENT Expr {
+    | Assignable OP_COMPOUND_ASSIGNMENT Expr {
         $$ = Token("CompoundAssignmentExpr");
-        $$.build_AST($1);
-        $$.build_AST(Token("Operator", $2));
-        $$.build_AST($3);
-    } | Expr OPERATOR_QUESTION Expr PUNCTUATOR_COLON Expr {
+        $$.build_AST($1)
+          .build_AST(Token("Operator", $2))
+          .build_AST($3);
+    } | Expr DELIM_QUESTION Expr DELIM_COLON Expr {
         $$ = Token("TernaryExpr");
-        $$.build_AST($1);
-        $$.build_AST(Token("Operator", "?"));
-        $$.build_AST($3);
-        $$.build_AST(Token("Operator", ":"));
-        $$.build_AST($5);
-    } | Expr OPERATOR_LOGICAL_AND Expr {
+        $$.build_AST($1)
+          .build_AST(Token("Operator", "?"))
+          .build_AST($3)
+          .build_AST(Token("Operator", ":"))
+          .build_AST($5);
+    } | Expr OP_LOGICAL_AND Expr {
         $$ = Token("BinaryExpr");
-        $$.build_AST($1);
-        $$.build_AST(Token("Operator", $2));
-        $$.build_AST($3);
-    } | Expr OPERATOR_LOGICAL_OR Expr {
+        $$.build_AST($1)
+          .build_AST(Token("Operator", $2))
+          .build_AST($3);
+    } | Expr OP_LOGICAL_OR Expr {
         $$ = Token("BinaryExpr");
-        $$.build_AST($1);
-        $$.build_AST(Token("Operator", $2));
-        $$.build_AST($3);
-    } | Expr OPERATOR_BITWISE_AND Expr {
+        $$.build_AST($1)
+          .build_AST(Token("Operator", $2))
+          .build_AST($3);
+    } | Expr OP_BITWISE_AND Expr {
         $$ = Token("BinaryExpr");
-        $$.build_AST($1);
-        $$.build_AST(Token("Operator", $2));
-        $$.build_AST($3);
-    } | Expr OPERATOR_BITWISE_OR Expr {
+        $$.build_AST($1)
+          .build_AST(Token("Operator", $2))
+          .build_AST($3);
+    } | Expr OP_BITWISE_OR Expr {
         $$ = Token("BinaryExpr");
-        $$.build_AST($1);
-        $$.build_AST(Token("Operator", $2));
-        $$.build_AST($3);
-    } | Expr OPERATOR_BITWISE_XOR Expr {
+        $$.build_AST($1)
+          .build_AST(Token("Operator", $2))
+          .build_AST($3);
+    } | Expr OP_BITWISE_XOR Expr {
         $$ = Token("BinaryExpr");
-        $$.build_AST($1);
-        $$.build_AST(Token("Operator", $2));
-        $$.build_AST($3);
-    } | Expr OPERATOR_SHIFT_RIGHT Expr {
+        $$.build_AST($1)
+          .build_AST(Token("Operator", $2))
+          .build_AST($3);
+    } | Expr OP_SHIFT_RIGHT Expr {
         $$ = Token("BinaryExpr");
-        $$.build_AST($1);
-        $$.build_AST(Token("Operator", $2));
-        $$.build_AST($3);
-    } | Expr OPERATOR_SHIFT_LEFT Expr {
+        $$.build_AST($1)
+          .build_AST(Token("Operator", $2))
+          .build_AST($3);
+    } | Expr OP_SHIFT_LEFT Expr {
         $$ = Token("BinaryExpr");
-        $$.build_AST($1);
-        $$.build_AST(Token("Operator", $2));
-        $$.build_AST($3);
-    } | Expr OPERATOR_RELATIONAL Expr {
+        $$.build_AST($1)
+          .build_AST(Token("Operator", $2))
+          .build_AST($3);
+    } | Expr OP_RELATIONAL Expr {
         $$ = Token("RelationalExpr");
-        $$.build_AST($1);
-        $$.build_AST(Token("Operator", $2));
-        $$.build_AST($3);
-    } | Expr OPERATOR_PLUS Expr {
+        $$.build_AST($1)
+          .build_AST(Token("Operator", $2))
+          .build_AST($3);
+    } | Expr OP_PLUS Expr {
         $$ = Token("BinaryExpr");
-        $$.build_AST($1);
-        $$.build_AST(Token("Operator", $2));
-        $$.build_AST($3);
-    } | Expr OPERATOR_MINUS Expr {
+        $$.build_AST($1)
+          .build_AST(Token("Operator", $2))
+          .build_AST($3);
+    } | Expr OP_MINUS Expr {
         $$ = Token("BinaryExpr");
-        $$.build_AST($1);
-        $$.build_AST(Token("Operator", $2));
-        $$.build_AST($3);
-    } | Expr OPERATOR_MULTIPLY Expr {
+        $$.build_AST($1)
+          .build_AST(Token("Operator", $2))
+          .build_AST($3);
+    } | Expr OP_MULTIPLY Expr {
         $$ = Token("BinaryExpr");
-        $$.build_AST($1);
-        $$.build_AST(Token("Operator", $2));
-        $$.build_AST($3);
-    } | Expr OPERATOR_DIVIDE Expr {
+        $$.build_AST($1)
+          .build_AST(Token("Operator", $2))
+          .build_AST($3);
+    } | Expr OP_DIVIDE Expr {
         $$ = Token("BinaryExpr");
-        $$.build_AST($1);
-        $$.build_AST(Token("Operator", $2));
-        $$.build_AST($3);
-    } | Expr OPERATOR_MODULUS Expr {
+        $$.build_AST($1)
+          .build_AST(Token("Operator", $2))
+          .build_AST($3);
+    } | Expr OP_MODULUS Expr {
         $$ = Token("BinaryExpr");
-        $$.build_AST($1);
-        $$.build_AST(Token("Operator", $2));
-        $$.build_AST($3);
-    } | PUNCTUATOR_PARENTHESIS_LEFT Expr PUNCTUATOR_PARENTHESIS_RIGHT {
+        $$.build_AST($1)
+          .build_AST(Token("Operator", $2))
+          .build_AST($3);
+    } | DELIM_PARENTHESIS_LEFT Expr DELIM_PARENTHESIS_RIGHT {
         $$ = Token("ParenthesisExpr");
         $$.build_AST($2);
-    } | OPERATOR_PLUS Expr %prec OPERATOR_UNARY_PLUS {
+    } | OP_PLUS Expr %prec OP_UNARY_PLUS {
         $$ = Token("PrefixExpr");
-        $$.build_AST(Token("Operator", $1));
-        $$.build_AST($2);
-    } | OPERATOR_MINUS Expr %prec OPERATOR_UNARY_MINUS {
+        $$.build_AST(Token("Operator", $1))
+          .build_AST($2);
+    } | OP_MINUS Expr %prec OP_UNARY_MINUS {
         $$ = Token("PrefixExpr");
-        $$.build_AST(Token("Operator", $1));
-        $$.build_AST($2);
-    } | OPERATOR_LOGICAL_NOT Expr {
+        $$.build_AST(Token("Operator", $1))
+          .build_AST($2);
+    } | OP_LOGICAL_NOT Expr {
         $$ = Token("PrefixExpr");
-        $$.build_AST(Token("Operator", $1));
-        $$.build_AST($2);
-    } | OPERATOR_BITWISE_NOT Expr {
+        $$.build_AST(Token("Operator", $1))
+          .build_AST($2);
+    } | OP_BITWISE_NOT Expr {
         $$ = Token("PrefixExpr");
-        $$.build_AST(Token("Operator", $1));
-        $$.build_AST($2);
-    } | OPERATOR_INCREMENT Expr {
+        $$.build_AST(Token("Operator", $1))
+          .build_AST($2);
+    } | OP_INCREMENT Expr {
         $$ = Token("PrefixExpr");
-        $$.build_AST(Token("Operator", $1));
-        $$.build_AST($2);
-    } | OPERATOR_DECREMENT Expr {
+        $$.build_AST(Token("Operator", $1))
+          .build_AST($2);
+    } | OP_DECREMENT Expr {
         $$ = Token("PrefixExpr");
-        $$.build_AST(Token("Operator", $1));
-        $$.build_AST($2);
-    } | Expr OPERATOR_INCREMENT {
+        $$.build_AST(Token("Operator", $1))
+          .build_AST($2);
+    } | Expr OP_INCREMENT {
         $$ = Token("PostfixExpr");
-        $$.build_AST($1);
-        $$.build_AST(Token("Operator", $2));
-    } | Expr OPERATOR_DECREMENT {
+        $$.build_AST($1)
+          .build_AST(Token("Operator", $2));
+    } | Expr OP_DECREMENT {
         $$ = Token("PostfixExpr");
-        $$.build_AST($1);
-        $$.build_AST(Token("Operator", $2));
+        $$.build_AST($1)
+          .build_AST(Token("Operator", $2));
     };
 Literal:
     LITERAL_INTEGER {
@@ -403,11 +404,11 @@ Literal:
         $$ = Token("StringLiteral", $1);
     };
 ArrayLiteral:
-    PUNCTUATOR_BRACE_LEFT ArrayItemList PUNCTUATOR_BRACE_RIGHT {
+    DELIM_BRACE_LEFT ArrayItemList DELIM_BRACE_RIGHT {
         $$ = $2;
     };
 ArrayItemList:
-    ArrayItemList PUNCTUATOR_COMMA ArrayItem {
+    ArrayItemList DELIM_COMMA ArrayItem {
         $$ = $1;
         $$.build_AST($3);
     } | ArrayItem {
@@ -419,16 +420,16 @@ ArrayItemList:
 ArrayItem:
     Expr | ArrayLiteral;
 CallExpr:
-    CallExpr PUNCTUATOR_PARENTHESIS_LEFT ArgumentList PUNCTUATOR_PARENTHESIS_RIGHT {
+    CallExpr DELIM_PARENTHESIS_LEFT ArgumentList DELIM_PARENTHESIS_RIGHT {
         $$ = $1;
         $$.build_AST($3);
-    } | Assignable PUNCTUATOR_PARENTHESIS_LEFT ArgumentList PUNCTUATOR_PARENTHESIS_RIGHT {
+    } | Assignable DELIM_PARENTHESIS_LEFT ArgumentList DELIM_PARENTHESIS_RIGHT {
         $$ = Token("CallExpr");
-        $$.build_AST($1);
-        $$.build_AST($3);
+        $$.build_AST($1)
+          .build_AST($3);
     };
 ArgumentList:
-    ArgumentList PUNCTUATOR_COMMA Expr {
+    ArgumentList DELIM_COMMA Expr {
         $$ = $1;
         $$.build_AST($3);
     } | Expr {
@@ -438,13 +439,13 @@ ArgumentList:
         $$ = Token("ArgumentList");
     };
 IndexExpr:
-    IndexExpr PUNCTUATOR_BRACKET_LEFT Index PUNCTUATOR_BRACKET_RIGHT {
+    IndexExpr DELIM_BRACKET_LEFT Index DELIM_BRACKET_RIGHT {
         $$ = $1;
         $$.build_AST($3);
-    } | Identifier PUNCTUATOR_BRACKET_LEFT Index PUNCTUATOR_BRACKET_RIGHT {
+    } | Identifier DELIM_BRACKET_LEFT Index DELIM_BRACKET_RIGHT {
         $$ = Token("IndexExpr");
-        $$.build_AST($1);
-        $$.build_AST($3);
+        $$.build_AST($1)
+          .build_AST($3);
     };
 Index:
     Expr {

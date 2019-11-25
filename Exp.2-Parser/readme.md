@@ -1,159 +1,279 @@
 # Grammar
 
-```bison
+```java
 Program ->
-    GlobalDeclDefList
+    // < a.file
+    | GlobalDeclDefList
 
 GlobalDeclDefList ->
-    GlobalDeclDefList GlobalDeclDef
+    // GlobalDeclDef {GlobalDeclDef}
+    | GlobalDeclDefList GlobalDeclDef
+    // GlobalDeclDef
     | GlobalDeclDef
 
 GlobalDeclDef ->
-    Type VarList PUNCTUATOR_SEMICOLON
-    | Type Assignable PUNCTUATOR_PARENTHESIS_LEFT ParamList PUNCTUATOR_PARENTHESIS_RIGHT BlockStmt
-    | Type Assignable PUNCTUATOR_PARENTHESIS_LEFT ParamList PUNCTUATOR_PARENTHESIS_RIGHT PUNCTUATOR_SEMICOLON
-    | [error] PUNCTUATOR_SEMICOLON
+    // int a, b, ...;
+    | Type VarList DELIM_SEMICOLON
+    // int fn(char b, ...) {stmts}
+    | Type Assignable DELIM_PARENTHESIS_LEFT ParamList DELIM_PARENTHESIS_RIGHT BlockStmt
+    // int fn(char a, ...);
+    | Type Assignable DELIM_PARENTHESIS_LEFT ParamList DELIM_PARENTHESIS_RIGHT DELIM_SEMICOLON
+    | [error] DELIM_SEMICOLON
 
 Type ->
-    KEYWORD_TYPE
-    | StructType
+    // int
+    | KW_TYPE
 
 Assignable ->
-    Identifier
+    // name
+    | Identifier
+    // array_name[12+5][strlen("")]
     | IndexExpr
 
 Identifier ->
+    // Using Regex
     IDENTIFIER
 
 VarList ->
-    Assignable
+    | Assignable
     | AssignmentExpr
-    | VarList PUNCTUATOR_COMMA Assignable
-    | VarList PUNCTUATOR_COMMA AssignmentExpr
+    // Left-Recursion Eliminate
+    | VarList DELIM_COMMA Assignable
+    | VarList DELIM_COMMA AssignmentExpr
 
 AssignmentExpr ->
-    Assignable OPERATOR_ASSIGNMENT Expr
-    | Assignable OPERATOR_ASSIGNMENT ArrayLiteral
+    // a = 12 + 5
+    | Assignable OP_ASSIGNMENT Expr
+    // array_name = [1, 2, 3, 4]
+    | Assignable OP_ASSIGNMENT ArrayLiteral
 
 ParamList ->
-    ParamList PUNCTUATOR_COMMA Param
+    // LRE
+    // 1, 2, ...
+    | ParamList DELIM_COMMA Param
     | Param
     | [eps]
 
 Param ->
+    // int param_1
     Type Assignable
 
 BlockStmt ->
-    PUNCTUATOR_BRACE_LEFT StmtList PUNCTUATOR_BRACE_RIGHT
-    | PUNCTUATOR_BRACE_LEFT PUNCTUATOR_BRACE_RIGHT
-    | [error] PUNCTUATOR_BRACE_RIGHT
+    // {stmt1 stmt2 ...}
+    | DELIM_BRACE_LEFT StmtList DELIM_BRACE_RIGHT
+    // { }
+    | DELIM_BRACE_LEFT DELIM_BRACE_RIGHT
+    | [error] DELIM_BRACE_RIGHT
 
 StmtList ->
-    StmtList Stmt
+    // LRE
+    | StmtList Stmt
+    // xxxx
     | Stmt
 
 Stmt ->
-    LocalDeclDef
+    | LocalDeclDef
     | BlockStmt
-    | Expr PUNCTUATOR_SEMICOLON
-    | KEYWORD_RETURN Expr PUNCTUATOR_SEMICOLON
-    | KEYWORD_CONTINUE Expr PUNCTUATOR_SEMICOLON
-    | KEYWORD_BREAK Expr PUNCTUATOR_SEMICOLON
-    | KEYWORD_RETURN PUNCTUATOR_SEMICOLON
-    | KEYWORD_CONTINUE PUNCTUATOR_SEMICOLON
-    | KEYWORD_BREAK PUNCTUATOR_SEMICOLON
-    | KEYWORD_IF PUNCTUATOR_PARENTHESIS_LEFT Expr PUNCTUATOR_PARENTHESIS_RIGHT Stmt %prec IF_END
-    | KEYWORD_IF PUNCTUATOR_PARENTHESIS_LEFT Expr PUNCTUATOR_PARENTHESIS_RIGHT Stmt KEYWORD_ELSE Stmt
-    | KEYWORD_WHILE PUNCTUATOR_PARENTHESIS_LEFT Expr PUNCTUATOR_PARENTHESIS_RIGHT Stmt
-    | KEYWORD_DO Stmt KEYWORD_WHILE PUNCTUATOR_PARENTHESIS_LEFT Expr PUNCTUATOR_PARENTHESIS_RIGHT PUNCTUATOR_SEMICOLON
-    | KEYWORD_FOR PUNCTUATOR_PARENTHESIS_LEFT LocalDeclDef Expr PUNCTUATOR_SEMICOLON Expr PUNCTUATOR_PARENTHESIS_RIGHT Stmt
-    | KEYWORD_FOR PUNCTUATOR_PARENTHESIS_LEFT Expr PUNCTUATOR_SEMICOLON Expr PUNCTUATOR_SEMICOLON Expr PUNCTUATOR_PARENTHESIS_RIGHT Stmt
-    | KEYWORD_SWITCH PUNCTUATOR_PARENTHESIS_LEFT Expr PUNCTUATOR_PARENTHESIS_RIGHT PUNCTUATOR_BRACE_LEFT SwitchBodyStmt PUNCTUATOR_BRACE_RIGHT
-    | [error] PUNCTUATOR_SEMICOLON
+    // xxx ;
+    | Expr DELIM_SEMICOLON
+    // return [Expr] ;
+    | KW_RETURN Expr DELIM_SEMICOLON
+    // return ;
+    | KW_RETURN DELIM_SEMICOLON
+    // continue ;
+    | KW_CONTINUE DELIM_SEMICOLON
+    // break ;
+    | KW_BREAK DELIM_SEMICOLON
+    // if ([Expr]) [Stmt]
+    | KW_IF DELIM_PARENTHESIS_LEFT Expr DELIM_PARENTHESIS_RIGHT Stmt %prec IF_END
+    // if ([Expr]) [Stmt] else [Stmt]
+    | KW_IF DELIM_PARENTHESIS_LEFT Expr DELIM_PARENTHESIS_RIGHT Stmt KW_ELSE Stmt
+    // while ([Expr]) [Stmt]
+    | KW_WHILE DELIM_PARENTHESIS_LEFT Expr DELIM_PARENTHESIS_RIGHT Stmt
+    // do [Stmt] while ([Expr])
+    | KW_DO Stmt KW_WHILE DELIM_PARENTHESIS_LEFT Expr DELIM_PARENTHESIS_RIGHT DELIM_SEMICOLON
+    // for ([LocalDeclDef] ; [Expr] ; [Expr]) [Stmt]
+    | KW_FOR DELIM_PARENTHESIS_LEFT LocalDeclDef Expr DELIM_SEMICOLON Expr DELIM_PARENTHESIS_RIGHT Stmt
+    // for ([Expr] ; [Expr] ; [Expr]) [Stmt]
+    | KW_FOR DELIM_PARENTHESIS_LEFT Expr DELIM_SEMICOLON Expr DELIM_SEMICOLON Expr DELIM_PARENTHESIS_RIGHT Stmt
+    // switch ([Expr]) { [SwitchBodyStmt] }
+    | KW_SWITCH DELIM_PARENTHESIS_LEFT Expr DELIM_PARENTHESIS_RIGHT DELIM_BRACE_LEFT SwitchBodyStmt DELIM_BRACE_RIGHT
+    | [error] DELIM_SEMICOLON
 
 SwitchBodyStmt ->
-    CaseStmtList DefaultStmt
+    // LRE
+    // {[Case]...}, {[Default]}
+    | CaseStmtList DefaultStmt
     | CaseStmtList
     | DefaultStmt
     | [eps]
 
 CaseStmtList ->
-    CaseStmtList CaseStmt
+    // LRE
+    | CaseStmtList CaseStmt
     | CaseStmt
 
 CaseStmt ->
-    KEYWORD_CASE Expr PUNCTUATOR_COLON StmtList
-    | KEYWORD_CASE Expr PUNCTUATOR_COLON
+    // case Expr : [StmtList]
+    | KW_CASE Expr DELIM_COLON StmtList
+    // case Expr :
+    | KW_CASE Expr DELIM_COLON
 
 DefaultStmt ->
-    KEYWORD_DEFAULT PUNCTUATOR_COLON StmtList
-    | KEYWORD_DEFAULT PUNCTUATOR_COLON
+    // default : [StmtList]
+    | KW_DEFAULT DELIM_COLON StmtList
+    // default :
+    | KW_DEFAULT DELIM_COLON
 
 LocalDeclDef ->
-    Type VarList PUNCTUATOR_SEMICOLON
+    // [Type] a, b, c...;
+    | Type VarList DELIM_SEMICOLON
 
 Expr ->
-    Assignable
+    | Assignable
+    // 12, 'a', 'string', [1, 2, 3, ...]
     | Literal
+    // fn(12), fn(12)('a')("abc")
     | CallExpr
     | AssignmentExpr
-    | Assignable OPERATOR_COMPOUND_ASSIGNMENT Expr
-    | Expr OPERATOR_QUESTION Expr PUNCTUATOR_COLON Expr
-    | Expr OPERATOR_LOGICAL_AND Expr
-    | Expr OPERATOR_LOGICAL_OR Expr
-    | Expr OPERATOR_BITWISE_AND Expr
-    | Expr OPERATOR_BITWISE_OR Expr
-    | Expr OPERATOR_BITWISE_XOR Expr
-    | Expr OPERATOR_SHIFT_RIGHT Expr
-    | Expr OPERATOR_SHIFT_LEFT Expr
-    | Expr OPERATOR_RELATIONAL Expr
-    | Expr OPERATOR_PLUS Expr
-    | Expr OPERATOR_MINUS Expr
-    | Expr OPERATOR_MULTIPLY Expr
-    | Expr OPERATOR_DIVIDE Expr
-    | Expr OPERATOR_MODULUS Expr
-    | PUNCTUATOR_PARENTHESIS_LEFT Expr PUNCTUATOR_PARENTHESIS_RIGHT
-    | OPERATOR_PLUS Expr %prec OPERATOR_UNARY_PLUS
-    | OPERATOR_MINUS Expr %prec OPERATOR_UNARY_MINUS
-    | OPERATOR_LOGICAL_NOT Expr
-    | OPERATOR_BITWISE_NOT Expr
-    | OPERATOR_INCREMENT Expr
-    | OPERATOR_DECREMENT Expr
-    | Expr OPERATOR_INCREMENT
-    | Expr OPERATOR_DECREMENT
+    // var += [Expr]
+    | Assignable OP_COMPOUND_ASSIGNMENT Expr
+    // b_var ? [Expr] : [Expr]
+    | Expr DELIM_QUESTION Expr DELIM_COLON Expr
+    // a && b
+    | Expr OP_LOGICAL_AND Expr
+    // a || b
+    | Expr OP_LOGICAL_OR Expr
+    // a & b
+    | Expr OP_BITWISE_AND Expr
+    // a | b
+    | Expr OP_BITWISE_OR Expr
+    // a ^ b
+    | Expr OP_BITWISE_XOR Expr
+    // a << 12
+    | Expr OP_SHIFT_RIGHT Expr
+    // b >> 12
+    | Expr OP_SHIFT_LEFT Expr
+    // a ( > | >= | != | ...) b
+    | Expr OP_RELATIONAL Expr
+    // a + b
+    | Expr OP_PLUS Expr
+    // a - b
+    | Expr OP_MINUS Expr
+    // a * b
+    | Expr OP_MULTIPLY Expr
+    // a / b
+    | Expr OP_DIVIDE Expr
+    // a % b
+    | Expr OP_MODULUS Expr
+    // ( [Expr] )
+    | DELIM_PARENTHESIS_LEFT Expr DELIM_PARENTHESIS_RIGHT
+    // + [Expr] => `Positive of Expr`
+    | OP_PLUS Expr %prec OP_UNARY_PLUS
+    // - [Expr] => `Negative of Expr`
+    | OP_MINUS Expr %prec OP_UNARY_MINUS
+    // !b
+    | OP_LOGICAL_NOT Expr
+    // ~b
+    | OP_BITWISE_NOT Expr
+    // ++a
+    | OP_INCREMENT Expr
+    // --b
+    | OP_DECREMENT Expr
+    // a++
+    | Expr OP_INCREMENT
+    // b--
+    | Expr OP_DECREMENT
 
 Literal ->
-    LITERAL_INTEGER
+    // 12L
+    | LITERAL_INTEGER
+    // 12.412313f
     | LITERAL_FLOAT
+    // 'a'
     | LITERAL_CHAR
+    // "HELLO WORLD"
     | LITERAL_STRING
 
 ArrayLiteral ->
-    PUNCTUATOR_BRACE_LEFT ArrayItemList PUNCTUATOR_BRACE_RIGHT
+    // [1, 2, ...]
+    | DELIM_BRACE_LEFT ArrayItemList DELIM_BRACE_RIGHT
 
 ArrayItemList ->
-    ArrayItemList PUNCTUATOR_COMMA ArrayItem
+    // LRE
+    // 1, 2, ...
+    | ArrayItemList DELIM_COMMA ArrayItem
     | ArrayItem
     | [eps]
 
 ArrayItem ->
-    Expr
+    | Expr
     | ArrayLiteral
 
 CallExpr ->
-    CallExpr PUNCTUATOR_PARENTHESIS_LEFT ArgumentList PUNCTUATOR_PARENTHESIS_RIGHT
-    | Assignable PUNCTUATOR_PARENTHESIS_LEFT ArgumentList PUNCTUATOR_PARENTHESIS_RIGHT
+    // High-order Function
+    // fn(...)(...)(...)...
+    | CallExpr DELIM_PARENTHESIS_LEFT ArgumentList DELIM_PARENTHESIS_RIGHT
+    // fn (a, b, ...) || fn[5] (a, b, ...)
+    | Assignable DELIM_PARENTHESIS_LEFT ArgumentList DELIM_PARENTHESIS_RIGHT
 
 ArgumentList ->
-    ArgumentList PUNCTUATOR_COMMA Expr
+    // a, b, ...
+    | ArgumentList DELIM_COMMA Expr
     | Expr
     | [eps]
 
 IndexExpr ->
-    IndexExpr PUNCTUATOR_BRACKET_LEFT Index PUNCTUATOR_BRACKET_RIGHT
-    | Identifier PUNCTUATOR_BRACKET_LEFT Index PUNCTUATOR_BRACKET_RIGHT
+    // LRE
+    // a[5][[Expr]]
+    | IndexExpr DELIM_BRACKET_LEFT Index DELIM_BRACKET_RIGHT
+    // a[12]
+    | Identifier DELIM_BRACKET_LEFT Index DELIM_BRACKET_RIGHT
 
 Index ->
-    Expr
+    | Expr
     | [eps]
+```
+
+```java
+Expr ->
+    | AssignmentExpr
+    | CompoundAssignmentExpr
+    | TernaryExpr
+    | BinaryExpr
+    | RelationalExpr
+    | ParenthesisExpr
+    | PrefixExpr
+    | PostfixExpr
+    | CallExpr
+    | IndexExpr
+
+Stmt ->
+    | ErrorStmt
+    | BlockStmt
+    | ReturnStmt
+    | ContinueStmt
+    | BreakStmt
+    | ContinueStmt
+    | IfStmt
+    | ElseStmt
+    | WhileStmt
+    | DoWhileStmt
+    | ForStmt
+    | SwitchStmt
+    | SwitchBodyStmt
+    | CaseStmt
+    | DefaultStmt
+
+Decl ->
+    | GlobalVarDecl
+    | FunctionDecl
+    | ParamDecl
+    | LocalVarDecl
+
+List ->
+    | GlobalDeclDefList
+    | VarList
+    | ParamList
+    | ArgumentList
 ```

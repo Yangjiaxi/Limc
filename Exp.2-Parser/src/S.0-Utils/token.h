@@ -17,7 +17,7 @@ class Token {
 
     ~Token();
 
-    void build_AST(const Token &child);
+    Token &build_AST(const Token &child);
 
     string pretty_print(const string prefix = "",
                         const string child_prefix = "") const;
