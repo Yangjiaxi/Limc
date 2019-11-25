@@ -31,7 +31,7 @@ WHITESPACE  [ \t\v\f]
 
 "/*"                    { BEGIN(COMMENT_BLOCK); }
 <COMMENT_BLOCK>"*/"     { BEGIN(INITIAL); }
-<COMMENT_BLOCK>\n       { current_line++; }
+<COMMENT_BLOCK>\n       { current_line++; n_lines++ }
 <COMMENT_BLOCK>.        { }
 <COMMENT_BLOCK><<EOF>>  { }
 
@@ -92,7 +92,7 @@ WHITESPACE  [ \t\v\f]
 ";"     { ACTION(PUNCTUATOR_SEMICOLON); }
 ","     { ACTION(PUNCTUATOR_COMMA); }
 
-{NEWLINE}       { current_line++; }
+{NEWLINE}       { current_line++; n_lines++; }
 {WHITESPACE}    {}
 
 .	{ ACTION_ARG(ERROR); }
