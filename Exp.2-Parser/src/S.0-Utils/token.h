@@ -17,14 +17,14 @@ class Token {
 
     ~Token();
 
-    void buildAST(const Token &child);
+    void build_AST(const Token &child);
 
-    string prettyPrint(const string prefix = "",
-                       const string childPrefix = "") const;
+    string pretty_print(const string prefix = "",
+                        const string child_prefix = "") const;
 
-    string getName() const;
+    string get_name() const;
 
-    string getValue() const;
+    string get_value() const;
 
   private:
     string name;

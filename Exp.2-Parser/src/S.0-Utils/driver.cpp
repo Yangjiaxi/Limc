@@ -16,11 +16,11 @@ void Driver::clear() {
     tokens.clear();
 }
 
-string Driver::prettyPrint() const {
+string Driver::pretty_print() const {
     stringstream s;
     s << "Abstract Syntax Tree:" << endl;
     for (const auto &token : tokens) {
-        s << token.prettyPrint() << endl;
+        s << token.pretty_print() << endl;
     }
     return s.str();
 }

@@ -12,7 +12,7 @@ class Driver {
 
     void clear();
 
-    string prettyPrint() const;
+    string pretty_print() const;
 
     void switchInputStream(istream *is);
 

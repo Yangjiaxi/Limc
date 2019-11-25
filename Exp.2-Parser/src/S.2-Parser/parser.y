@@ -72,34 +72,34 @@ Program:
     GlobalDeclDefList {
         driver.clear();
         $$ = Token("Program");
-        $$.buildAST($1);
+        $$.build_AST($1);
         driver.addToken($$);
-        cout << driver.prettyPrint() << endl;
+        cout << driver.pretty_print() << endl;
     };
 GlobalDeclDefList:
     GlobalDeclDefList GlobalDeclDef {
         $$ = $1;
-        $$.buildAST($2);
+        $$.build_AST($2);
     } | GlobalDeclDef {
         $$ = Token("GlobalDeclDefList");
-        $$.buildAST($1);
+        $$.build_AST($1);
     };
 GlobalDeclDef:
     Type VarList PUNCTUATOR_SEMICOLON {
         $$ = Token("GlobalVarDecl");
-        $$.buildAST($1);
-        $$.buildAST($2);
+        $$.build_AST($1);
+        $$.build_AST($2);
     } | Type Assignable PUNCTUATOR_PARENTHESIS_LEFT ParamList PUNCTUATOR_PARENTHESIS_RIGHT BlockStmt {
         $$ = Token("FunctionDef");
-        $$.buildAST($1);
-        $$.buildAST($2);
-        $$.buildAST($4);
-        $$.buildAST($6);
+        $$.build_AST($1);
+        $$.build_AST($2);
+        $$.build_AST($4);
+        $$.build_AST($6);
     } | Type Assignable PUNCTUATOR_PARENTHESIS_LEFT ParamList PUNCTUATOR_PARENTHESIS_RIGHT PUNCTUATOR_SEMICOLON {
         $$ = Token("FunctionDecl");
-        $$.buildAST($1);
-        $$.buildAST($2);
-        $$.buildAST($4);
+        $$.build_AST($1);
+        $$.build_AST($2);
+        $$.build_AST($4);
     } | error PUNCTUATOR_SEMICOLON {
         $$ = Token("ErrorStmt");
         yyerrok;
@@ -122,44 +122,44 @@ Identifier:
 VarList:
     Assignable {
         $$ = Token("VarList");
-        $$.buildAST($1);
+        $$.build_AST($1);
     } | AssignmentExpr {
         $$ = Token("VarList");
-        $$.buildAST($1);
+        $$.build_AST($1);
     } | VarList PUNCTUATOR_COMMA Assignable {
         $$ = $1;
-        $$.buildAST($3);
+        $$.build_AST($3);
     } | VarList PUNCTUATOR_COMMA AssignmentExpr {
         $$ = $1;
-        $$.buildAST($3);
+        $$.build_AST($3);
     };
 AssignmentExpr:
     Assignable OPERATOR_ASSIGNMENT Expr {
         $$ = Token("AssignmentExpr");
-        $$.buildAST($1);
-        $$.buildAST(Token("Operator", $2));
-        $$.buildAST($3);
+        $$.build_AST($1);
+        $$.build_AST(Token("Operator", $2));
+        $$.build_AST($3);
     } | Assignable OPERATOR_ASSIGNMENT ArrayLiteral {
         $$ = Token("AssignmentExpr");
-        $$.buildAST($1);
-        $$.buildAST(Token("Operator", $2));
-        $$.buildAST($3);
+        $$.build_AST($1);
+        $$.build_AST(Token("Operator", $2));
+        $$.build_AST($3);
     };
 ParamList:
     ParamList PUNCTUATOR_COMMA Param {
         $$ = $1;
-        $$.buildAST($3);
+        $$.build_AST($3);
     } | Param {
         $$ = Token("ParamList");
-        $$.buildAST($1);
+        $$.build_AST($1);
     } | {
         $$ = Token("ParamList");
     };
 Param:
     Type Assignable {
         $$ = Token("ParamDecl");
-        $$.buildAST($1);
-        $$.buildAST($2);
+        $$.build_AST($1);
+        $$.build_AST($2);
     };
 BlockStmt:
     PUNCTUATOR_BRACE_LEFT StmtList PUNCTUATOR_BRACE_RIGHT {
@@ -173,10 +173,10 @@ BlockStmt:
 StmtList:
     StmtList Stmt {
         $$ = $1;
-        $$.buildAST($2);
+        $$.build_AST($2);
     } | Stmt {
         $$ = Token("BlockStmt");
-        $$.buildAST($1);
+        $$.build_AST($1);
     };
 Stmt:
     LocalDeclDef
@@ -184,13 +184,13 @@ Stmt:
       | Expr PUNCTUATOR_SEMICOLON
       | KEYWORD_RETURN Expr PUNCTUATOR_SEMICOLON {
         $$ = Token("ReturnStmt");
-        $$.buildAST($2);
+        $$.build_AST($2);
     } | KEYWORD_CONTINUE Expr PUNCTUATOR_SEMICOLON {
         $$ = Token("ContinueStmt");
-        $$.buildAST($2);
+        $$.build_AST($2);
     } | KEYWORD_BREAK Expr PUNCTUATOR_SEMICOLON {
         $$ = Token("BreakStmt");
-        $$.buildAST($2);
+        $$.build_AST($2);
     } | KEYWORD_RETURN PUNCTUATOR_SEMICOLON {
         $$ = Token("ReturnStmt");
     } | KEYWORD_CONTINUE PUNCTUATOR_SEMICOLON {
@@ -199,39 +199,39 @@ Stmt:
         $$ = Token("BreakStmt");
     } | KEYWORD_IF PUNCTUATOR_PARENTHESIS_LEFT Expr PUNCTUATOR_PARENTHESIS_RIGHT Stmt %prec IF_END {
         $$ = Token("IfStmt");
-        $$.buildAST($3);
-        $$.buildAST($5);
+        $$.build_AST($3);
+        $$.build_AST($5);
     } | KEYWORD_IF PUNCTUATOR_PARENTHESIS_LEFT Expr PUNCTUATOR_PARENTHESIS_RIGHT Stmt KEYWORD_ELSE Stmt {
         $$ = Token("IfStmt");
-        $$.buildAST($3);
-        $$.buildAST($5);
+        $$.build_AST($3);
+        $$.build_AST($5);
         Token elseStmt("ElseStmt");
-        elseStmt.buildAST($7);
-        $$.buildAST(elseStmt);
+        elseStmt.build_AST($7);
+        $$.build_AST(elseStmt);
     } | KEYWORD_WHILE PUNCTUATOR_PARENTHESIS_LEFT Expr PUNCTUATOR_PARENTHESIS_RIGHT Stmt {
         $$ = Token("WhileStmt");
-        $$.buildAST($3);
-        $$.buildAST($5);
+        $$.build_AST($3);
+        $$.build_AST($5);
     } | KEYWORD_DO Stmt KEYWORD_WHILE PUNCTUATOR_PARENTHESIS_LEFT Expr PUNCTUATOR_PARENTHESIS_RIGHT PUNCTUATOR_SEMICOLON {
         $$ = Token("DoWhileStmt");
-        $$.buildAST($2);
-        $$.buildAST($5);
+        $$.build_AST($2);
+        $$.build_AST($5);
     } | KEYWORD_FOR PUNCTUATOR_PARENTHESIS_LEFT LocalDeclDef Expr PUNCTUATOR_SEMICOLON Expr PUNCTUATOR_PARENTHESIS_RIGHT Stmt {
         $$ = Token("ForStmt");
-        $$.buildAST($3);
-        $$.buildAST($4);
-        $$.buildAST($6);
-        $$.buildAST($8);
+        $$.build_AST($3);
+        $$.build_AST($4);
+        $$.build_AST($6);
+        $$.build_AST($8);
     } | KEYWORD_FOR PUNCTUATOR_PARENTHESIS_LEFT Expr PUNCTUATOR_SEMICOLON Expr PUNCTUATOR_SEMICOLON Expr PUNCTUATOR_PARENTHESIS_RIGHT Stmt {
         $$ = Token("ForStmt");
-        $$.buildAST($3);
-        $$.buildAST($5);
-        $$.buildAST($7);
-        $$.buildAST($9);
+        $$.build_AST($3);
+        $$.build_AST($5);
+        $$.build_AST($7);
+        $$.build_AST($9);
     } | KEYWORD_SWITCH PUNCTUATOR_PARENTHESIS_LEFT Expr PUNCTUATOR_PARENTHESIS_RIGHT PUNCTUATOR_BRACE_LEFT SwitchBodyStmt PUNCTUATOR_BRACE_RIGHT {
         $$ = Token("SwitchStmt");
-        $$.buildAST($3);
-        $$.buildAST($6);
+        $$.build_AST($3);
+        $$.build_AST($6);
     } | error PUNCTUATOR_SEMICOLON {
         $$ = Token("ErrorStmt");
         yyerrok;
@@ -239,161 +239,158 @@ Stmt:
 SwitchBodyStmt:
     CaseStmtList DefaultStmt {
         $$ = $1;
-        $$.buildAST($2);
+        $$.build_AST($2);
     } | CaseStmtList
       | DefaultStmt {
         $$ = Token("SwitchBodyStmt");
-        $$.buildAST($1);
+        $$.build_AST($1);
     } | {
         $$ = Token("SwitchBodyStmt");
     };
 CaseStmtList:
     CaseStmtList CaseStmt {
         $$ = $1;
-        $$.buildAST($2);
+        $$.build_AST($2);
     } | CaseStmt {
         $$ = Token("SwitchBodyStmt");
-        $$.buildAST($1);
+        $$.build_AST($1);
     };
 CaseStmt:
     KEYWORD_CASE Expr PUNCTUATOR_COLON StmtList {
         $$ = Token("CaseStmt");
-        $$.buildAST($2);
-        $$.buildAST($4);
+        $$.build_AST($2);
+        $$.build_AST($4);
     } | KEYWORD_CASE Expr PUNCTUATOR_COLON {
         $$ = Token("CaseStmt");
-        $$.buildAST($2);
+        $$.build_AST($2);
     };
 DefaultStmt:
     KEYWORD_DEFAULT PUNCTUATOR_COLON StmtList {
         $$ = Token("DefaultStmt");
-        $$.buildAST($3);
+        $$.build_AST($3);
     } | KEYWORD_DEFAULT PUNCTUATOR_COLON {
         $$ = Token("DefaultStmt");
     };
 LocalDeclDef:
     Type VarList PUNCTUATOR_SEMICOLON {
         $$ = Token("LocalVarDecl");
-        $$.buildAST($1);
-        $$.buildAST($2);
+        $$.build_AST($1);
+        $$.build_AST($2);
     };
 Expr:
-    Assignable
-      | Literal
-      | CallExpr
-      | AssignmentExpr
-      | Assignable OPERATOR_COMPOUND_ASSIGNMENT Expr {
+    Assignable | Literal | CallExpr | AssignmentExpr
+    | Assignable OPERATOR_COMPOUND_ASSIGNMENT Expr {
         $$ = Token("CompoundAssignmentExpr");
-        $$.buildAST($1);
-        $$.buildAST(Token("Operator", $2));
-        $$.buildAST($3);
+        $$.build_AST($1);
+        $$.build_AST(Token("Operator", $2));
+        $$.build_AST($3);
     } | Expr OPERATOR_QUESTION Expr PUNCTUATOR_COLON Expr {
         $$ = Token("TernaryExpr");
-        $$.buildAST($1);
-        $$.buildAST(Token("Operator", "?"));
-        $$.buildAST($3);
-        $$.buildAST(Token("Operator", ":"));
-        $$.buildAST($5);
+        $$.build_AST($1);
+        $$.build_AST(Token("Operator", "?"));
+        $$.build_AST($3);
+        $$.build_AST(Token("Operator", ":"));
+        $$.build_AST($5);
     } | Expr OPERATOR_LOGICAL_AND Expr {
         $$ = Token("BinaryExpr");
-        $$.buildAST($1);
-        $$.buildAST(Token("Operator", $2));
-        $$.buildAST($3);
+        $$.build_AST($1);
+        $$.build_AST(Token("Operator", $2));
+        $$.build_AST($3);
     } | Expr OPERATOR_LOGICAL_OR Expr {
         $$ = Token("BinaryExpr");
-        $$.buildAST($1);
-        $$.buildAST(Token("Operator", $2));
-        $$.buildAST($3);
+        $$.build_AST($1);
+        $$.build_AST(Token("Operator", $2));
+        $$.build_AST($3);
     } | Expr OPERATOR_BITWISE_AND Expr {
         $$ = Token("BinaryExpr");
-        $$.buildAST($1);
-        $$.buildAST(Token("Operator", $2));
-        $$.buildAST($3);
+        $$.build_AST($1);
+        $$.build_AST(Token("Operator", $2));
+        $$.build_AST($3);
     } | Expr OPERATOR_BITWISE_OR Expr {
         $$ = Token("BinaryExpr");
-        $$.buildAST($1);
-        $$.buildAST(Token("Operator", $2));
-        $$.buildAST($3);
+        $$.build_AST($1);
+        $$.build_AST(Token("Operator", $2));
+        $$.build_AST($3);
     } | Expr OPERATOR_BITWISE_XOR Expr {
         $$ = Token("BinaryExpr");
-        $$.buildAST($1);
-        $$.buildAST(Token("Operator", $2));
-        $$.buildAST($3);
+        $$.build_AST($1);
+        $$.build_AST(Token("Operator", $2));
+        $$.build_AST($3);
     } | Expr OPERATOR_SHIFT_RIGHT Expr {
         $$ = Token("BinaryExpr");
-        $$.buildAST($1);
-        $$.buildAST(Token("Operator", $2));
-        $$.buildAST($3);
+        $$.build_AST($1);
+        $$.build_AST(Token("Operator", $2));
+        $$.build_AST($3);
     } | Expr OPERATOR_SHIFT_LEFT Expr {
         $$ = Token("BinaryExpr");
-        $$.buildAST($1);
-        $$.buildAST(Token("Operator", $2));
-        $$.buildAST($3);
+        $$.build_AST($1);
+        $$.build_AST(Token("Operator", $2));
+        $$.build_AST($3);
     } | Expr OPERATOR_RELATIONAL Expr {
         $$ = Token("RelationalExpr");
-        $$.buildAST($1);
-        $$.buildAST(Token("Operator", $2));
-        $$.buildAST($3);
+        $$.build_AST($1);
+        $$.build_AST(Token("Operator", $2));
+        $$.build_AST($3);
     } | Expr OPERATOR_PLUS Expr {
         $$ = Token("BinaryExpr");
-        $$.buildAST($1);
-        $$.buildAST(Token("Operator", $2));
-        $$.buildAST($3);
+        $$.build_AST($1);
+        $$.build_AST(Token("Operator", $2));
+        $$.build_AST($3);
     } | Expr OPERATOR_MINUS Expr {
         $$ = Token("BinaryExpr");
-        $$.buildAST($1);
-        $$.buildAST(Token("Operator", $2));
-        $$.buildAST($3);
+        $$.build_AST($1);
+        $$.build_AST(Token("Operator", $2));
+        $$.build_AST($3);
     } | Expr OPERATOR_MULTIPLY Expr {
         $$ = Token("BinaryExpr");
-        $$.buildAST($1);
-        $$.buildAST(Token("Operator", $2));
-        $$.buildAST($3);
+        $$.build_AST($1);
+        $$.build_AST(Token("Operator", $2));
+        $$.build_AST($3);
     } | Expr OPERATOR_DIVIDE Expr {
         $$ = Token("BinaryExpr");
-        $$.buildAST($1);
-        $$.buildAST(Token("Operator", $2));
-        $$.buildAST($3);
+        $$.build_AST($1);
+        $$.build_AST(Token("Operator", $2));
+        $$.build_AST($3);
     } | Expr OPERATOR_MODULUS Expr {
         $$ = Token("BinaryExpr");
-        $$.buildAST($1);
-        $$.buildAST(Token("Operator", $2));
-        $$.buildAST($3);
+        $$.build_AST($1);
+        $$.build_AST(Token("Operator", $2));
+        $$.build_AST($3);
     } | PUNCTUATOR_PARENTHESIS_LEFT Expr PUNCTUATOR_PARENTHESIS_RIGHT {
         $$ = Token("ParenthesisExpr");
-        $$.buildAST($2);
+        $$.build_AST($2);
     } | OPERATOR_PLUS Expr %prec OPERATOR_UNARY_PLUS {
         $$ = Token("PrefixExpr");
-        $$.buildAST(Token("Operator", $1));
-        $$.buildAST($2);
+        $$.build_AST(Token("Operator", $1));
+        $$.build_AST($2);
     } | OPERATOR_MINUS Expr %prec OPERATOR_UNARY_MINUS {
         $$ = Token("PrefixExpr");
-        $$.buildAST(Token("Operator", $1));
-        $$.buildAST($2);
+        $$.build_AST(Token("Operator", $1));
+        $$.build_AST($2);
     } | OPERATOR_LOGICAL_NOT Expr {
         $$ = Token("PrefixExpr");
-        $$.buildAST(Token("Operator", $1));
-        $$.buildAST($2);
+        $$.build_AST(Token("Operator", $1));
+        $$.build_AST($2);
     } | OPERATOR_BITWISE_NOT Expr {
         $$ = Token("PrefixExpr");
-        $$.buildAST(Token("Operator", $1));
-        $$.buildAST($2);
+        $$.build_AST(Token("Operator", $1));
+        $$.build_AST($2);
     } | OPERATOR_INCREMENT Expr {
         $$ = Token("PrefixExpr");
-        $$.buildAST(Token("Operator", $1));
-        $$.buildAST($2);
+        $$.build_AST(Token("Operator", $1));
+        $$.build_AST($2);
     } | OPERATOR_DECREMENT Expr {
         $$ = Token("PrefixExpr");
-        $$.buildAST(Token("Operator", $1));
-        $$.buildAST($2);
+        $$.build_AST(Token("Operator", $1));
+        $$.build_AST($2);
     } | Expr OPERATOR_INCREMENT {
         $$ = Token("PostfixExpr");
-        $$.buildAST($1);
-        $$.buildAST(Token("Operator", $2));
+        $$.build_AST($1);
+        $$.build_AST(Token("Operator", $2));
     } | Expr OPERATOR_DECREMENT {
         $$ = Token("PostfixExpr");
-        $$.buildAST($1);
-        $$.buildAST(Token("Operator", $2));
+        $$.build_AST($1);
+        $$.build_AST(Token("Operator", $2));
     };
 Literal:
     LITERAL_INTEGER {
@@ -412,10 +409,10 @@ ArrayLiteral:
 ArrayItemList:
     ArrayItemList PUNCTUATOR_COMMA ArrayItem {
         $$ = $1;
-        $$.buildAST($3);
+        $$.build_AST($3);
     } | ArrayItem {
         $$ = Token("ArrayLiteral");
-        $$.buildAST($1);
+        $$.build_AST($1);
     } | {
         $$ = Token("ArrayLiteral");
     };
@@ -424,35 +421,35 @@ ArrayItem:
 CallExpr:
     CallExpr PUNCTUATOR_PARENTHESIS_LEFT ArgumentList PUNCTUATOR_PARENTHESIS_RIGHT {
         $$ = $1;
-        $$.buildAST($3);
+        $$.build_AST($3);
     } | Assignable PUNCTUATOR_PARENTHESIS_LEFT ArgumentList PUNCTUATOR_PARENTHESIS_RIGHT {
         $$ = Token("CallExpr");
-        $$.buildAST($1);
-        $$.buildAST($3);
+        $$.build_AST($1);
+        $$.build_AST($3);
     };
 ArgumentList:
     ArgumentList PUNCTUATOR_COMMA Expr {
         $$ = $1;
-        $$.buildAST($3);
+        $$.build_AST($3);
     } | Expr {
         $$ = Token("ArgumentList");
-        $$.buildAST($1);
+        $$.build_AST($1);
     } | {
         $$ = Token("ArgumentList");
     };
 IndexExpr:
     IndexExpr PUNCTUATOR_BRACKET_LEFT Index PUNCTUATOR_BRACKET_RIGHT {
         $$ = $1;
-        $$.buildAST($3);
+        $$.build_AST($3);
     } | Identifier PUNCTUATOR_BRACKET_LEFT Index PUNCTUATOR_BRACKET_RIGHT {
         $$ = Token("IndexExpr");
-        $$.buildAST($1);
-        $$.buildAST($3);
+        $$.build_AST($1);
+        $$.build_AST($3);
     };
 Index:
     Expr {
         $$ = Token("Index");
-        $$.buildAST($1);
+        $$.build_AST($1);
     } | {
         $$ = Token("Index");
     };

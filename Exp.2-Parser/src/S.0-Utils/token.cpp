@@ -13,18 +13,18 @@ Token::Token() : name(), value(), children() {}
 
 Token::~Token() = default;
 
-void Token::buildAST(const Token &child) { children.push_back(child); }
+void Token::build_AST(const Token &child) { children.push_back(child); }
 
-string Token::getName() const { return name; }
+string Token::get_name() const { return name; }
 
-string Token::getValue() const { return value; }
+string Token::get_value() const { return value; }
 
-string Token::prettyPrint(const string prefix, const string childPrefix) const {
+string Token::pretty_print(const string prefix,
+                           const string child_prefix) const {
     stringstream s;
     s << endl;
     s << BOLD_GREEN << prefix << RESET_COLOR;
-    s << "(" << (name.find("ErrorStmt") == string::npos ? BLUE : BOLD_RED)
-      << name << RESET_COLOR;
+    s << "(" << (name == "ErrorStmt" ? BOLD_RED : BLUE) << name << RESET_COLOR;
     if (!value.empty()) {
         s << ", ";
         if (name == "Type") {
@@ -42,11 +42,11 @@ string Token::prettyPrint(const string prefix, const string childPrefix) const {
     if (!children.empty()) {
         for (auto it = children.cbegin(); it != children.cend(); ++it) {
             if (it + 1 == children.cend()) {
-                s << it->prettyPrint(childPrefix + "└── ",
-                                     childPrefix + "    ");
+                s << it->pretty_print(child_prefix + "└── ",
+                                      child_prefix + "    ");
             } else {
-                s << it->prettyPrint(childPrefix + "├── ",
-                                     childPrefix + "│   ");
+                s << it->pretty_print(child_prefix + "├── ",
+                                      child_prefix + "│   ");
             }
         }
     }
