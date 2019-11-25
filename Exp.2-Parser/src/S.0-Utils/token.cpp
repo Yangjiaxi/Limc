@@ -23,8 +23,8 @@ string Token::prettyPrint(const string prefix, const string childPrefix) const {
     stringstream s;
     s << endl;
     s << BOLD_GREEN << prefix << RESET_COLOR;
-    s << "(" << (name.find("ERROR") == string::npos ? BLUE : RED) << name
-      << RESET_COLOR;
+    s << "(" << (name.find("ErrorStmt") == string::npos ? BLUE : BOLD_RED)
+      << name << RESET_COLOR;
     if (!value.empty()) {
         s << ", ";
         if (name == "Type") {
