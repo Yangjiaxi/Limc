@@ -3,7 +3,7 @@
 ```java
 Program ->
     // < a.file
-    | GlobalDeclDefList 
+    | GlobalDeclDefList
 
 GlobalDeclDefList ->
     // GlobalDeclDef {GlobalDeclDef}
@@ -233,4 +233,47 @@ IndexExpr ->
 Index ->
     | Expr
     | [eps]
+```
+
+```java
+Expr ->
+    | AssignmentExpr
+    | CompoundAssignmentExpr
+    | TernaryExpr
+    | BinaryExpr
+    | RelationalExpr
+    | ParenthesisExpr
+    | PrefixExpr
+    | PostfixExpr
+    | CallExpr
+    | IndexExpr
+
+Stmt ->
+    | ErrorStmt
+    | BlockStmt
+    | ReturnStmt
+    | ContinueStmt
+    | BreakStmt
+    | ContinueStmt
+    | IfStmt
+    | ElseStmt
+    | WhileStmt
+    | DoWhileStmt
+    | ForStmt
+    | SwitchStmt
+    | SwitchBodyStmt
+    | CaseStmt
+    | DefaultStmt
+
+Decl ->
+    | GlobalVarDecl
+    | FunctionDecl
+    | ParamDecl
+    | LocalVarDecl
+
+List ->
+    | GlobalDeclDefList
+    | VarList
+    | ParamList
+    | ArgumentList
 ```
