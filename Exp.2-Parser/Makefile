@@ -4,10 +4,12 @@ s0 = src/S.0-Utils
 s1 = src/S.1-Scanner
 s2 = src/S.2-Parser
 
+g++_option=-std=c++11 -w
+
 all:
 	flex -o $(s1)/scanner.cpp $(s1)/scanner.l
 	bison -v -o $(s2)/parser.cpp $(s2)/parser.y
-	g++ -std=c++11 -w -pipe -g \
+	g++ ${g++_option} -pipe -g \
 		src/main.cpp \
 		$(s1)/scanner.cpp \
 		$(s2)/parser.cpp \
@@ -19,7 +21,7 @@ gen:
 	bison -v -o $(s2)/parser.cpp $(s2)/parser.y
 
 gcc:
-	g++ -std=c++11 -w -pipe -g \
+	g++ $(g++_option) -pipe -g \
 		src/main.cpp \
 		$(s1)/scanner.cpp \
 		$(s2)/parser.cpp \

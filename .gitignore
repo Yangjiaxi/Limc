@@ -2,6 +2,7 @@
 compiler.dSYM
 exec.out.dSYM
 .vscode
+build
 
 position.hh
 parser.cpp
