@@ -3,6 +3,8 @@ compiler.dSYM
 exec.out.dSYM
 .vscode
 build
+test_new
+
 
 position.hh
 parser.cpp
