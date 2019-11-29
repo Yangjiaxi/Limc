@@ -3,8 +3,7 @@
 
 using namespace Limc;
 
-Driver::Driver()
-    : tokens(), scanner(*this), parser(scanner, *this), loc(location()) {}
+Driver::Driver() : tokens(), scanner(*this), parser(scanner, *this), loc(location()) {}
 
 int Driver::parse() {
     loc.initialize();
@@ -16,11 +15,11 @@ void Driver::clear() {
     tokens.clear();
 }
 
-string Driver::pretty_print() const {
+string Driver::print() const {
     stringstream s;
     s << "Abstract Syntax Tree:" << endl;
     for (const auto &token : tokens) {
-        s << token.pretty_print() << endl;
+        s << token.print() << endl;
     }
     return s.str();
 }
@@ -31,11 +30,11 @@ void Driver::switchInputStream(istream *is) {
     tokens.clear();
 }
 
-void Driver::addToken(const Token &token) { tokens.push_back(token); }
+void Driver::add_token(const Token &token) { tokens.push_back(token); }
 
 void Driver::inc_x(int x) {
-    loc.columns(x);
     loc.step();
+    loc.columns(x);
 }
 
 void Driver::inc_y(int y) {
@@ -43,4 +42,4 @@ void Driver::inc_y(int y) {
     loc.step();
 }
 
-Limc::location &Driver::getLocation() { return loc; }
+location &Driver::get_loc() { return loc; }

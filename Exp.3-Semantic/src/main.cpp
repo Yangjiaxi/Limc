@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
     string line = string(50, '-');
     cout << "Parsing..." << endl << line << endl;
     int res = driver.parse();
-    cout << line << endl;
+    cout << driver.print() << endl;
     if (!res) {
         cout << BOLD_GREEN << "Parse Finish!" << RESET_COLOR << endl;
     } else {

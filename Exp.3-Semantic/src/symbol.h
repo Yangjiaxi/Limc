@@ -12,8 +12,9 @@ class Symbol {
 
     Symbol(const Token &name, const Token &type, int scope);
 
-    Symbol(const Token &name, const Token &type, vector<string> parameters,
-           int scope);
+    Symbol(
+        const Token &name, const Token &type, vector<string> parameters,
+        int scope);
 
     string name;
     string type;

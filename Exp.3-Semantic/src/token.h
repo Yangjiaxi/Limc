@@ -1,7 +1,9 @@
 #ifndef _TOKEN_H
 #define _TOKEN_H
 
-#include <string>
+#include "location.hh"
+#include <optional>
+#include <sstream>
 #include <vector>
 
 using namespace std;
@@ -11,24 +13,32 @@ class Token {
   public:
     Token(string name, string value);
 
-    Token(string name);
+    explicit Token(string name);
+
+    Token(string name, string value, location loc);
+
+    Token(string name, location loc);
 
     Token();
 
-    ~Token();
+    // ~Token();
 
     Token &build_AST(const Token &child);
 
-    string pretty_print(const string prefix = "",
-                        const string child_prefix = "") const;
+    string print(const string pre = "", const string ch_pre = "") const;
 
     string get_name() const;
 
+    void set_name(const string &name);
+
     string get_value() const;
+
+    optional<location> get_loc() const;
 
   private:
     string name;
     string value;
+    optional<location> loc;
     vector<Token> children;
 };
 } // namespace Limc

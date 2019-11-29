@@ -1,22 +1,20 @@
-int a, b, c;
-float m, n;
+int b, c;
+float m, n = b + 10;
 
-int fibo(int a)
-{
+int a[100][100][100];
+
+int fibo(int a, int b, int c, int d, int e, int f) {
     if (a == 1 || a == 2)
         return 1;
     return fibo(a - 1) + fibo(a - 2);
 }
 
-int main()
-{
+int main() {
+    int c = a[101][100][1];
     int m, n, i;
-    m = read();
     i = 1;
-    while (i <= m)
-    {
+    while (i <= m) {
         n = fibo(i);
-        write(n);
         i = i + 1;
     }
     return 1;

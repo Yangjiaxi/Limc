@@ -1,9 +1,9 @@
 #ifndef _ANALYZER_H
 #define _ANALYZER_H
 
-#include "../S.0-Utils/driver.h"
-#include "../S.0-Utils/token.h"
+#include "driver.h"
 #include "symbol.h"
+#include "token.h"
 
 namespace Limc {
 
@@ -14,8 +14,7 @@ class SemanticAnalyzer {
     void analyze(const Token &root);
 
   private:
-    static runtime_error semanticError(const string &message,
-                                       const Token &token);
+    static runtime_error semanticError(const string &message, const Token &token);
 
     string checkType(const Token &token);
 
@@ -23,8 +22,7 @@ class SemanticAnalyzer {
 
     void insert(const Token &name, const string &type);
 
-    void insert(const Token &name, const Token &type,
-                const vector<Token> &arguments);
+    void insert(const Token &name, const Token &type, const vector<Token> &arguments);
 
     static optional<Token> find(const Token &root, const string &name);
 

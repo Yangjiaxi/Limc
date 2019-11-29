@@ -12,7 +12,7 @@ class Driver {
 
     void clear();
 
-    string pretty_print() const;
+    string print() const;
 
     void switchInputStream(istream *is);
 
@@ -21,19 +21,20 @@ class Driver {
     friend class Scanner;
 
   private:
-    void addToken(const Token &token);
+    void add_token(const Token &token);
 
     void inc_x(int x);
 
     void inc_y(int y);
 
-    Limc::location &getLocation();
+    location &get_loc();
 
     Scanner scanner;
     Parser parser;
     // Analyzer analyzer;
+
     vector<Token> tokens;
-    Limc::location loc;
+    location loc;
 };
 } // namespace Limc
 

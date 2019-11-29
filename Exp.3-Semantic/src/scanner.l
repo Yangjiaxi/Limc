@@ -11,12 +11,13 @@ NEWLINE     \n|(\r\n)
 WHITESPACE  [ \t\v\f]
 
 %{
+    #include "driver.h"
+    #include "color.h"
+
     #if __cplusplus > 199711L
     #define register      // Deprecated in C++11.
     #endif  // #if __cplusplus > 199711L
 
-    #include "driver.h"
-    #include "color.h"
     #define YY_USER_ACTION driver.inc_x(yyleng);
 %}
 %option nodefault
@@ -34,9 +35,10 @@ WHITESPACE  [ \t\v\f]
     #define register      // Deprecated in C++11.
     #endif  // #if __cplusplus > 199711L
     
-    auto loc = driver.getLocation();
-    #define ACTION(NAME) Limc::Parser::make_##NAME(loc)
-    #define ACTION_ARG(NAME) Limc::Parser::make_##NAME(yytext, loc)
+    auto loc = &driver.get_loc();
+    
+    #define ACTION(NAME) Limc::Parser::make_##NAME(*loc)
+    #define ACTION_ARG(NAME) Limc::Parser::make_##NAME(yytext, *loc)
 %}
 
 "/*"                    { BEGIN(COMMENT_BLOCK); }
@@ -45,14 +47,14 @@ WHITESPACE  [ \t\v\f]
 <COMMENT_BLOCK>.        { }
 <COMMENT_BLOCK><<EOF>>  { }
 
-\/\/(.*)    { driver.inc_y(1); }
+\/\/(.*)    {  }
 
 {INTEGER}       { return ACTION_ARG(LITERAL_INTEGER); }
 {FLOAT}         { return ACTION_ARG(LITERAL_FLOAT); }
 {CHAR}          { return ACTION_ARG(LITERAL_CHAR); }
 {STRING}        { return ACTION_ARG(LITERAL_STRING); }
 
-"int"|"float"|"long"|"char"|"double"|"void"|"short" { return ACTION_ARG(KW_TYPE); }
+"int"|"char"|"float"|"void" { return ACTION_ARG(KW_TYPE); }
 
 "return"    { return ACTION(KW_RETURN); }
 "break"     { return ACTION(KW_BREAK); }
@@ -108,5 +110,5 @@ WHITESPACE  [ \t\v\f]
 
 . {
     cout << RED << "Error: unexpected " << yytext << endl 
-         << YELLOW << "Location: " << loc << RESET_COLOR << endl;
+         << YELLOW << "Location: " << *loc << RESET_COLOR << endl;
 }

@@ -9,7 +9,7 @@ int PARTITION(int a[], int left, int right) {
         if (a[j] <= key) //排序关，修改为>=可实现升序排列
         {
             i++;
-            swap(&a[i], a[j]);
+            swap(a[i], a[j]);
         }
     }
     swap(a[i + 1], a[right]); //这时数组模型：[比Key小][比Key大]Key --交换-->
