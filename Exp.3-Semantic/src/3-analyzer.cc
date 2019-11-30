@@ -12,35 +12,37 @@ runtime_error Semantic::semantic_error(const string &msg, const Token &token) {
 }
 
 void Semantic::try_insert(const Token &name, const Token &type) {
-    stringstream s;
-    s << "{" << name.get_loc().value() << "}";
-    auto err = tables.back().insert_symbol(Symbol(name, type, tables.size(), s.str()));
+    auto &alias = tables.back().get_alias();
+    auto  err   = tables.back().insert_symbol(Symbol(name, type, tables.size(), alias));
     if (err) {
         driver.add_error("Symbol `" + name.get_value() + "` has already been declared. ", name);
     }
 }
 
 void Semantic::try_insert(const Token &name, const string &type) {
-    stringstream s;
-    s << "{" << name.get_loc().value() << "}";
-    auto err = tables.back().insert_symbol(Symbol(name.get_value(), type, tables.size(), s.str()));
+    auto err = tables.back().insert_symbol(
+        Symbol(name.get_value(), type, tables.size(), tables.back().get_alias()));
     if (err) {
         driver.add_error("Symbol `" + name.get_value() + "` has already been declared. ", name);
     }
 }
 
 void Semantic::try_insert(const Token &name, const Token &type, const vector<Token> &paramaters) {
-    stringstream   s;
     vector<string> param_types;
     for (const auto &param : paramaters) {
         // get parameters' type, [0] <- type name
         param_types.push_back(param.get_child(0).get_value());
     }
-    s << "{" << name.get_loc().value() << "}";
-    auto err = tables.back().insert_symbol(Symbol(name, type, param_types, tables.size(), s.str()));
+    auto err = tables.back().insert_symbol(
+        Symbol(name, type, param_types, tables.size(), tables.back().get_alias()));
     if (err) {
         driver.add_error("Symbol `" + name.get_value() + "` has already been declared. ", name);
     }
+}
+
+void Semantic::new_table(const string &name) {
+    tables.emplace_back(name);
+    return;
 }
 
 void Semantic::new_table() {
@@ -53,13 +55,63 @@ void Semantic::leave_table() {
     return;
 }
 
-string Semantic::check_ty(const Token &token) {
-    // TODO
-    return token.get_value();
+string Semantic::check_ident(const Token &root) {
+    // todo
+}
+string Semantic::check_binary_expr(const Token &root) {
+    // todo
+}
+string Semantic::check_assignment_expr(const Token &root) {
+    // todo
+}
+string Semantic::check_parenthesis_expr(const Token &root) {
+    // todo
+}
+string Semantic::check_prefix_expr(const Token &root) {
+    // todo
+}
+string Semantic::check_postfix_expr(const Token &root) {
+    // todo
+}
+string Semantic::check_ternary_expr(const Token &root) {
+    // todo
+}
+string Semantic::check_call_expr(const Token &root) {
+    // todo
+}
+string Semantic::check_index_expr(const Token &root) {
+    // todo
 }
 
-// string Semantic::gen_type(const Token &type_token) {}
+string Semantic::check_array_literal(const Token &root) {
+    // todo
+}
 
+string Semantic::check_ty(const Token &root) {
+    // TODO
+    return match(root.get_value())(
+        pattern("Identifier")             = [&] { return check_ident(root); },
+        pattern("BinaryExpr")             = [&] { return check_binary_expr(root); },
+        pattern("RelationalExpr")         = [&] { return check_binary_expr(root); },
+        pattern("AssignmentExpr")         = [&] { return check_assignment_expr(root); },
+        pattern("CompoundAssignmentExpr") = [&] { return check_assignment_expr(root); },
+        pattern("ParenthesisExpr")        = [&] { return check_parenthesis_expr(root); },
+        pattern("PrefixExpr")             = [&] { return check_prefix_expr(root); },
+        pattern("PostfixExpr")            = [&] { return check_postfix_expr(root); },
+        pattern("TernaryExpr")            = [&] { return check_ternary_expr(root); },
+        pattern("CallExpr")               = [&] { return check_call_expr(root); },
+        pattern("IndexExpr")              = [&] { return check_index_expr(root); },
+        pattern("ArrayLiteral")           = [&] { return check_array_literal(root); },
+        pattern("IntegerLiteral")         = [] { return "int"; },
+        pattern("FloatLiteral")           = [] { return "float"; },
+        pattern("CharLiteral")            = [] { return "char"; },
+        pattern(_)                        = [] { return ""; }
+
+    );
+}
+/*
+ pattern("")        = [&] { return (root); },
+ */
 void Semantic::walk_var_decl(const Token &root) {
     // 声明部分
     /*
@@ -104,7 +156,7 @@ void Semantic::walk_func_def(const Token &root) {
     auto children   = root.get_children();
     auto parameters = children[2].get_children();
     try_insert(children[1], children[0], parameters);
-    new_table();
+    new_table("F(" + children[1].get_value() + ")");
     for (const auto &param : parameters) {
         try_insert(param.get_child(1), param.get_child(0));
     }
@@ -133,25 +185,68 @@ void Semantic::walk_block(const Token &root) {
     leave_table();
 }
 
-void Semantic::walk_return_stmt(const Token &root) {
-    auto children = root.get_children();
-    if (inner_return_ty.empty() && !children.empty()) {
-        // return check
-    } else {
-        walk_multi_stmt(root);
-    }
-}
-
-void Semantic::walk_multi_stmt(const Token &root) { cout << "In multi Stmt" << endl; }
-
 void Semantic::walk(const Token &root) {
+    bool matched = true;
     match(root.get_name())(
         pattern("GlobalVarDecl") = [&] { walk_var_decl(root); },
         pattern("LocalVarDecl")  = [&] { walk_var_decl(root); },
         pattern("FuncDef")       = [&] { walk_func_def(root); },
         pattern("BlockStmt")     = [&] { walk_block(root); },
         pattern("Program")       = [&] { walk_block(root); },
-        pattern("ReturnStmt")    = [&] { walk_return_stmt(root); }
+        pattern(_)               = [&] { matched = false; }
 
     );
+    if (matched)
+        return;
+    auto children = root.get_children();
+    if (root == "ReturnStmt" && inner_return_ty.empty() && !children.empty()) {
+        try {
+            inner_return_ty = check_ty(children[0]);
+        } catch (runtime_error &e) {
+            driver.add_error(e.what());
+        }
+    } else {
+        optional<string> res = nullopt;
+        try {
+            res = check_ty(root);
+        } catch (runtime_error &e) {
+            driver.add_error(e.what());
+        }
+        if (res != nullopt && res.value().empty()) {
+            cout << "Type: " << root.get_name() << endl;
+            match(root.get_name())(
+                pattern("WhileStmt")   = [&] { ++loops; },
+                pattern("DoWhileStmt") = [&] { ++loops; },
+                pattern("ForStmt")     = [&] { ++loops; },
+                pattern("SwitchStmt")  = [&] { ++switchs; },
+                pattern("ContinueStmt") =
+                    [&] {
+                        if (!loops) {
+                            driver.add_error("Continue should stay in loop blocks.", root);
+                        }
+                    },
+                pattern("BreakStmt") =
+                    [&] {
+                        if (!loops && !switchs) {
+                            driver.add_error("Break should stay in loop or switch blocks.", root);
+                        }
+                    },
+                pattern(_) = [] {}
+
+            );
+
+            for (const auto &child : children) {
+                walk(child);
+            }
+
+            match(root.get_name())(
+                pattern("WhileStmt")   = [&] { --loops; },
+                pattern("DoWhileStmt") = [&] { --loops; },
+                pattern("ForStmt")     = [&] { --loops; },
+                pattern("SwitchStmt")  = [&] { --switchs; },
+                pattern(_)             = [] {}
+
+            );
+        }
+    }
 }

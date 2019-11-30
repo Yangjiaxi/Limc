@@ -32,11 +32,18 @@ class Symbol {
 
 class SymbolTable {
   public:
+    SymbolTable(const string &name) : name(name) {}
+
+    SymbolTable() = default;
+
+    string &get_alias() { return name; };
+
     int insert_symbol(const Symbol &symbol);
 
     optional<Symbol> find_symbol(const string &name);
 
   private:
+    string                        name;
     unordered_map<string, Symbol> table;
 };
 } // namespace Limc

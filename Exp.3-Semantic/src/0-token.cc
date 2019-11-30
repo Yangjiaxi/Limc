@@ -117,3 +117,5 @@ string Token::print(const string pre, const string ch_pre) const {
     }
     return s.str();
 }
+
+bool Token::operator==(const string &str) const { return name == str; }

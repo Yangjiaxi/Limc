@@ -37,6 +37,8 @@ class Token {
 
     optional<location> get_loc() const;
 
+    bool operator==(const string &str) const;
+
   private:
     string             name;
     string             value;

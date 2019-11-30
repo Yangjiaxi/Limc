@@ -46,7 +46,14 @@ int SymbolTable::insert_symbol(const Symbol &symbol) {
     build_str(ss, std::to_string(symbol.scope), YELLOW, 3);
 
     build_str(ss, " | ", RED);
-    build_str(ss, symbol.scope_alias, BOLD_YELLOW, 10);
+    string alias = symbol.scope_alias;
+    if (alias.empty()) {
+        if (symbol.scope > 1)
+            alias = "BLOCK";
+        else
+            alias = "GLOBAL";
+    }
+    build_str(ss, alias, BOLD_YELLOW, 10);
 
     build_str(ss, " | ", RED);
     build_str(ss, symbol.type, GREEN, 15);
