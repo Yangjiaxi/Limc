@@ -1,5 +1,5 @@
-int *fn() {
-    int a = 1;
-    int c = 12;
-    return &c;
+int main(int argc, char **argv) {
+    int ****a;
+    int *** b[10][10];
+    return 0;
 }

@@ -28,6 +28,10 @@ class Semantic {
 
     static optional<Token> find(const Token &root, const string &name);
 
+    void new_table();
+
+    void leave_table();
+
     vector<SymbolTable> tables;
 
     int loops = 0;
@@ -37,6 +41,15 @@ class Semantic {
     string inner_return_ty;
 
     Driver &driver;
+
+  private:
+    string gen_type(const Token &type_token);
+
+    void walk_var_decl(const Token &root);
+    void walk_func_def(const Token &root);
+    void walk_block(const Token &root);
+    void walk_return_stmt(const Token &root);
+    void walk_multi_stmt(const Token &root);
 };
 } // namespace Limc
 

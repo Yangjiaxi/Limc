@@ -27,7 +27,7 @@ class Symbol {
     vector<string> parameters;
     string         scope_alias; // for debug
     int            scope;
-    bool           isFunction;
+    bool           is_func;
 };
 
 class SymbolTable {

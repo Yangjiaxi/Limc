@@ -1,27 +1,73 @@
 #include "3-symbol.h"
+#include "0-color.h"
 #include "optional"
+#include <iomanip>
 
 using namespace Limc;
 
+static stringstream &
+build_str(stringstream &ss, const string &value, const char *color, const unsigned width = 0) {
+    if (width)
+        ss << color << setw(width) << value << RESET_COLOR;
+    else
+        ss << color << value << RESET_COLOR;
+    return ss;
+}
+
+static stringstream &build_str(stringstream &ss, const string &value, const unsigned width = 0) {
+    if (width)
+        ss << setw(width) << value << RESET_COLOR;
+    else
+        ss << value << RESET_COLOR;
+    return ss;
+}
+
 Symbol::Symbol(string name, string type, int scope, string scope_alias)
-    : name(move(name)), type(move(type)), scope(scope), parameters(),
+    : name(move(name)), type(move(type)), scope(scope), parameters(), is_func(false),
       scope_alias(move(scope_alias)) {}
 
 Symbol::Symbol(const Token &name, const Token &type, int scope, string scope_alias)
-    : name(name.get_value()), type(type.get_value()), scope(scope), parameters(),
+    : name(name.get_value()), type(type.get_value()), scope(scope), parameters(), is_func(false),
       scope_alias(move(scope_alias)) {}
 
 Symbol::Symbol(
     const Token &name, const Token &type, vector<string> parameters, int scope, string scope_alias)
-    : name(name.get_value()), type(type.get_name()), parameters(move(parameters)), scope(scope),
-      scope_alias(move(scope_alias)) {}
+    : name(name.get_value()), type(type.get_value()), parameters(move(parameters)), scope(scope),
+      is_func(true), scope_alias(move(scope_alias)) {}
 
 int SymbolTable::insert_symbol(const Symbol &symbol) {
+    // otherwise, insert
+    stringstream ss;
+
+    build_str(ss, " | ", RED);
+    build_str(ss, symbol.name, BLUE, 7);
+
+    build_str(ss, " | ", RED);
+    build_str(ss, std::to_string(symbol.scope), YELLOW, 3);
+
+    build_str(ss, " | ", RED);
+    build_str(ss, symbol.scope_alias, BOLD_YELLOW, 10);
+
+    build_str(ss, " | ", RED);
+    build_str(ss, symbol.type, GREEN, 15);
+
+    build_str(ss, " | ", RED);
+    build_str(ss, symbol.is_func ? "function" : "", MAGENTA, 8);
+
+    build_str(ss, " | ", RED);
+
+    for (const auto &param : symbol.parameters) {
+        build_str(ss, param, CYAN);
+        if (&param != &symbol.parameters.back())
+            build_str(ss, ",", YELLOW);
+    }
+
+    cout << ss.str() << endl;
+
     if (table.find(symbol.name) != table.end()) {
         // Already exist in this scope
         return 1;
     }
-    // otherwise, insert
     table.insert({symbol.name, symbol});
     return 0;
 }

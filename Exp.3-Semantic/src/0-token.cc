@@ -42,7 +42,13 @@ string Token::get_name() const { return name; }
 
 void Token::set_name(const string &_name) { name = _name; }
 
-string Token::get_value() const { return value; }
+string Token::get_value() const {
+    if (name == "Pointer") {
+        return get_child(0).get_value() + "*";
+    } else {
+        return value;
+    }
+}
 
 vector<Token> Token::get_children() const { return children; }
 
