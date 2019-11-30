@@ -1,5 +1,16 @@
 # Grammar
 
+## Note
+
+- Pointer is not same as std C
+  - C: `int *a, b;`
+    - `a` : pointer to `int`
+    - `b` : `int`
+  - Limc: `int* a, b;`
+    - `a` : pointer to `int`
+    - `b` : pointer to `int`
+  - Explain: DO_NOT_USE_int_*a,_b;__OR_YOU_WILL_BE_FIRED
+
 ## Check List
 
 ### Other
