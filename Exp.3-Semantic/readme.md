@@ -15,25 +15,25 @@
 
 ### Other
 
-- [ ] Program
+- [x] Program
 - [ ] Type
-- [ ] Pointer
-- [ ] Identifier
+- [x] Pointer
+- [x] Identifier
 - [ ] Operator
 - [ ] Index
 
 ### Def
 
-- [ ] FuncDef
-- [ ] VarDef
+- [x] FuncDef
+- [x] VarDef
 
 ### Decl
 
-- [ ] GlobalVarDecl
+- [x] GlobalVarDecl
 - [ ] FuncDecl
 - [ ] VarDecl
 - [ ] ParamDecl
-- [ ] LocalVarDecl
+- [x] LocalVarDecl
 
 ### List
 
@@ -43,40 +43,40 @@
 
 ### Expr
 
-- [ ] AssignmentExpr
-- [ ] CompoundAssignmentExpr
-- [ ] TernaryExpr
-- [ ] BinaryExpr
-- [ ] RelationalExpr
-- [ ] ParenthesisExpr
-- [ ] PrefixExpr
-- [ ] PostfixExpr
-- [ ] CallExpr
-- [ ] IndexExpr
+- [x] AssignmentExpr
+- [x] CompoundAssignmentExpr
+- [x] TernaryExpr
+- [x] BinaryExpr
+- [x] RelationalExpr
+- [x] ParenthesisExpr
+- [x] PrefixExpr
+- [x] PostfixExpr
+- [x] CallExpr
+- [x] IndexExpr
 
 ### Stmt
 
-- [ ] BlockStmt
-- [ ] ReturnStmt
-- [ ] ContinueStmt
-- [ ] BreakStmt
+- [x] BlockStmt
+- [x] ReturnStmt
+- [x] ContinueStmt
+- [x] BreakStmt
 - [ ] IfStmt
 - [ ] ElseStmt
-- [ ] WhileStmt
-- [ ] DoWhileStmt
-- [ ] ForStmt
-- [ ] SwitchStmt
+- [x] WhileStmt
+- [x] DoWhileStmt
+- [x] ForStmt
+- [x] SwitchStmt
 - [ ] SwitchBodyStmt
 - [ ] CaseStmt
 - [ ] DefaultStmt
 
 ### Literal
 
-- [ ] IntegerLiteral
-- [ ] FloatLiteral
-- [ ] CharLiteral
-- [ ] StringLiteral
-- [ ] ArrayLiteral
+- [x] IntegerLiteral
+- [x] FloatLiteral
+- [x] CharLiteral
+- [x] StringLiteral
+- [x] ArrayLiteral
 
 ### Error
 
