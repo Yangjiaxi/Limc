@@ -24,7 +24,7 @@ string Driver::print() const {
     return s.str();
 }
 
-void Driver::switchInputStream(istream *is) {
+void Driver::set_entry(istream *is) {
     loc.initialize();
     scanner.switch_streams(is, nullptr);
     tokens.clear();

@@ -36,10 +36,10 @@ class Token {
     optional<location> get_loc() const;
 
   private:
-    string name;
-    string value;
+    string             name;
+    string             value;
     optional<location> loc;
-    vector<Token> children;
+    vector<Token>      children;
 };
 } // namespace Limc
 

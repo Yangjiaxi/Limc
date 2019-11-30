@@ -1,16 +1,19 @@
 target = build/Semantic
 
-clean:
-	rm -rf ./build
+init:
+	ln -s -f ./$(target)	./entry
 
 fibo:
-	./$(target)  ./test/fibo.c
+	./$(target)	-f ./test/fibo.c	-t
 
 ss:
-	./$(target)  ./test/simple.c
+	./$(target)	-f ./test/simple.c	-t
 
 cmt:
-	./$(target)  ./test/comment.c
+	./$(target) -f ./test/comment.c	-t
 
 copy:
-	./$(target)  ./test/copy.c
+	./$(target) -f ./test/copy.c	-t
+
+clean:
+	rm -rf ./build
