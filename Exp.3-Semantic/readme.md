@@ -71,6 +71,8 @@
 
 - [ ] ErrorStmt
 
+## AST Building
+
 ```java
 Program:
     | GlobalDeclDefList
@@ -231,8 +233,9 @@ Index:
     | %empty
 ```
 
-```Java
+### Name of AST Node
 
+```Java
 Error ->
     | ErrorStmt
 
