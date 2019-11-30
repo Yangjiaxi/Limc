@@ -1,6 +1,6 @@
-#include "color.h"
+#include "0-color.h"
+#include "0-driver.h"
 #include "cxxopts.hpp"
-#include "driver.h"
 #include <fstream>
 
 using std::cin;
@@ -50,5 +50,7 @@ int main(int argc, char **argv) {
     } else {
         cout << BOLD_RED << "Parse Failed!" << RESET_COLOR << endl;
     }
+
+    driver.analyze();
     return res;
 }

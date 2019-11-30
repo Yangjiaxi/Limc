@@ -1,6 +1,6 @@
-#include "token.h"
+#include "0-token.h"
 #include "../lib/patterns.hpp"
-#include "color.h"
+#include "0-color.h"
 #include <optional>
 
 using namespace Limc;
@@ -43,6 +43,10 @@ string Token::get_name() const { return name; }
 void Token::set_name(const string &_name) { name = _name; }
 
 string Token::get_value() const { return value; }
+
+vector<Token> Token::get_children() const { return children; }
+
+Token Token::get_child(int index) const { return children.at(index); }
 
 optional<location> Token::get_loc() const {
     if (loc == nullopt) {

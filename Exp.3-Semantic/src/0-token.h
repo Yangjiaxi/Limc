@@ -21,8 +21,6 @@ class Token {
 
     Token();
 
-    // ~Token();
-
     Token &build_AST(const Token &child);
 
     string print(const string pre = "", const string ch_pre = "") const;
@@ -32,6 +30,10 @@ class Token {
     void set_name(const string &name);
 
     string get_value() const;
+
+    vector<Token> get_children() const;
+
+    Token get_child(int index) const;
 
     optional<location> get_loc() const;
 

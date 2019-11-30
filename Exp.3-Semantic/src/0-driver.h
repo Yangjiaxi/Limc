@@ -1,8 +1,9 @@
 #ifndef _DRIVER_H
 #define _DRIVER_H
 
-#include "scanner.h"
-#include "token.h"
+#include "0-token.h"
+#include "1-scanner.h"
+#include "3-analyzer.h"
 using std::vector;
 
 namespace Limc {
@@ -14,6 +15,8 @@ class Driver {
 
     void clear();
 
+    void analyze();
+
     string print() const;
 
     void set_entry(istream *is);
@@ -21,6 +24,8 @@ class Driver {
     friend class Parser;
 
     friend class Scanner;
+
+    friend class Semantic;
 
   private:
     void add_token(const Token &token);
@@ -31,12 +36,22 @@ class Driver {
 
     location &get_loc();
 
-    Scanner scanner;
-    Parser  parser;
-    // Analyzer analyzer;
+    static string gen_error(const string &msg, const location &loc);
+
+    void add_error(const string &msg, const Token &token);
+
+    void add_error(const string &msg, const location &loc);
+
+    void add_error(const string &msg);
+
+    Scanner  scanner;
+    Parser   parser;
+    Semantic analyzer;
 
     vector<Token> tokens;
     location      loc;
+
+    stringstream errors;
 };
 } // namespace Limc
 

@@ -11,8 +11,8 @@ NEWLINE     \n|(\r\n)
 WHITESPACE  [ \t\v\f]
 
 %{
-    #include "driver.h"
-    #include "color.h"
+    #include "0-driver.h"
+    #include "0-color.h"
 
     #if __cplusplus > 199711L
     #define register      // Deprecated in C++11.

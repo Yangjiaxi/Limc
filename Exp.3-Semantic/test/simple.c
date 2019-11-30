@@ -1,6 +1,5 @@
-int *a[10], b, c[20][20];
-
-int main(int argc, char **argv) {
-    a[1] = 1;
-    return 0;
+int *fn() {
+    int a = 1;
+    int c = 12;
+    return &c;
 }

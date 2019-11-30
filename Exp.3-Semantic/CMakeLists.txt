@@ -9,13 +9,13 @@ FIND_PACKAGE(FLEX)
 
 BISON_TARGET(
     LimcParser
-    src/parser.y 
+    src/2-parser.y 
     ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp
 )
 
 FLEX_TARGET(
     LimcScanner
-    src/scanner.l 
+    src/1-scanner.l 
     ${CMAKE_CURRENT_BINARY_DIR}/scanner.cpp
 )
 
@@ -27,7 +27,7 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-file(GLOB Src src/*.h src/*.cpp)
+file(GLOB Src src/*.h src/*.cc)
 file(GLOB Lib lib/*.hpp)
 
 add_executable(

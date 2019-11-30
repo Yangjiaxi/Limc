@@ -5,6 +5,7 @@ exec.out.dSYM
 build
 test_new
 
+cmake-build-debug
 
 position.hh
 parser.cpp
