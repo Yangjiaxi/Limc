@@ -1,9 +1,9 @@
-int b, c;
-float m, n = b + 10;
+int   b, c;
+float m, n = 10 + 10;
 
 int a[100][100][100];
 
-int fibo(int a, int b, int c, int d, int e, int f) {
+int fibo(int a) {
     if (a == 1 || a == 2)
         return 1;
     return fibo(a - 1) + fibo(a - 2);

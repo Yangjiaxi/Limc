@@ -1,4 +1,6 @@
 target = build/Semantic
+# target = cmake-build-debug/Semantic
+
 
 init:
 	ln -s -f ./$(target)	./entry

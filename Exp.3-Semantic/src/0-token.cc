@@ -95,16 +95,6 @@ string Token::print(const string pre, const string ch_pre) const {
         s << RED << end.line << "," << end.column << RESET_COLOR;
         build_str(s, ")");
     }
-    //  else {
-    //     if_let(pattern(some(arg)) = get_loc()) = [&](location _loc) {
-    //         auto &[begin, end] = _loc;
-    //         build_str(s, " @ MK (");
-    //         s << RED << begin.line << "," << begin.column << RESET_COLOR;
-    //         build_str(s, ")->(");
-    //         s << RED << end.line << "," << end.column << RESET_COLOR;
-    //         build_str(s, ")");
-    //     };
-    // }
 
     if (!children.empty()) {
         for (auto &item : children) {

@@ -39,8 +39,6 @@ class Semantic {
     Driver &driver;
 
   private:
-    string gen_type(const Token &type_token);
-
     void walk_var_decl(const Token &root);
     void walk_func_def(const Token &root);
     void walk_block(const Token &root);
@@ -48,6 +46,7 @@ class Semantic {
     string check_ty(const Token &root);
     string check_ident(const Token &root);
     string check_binary_expr(const Token &root);
+    string check_relational_expr(const Token &root);
     string check_assignment_expr(const Token &root);
     string check_parenthesis_expr(const Token &root);
     string check_prefix_expr(const Token &root);

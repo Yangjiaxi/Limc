@@ -47,10 +47,23 @@
 - [x] CompoundAssignmentExpr
 - [x] TernaryExpr
 - [x] BinaryExpr
+  - [x] && ||
+  - [x] & | ^
+  - [x] << >>
+  - [x] + - * / %
 - [x] RelationalExpr
+  - [x] > < >= <= == !=
 - [x] ParenthesisExpr
 - [x] PrefixExpr
+  - [x] - + (pos/neg)
+  - [x] * &
+  - [x] !
+  - [x] ~
+  - [x] ++
+  - [x] --
 - [x] PostfixExpr
+  - [x] ++
+  - [x] --
 - [x] CallExpr
 - [x] IndexExpr
 

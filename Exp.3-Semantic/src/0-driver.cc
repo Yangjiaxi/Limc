@@ -60,7 +60,12 @@ location &Driver::get_loc() { return loc; }
 
 string Driver::gen_error(const string &msg, const location &loc) {
     stringstream ss;
-    ss << RED << "Error: " << msg << endl << YELLOW << "At: " << loc << RESET_COLOR << endl;
+    string       line(50, '-');
+
+    ss << RED << "At: " << loc << endl;
+    ss << YELLOW << msg << endl;
+    ss << BLUE << line << RESET_COLOR << endl;
+
     return ss.str();
 }
 
@@ -72,4 +77,7 @@ void Driver::add_error(const string &msg, const location &loc) {
     errors << RED << "Error: " << msg << endl << YELLOW << "At: " << loc << RESET_COLOR << endl;
 }
 
-void Driver::add_error(const string &msg) { errors << msg; }
+void Driver::add_error(const string &msg) {
+    // enhence later
+    errors << YELLOW << msg << RESET_COLOR;
+}

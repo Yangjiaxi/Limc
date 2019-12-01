@@ -39,11 +39,15 @@ class Token {
 
     bool operator==(const string &str) const;
 
+    string &get_type() const;
+
   private:
     string             name;
     string             value;
     optional<location> loc;
     vector<Token>      children;
+
+    string type;
 };
 } // namespace Limc
 

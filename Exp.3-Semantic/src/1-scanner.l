@@ -78,6 +78,7 @@ WHITESPACE  [ \t\v\f]
 ">"|"<"|">="|"<="|"=="|"!=" { return ACTION_ARG(OP_RELATIONAL); }
 
 "="     { return ACTION_ARG(OP_ASSIGNMENT);  }
+
 ">>"    { return ACTION_ARG(OP_SHIFT_RIGHT); }
 "<<"    { return ACTION_ARG(OP_SHIFT_LEFT); }
 "+"     { return ACTION_ARG(OP_PLUS);  }
