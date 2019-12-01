@@ -66,6 +66,7 @@
 %nonassoc OP_UNARY_MINUS OP_UNARY_PLUS
 %nonassoc OP_UNARY_DEFER OP_UNARY_REFER
 %nonassoc OP_INCREMENT OP_DECREMENT
+%nonassoc ASSIGN_DEFER
 
 %start Program
 
@@ -116,7 +117,7 @@ Assignable:
         $$ = $1;
     } | IndexExpr {
         $$ = $1;
-    };
+    } ;
 Identifier:
     IDENTIFIER {
         $$ = Token("Identifier", $1, @1);
@@ -375,7 +376,7 @@ Expr:
         $$ = Token("PrefixExpr");
         $$.build_AST(Token("Operator", $1, @1))
           .build_AST($2);
-    } | OP_MULTIPLY Identifier %prec OP_UNARY_DEFER{
+    } | OP_MULTIPLY Expr %prec OP_UNARY_DEFER{
         $$ = Token("PrefixExpr");
         $$.build_AST(Token("Operator", $1, @1))
           .build_AST($2);
