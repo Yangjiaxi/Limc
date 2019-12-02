@@ -38,20 +38,20 @@ int main(int argc, char **argv) {
     string line = string(50, '-');
 
     // print AST or not
-    // if (opts_res.count("t") || opts_res.count("tree")) {
-    //     cout << driver.print() << endl;
-    // }
-
-    // end
-    if (!res) {
-        cout << BOLD_GREEN << "Parse Finish!" << RESET_COLOR << endl;
-    } else {
-        cout << BOLD_RED << "Parse Failed!" << RESET_COLOR << endl;
-    }
-
-    driver.analyze();
     if (opts_res.count("t") || opts_res.count("tree")) {
         cout << driver.print() << endl;
     }
+
+    // end
+    // if (!res) {
+    //     cout << BOLD_GREEN << "Parse Finish!" << RESET_COLOR << endl;
+    // } else {
+    //     cout << BOLD_RED << "Parse Failed!" << RESET_COLOR << endl;
+    // }
+
+    // driver.analyze();
+    // if (opts_res.count("t") || opts_res.count("tree")) {
+    //     cout << driver.print() << endl;
+    // }
     return res;
 }

@@ -36,9 +36,11 @@
 
 %type <Token> Program GlobalDeclDefList GlobalDeclDef Type VarList AssignmentExpr BlockStmt ParamList Param Stmt StmtList SwitchBodyStmt CaseStmtList CaseStmt DefaultStmt LocalDeclDef Expr CallExpr ArgumentList IndexExpr Index Assignable Identifier Literal ArrayLiteral ArrayItemList ArrayItem
 
+%type <Token> StructType StructDeclList StructDecl
+
 %token END 0 "EOF"
 %token DELIM_PARENTHESIS_LEFT DELIM_PARENTHESIS_RIGHT DELIM_BRACE_LEFT DELIM_BRACE_RIGHT DELIM_BRACKET_LEFT DELIM_BRACKET_RIGHT DELIM_SEMICOLON DELIM_COMMA DELIM_QUESTION DELIM_COLON
-%token KW_FOR KW_IF KW_ELSE KW_WHILE KW_DO KW_RETURN KW_BREAK KW_CONTINUE KW_SWITCH KW_DEFAULT KW_CASE
+%token KW_FOR KW_IF KW_ELSE KW_WHILE KW_DO KW_RETURN KW_BREAK KW_CONTINUE KW_SWITCH KW_DEFAULT KW_CASE KW_STRUCT KW_TYPEDEF
 
 %token <string> IDENTIFIER KW_TYPE LITERAL_FLOAT LITERAL_INTEGER LITERAL_CHAR LITERAL_STRING
 %token <string> OP_SHIFT_RIGHT OP_SHIFT_LEFT OP_BITWISE_AND OP_BITWISE_OR OP_BITWISE_XOR OP_BITWISE_NOT
@@ -46,6 +48,7 @@
 %token <string> OP_COMPOUND_ASSIGNMENT OP_RELATIONAL OP_ASSIGNMENT
 %token <string> OP_PLUS OP_MINUS OP_MULTIPLY OP_DIVIDE OP_MODULUS
 %token <string> OP_INCREMENT OP_DECREMENT
+%token <string> OP_POINTER
 
 %left DELIM_QUESTION DELIM_COLON
 %left OP_ASSIGNMENT OP_COMPOUND_ASSIGNMENT
@@ -86,7 +89,13 @@ GlobalDeclDefList:
         $$.build_AST($1);
     };
 GlobalDeclDef:
-    Type VarList DELIM_SEMICOLON {
+    StructType DELIM_SEMICOLON {
+        $$ = $1;
+    } | KW_TYPEDEF Type IDENTIFIER {
+        $$ = Token("Typedef");
+        $$.build_AST(Token("TypeAlias", $3))
+          .build_AST($2);
+    } | Type VarList DELIM_SEMICOLON {
         $$ = Token("GlobalVarDecl");
         $$.build_AST($1)
           .build_AST($2);
@@ -111,6 +120,34 @@ Type:
     } | Type OP_MULTIPLY {
         $$ = Token("Pointer", @1);
         $$.build_AST($1);
+    } | StructType {
+        $$ = $1;
+    };
+StructType: 
+    KW_STRUCT IDENTIFIER DELIM_BRACE_LEFT StructDeclList DELIM_BRACE_RIGHT {
+        $$ = Token("Struct", $2);
+        $$.build_AST($4);
+    } | KW_STRUCT DELIM_BRACE_LEFT StructDeclList DELIM_BRACE_RIGHT {
+        $$ = Token("Struct");
+        $$.build_AST($3);
+    } | KW_STRUCT IDENTIFIER DELIM_BRACE_LEFT DELIM_BRACE_RIGHT {
+        $$ = Token("Struct", $2);
+    } | KW_STRUCT IDENTIFIER {
+        $$ = Token("Struct", $2);
+    };
+StructDeclList:
+    StructDeclList StructDecl {
+        $$ = $1;
+        $$.build_AST($2);
+    } | StructDecl {
+        $$ = Token("StructList");
+        $$.build_AST($1);
+    };
+StructDecl: 
+    Type Assignable DELIM_SEMICOLON {
+        $$ = Token("StructItemDecl");
+        $$.build_AST($1)
+          .build_AST($2);
     };
 Assignable:
     Identifier {
