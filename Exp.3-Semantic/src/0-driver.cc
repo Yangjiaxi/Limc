@@ -23,9 +23,13 @@ void Driver::clear() {
 void Driver::analyze() {
     errors.str("");
     string line(50, '-');
-    for (const auto &token : tokens) {
+    for (auto &token : tokens) {
         analyzer.walk(token);
         cout << line << endl << "Errors: " << endl << line << endl << errors.str() << endl;
+    }
+    cout << BOLD_YELLOW << "Analyze Finish." << RESET_COLOR << endl;
+    for (const auto &token : tokens) {
+        cout << token.print() << endl;
     }
 }
 

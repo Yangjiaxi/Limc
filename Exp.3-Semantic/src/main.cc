@@ -34,11 +34,11 @@ int main(int argc, char **argv) {
         driver.set_entry(&file);
     }
 
-    int res = driver.parse();
+    int    res  = driver.parse();
+    string line = string(50, '-');
 
     // print AST or not
     if (opts_res.count("t") || opts_res.count("tree")) {
-        string line = string(50, '-');
         cout << line << endl;
         cout << driver.print() << endl;
         cout << line << endl;

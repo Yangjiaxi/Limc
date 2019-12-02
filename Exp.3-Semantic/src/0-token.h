@@ -29,16 +29,17 @@ class Token {
 
     void set_name(const string &name);
 
-    string get_value() const;
+    string get_value();
 
-    vector<Token> get_children() const;
+    vector<Token> &get_children();
 
-    Token get_child(int index) const;
+    Token &get_child(int index);
 
     optional<location> get_loc() const;
 
     bool operator==(const string &str) const;
 
+    void    set_type(const string &new_type);
     string &get_type() const;
 
   private:

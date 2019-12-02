@@ -11,7 +11,7 @@ runtime_error Semantic::semantic_error(const string &msg, const Token &token) {
     return runtime_error(Driver::gen_error(msg, token.get_loc().value()));
 }
 
-void Semantic::try_insert(const Token &name, const Token &type) {
+void Semantic::try_insert(Token &name, Token &type) {
     auto &alias = tables.back().get_alias();
     auto  err   = tables.back().insert_symbol(Symbol(name, type, tables.size(), alias));
     if (err) {
@@ -19,7 +19,7 @@ void Semantic::try_insert(const Token &name, const Token &type) {
     }
 }
 
-void Semantic::try_insert(const Token &name, const string &type) {
+void Semantic::try_insert(Token &name, string &type) {
     auto err = tables.back().insert_symbol(
         Symbol(name.get_value(), type, tables.size(), tables.back().get_alias()));
     if (err) {
@@ -27,9 +27,9 @@ void Semantic::try_insert(const Token &name, const string &type) {
     }
 }
 
-void Semantic::try_insert(const Token &name, const Token &type, const vector<Token> &paramaters) {
+void Semantic::try_insert(Token &name, Token &type, vector<Token> &paramaters) {
     vector<string> param_types;
-    for (const auto &param : paramaters) {
+    for (auto &param : paramaters) {
         // get parameters' type, [0] <- type name
         param_types.push_back(param.get_child(0).get_value());
     }
@@ -40,24 +40,16 @@ void Semantic::try_insert(const Token &name, const Token &type, const vector<Tok
     }
 }
 
-void Semantic::new_table(const string &name) {
-    tables.emplace_back(name);
-    string line(75, '-');
-    cout << line << endl;
-}
+void Semantic::new_table(const string &name) { tables.emplace_back(name); }
 
-void Semantic::new_table() {
-    tables.emplace_back();
-    string line(75, '-');
-    cout << line << endl;
-}
+void Semantic::new_table() { tables.emplace_back(); }
 
 void Semantic::leave_table() {
     tables.pop_back();
     return;
 }
 
-string Semantic::check_ident(const Token &root) {
+string Semantic::check_ident(Token &root) {
     // 标识符的使用，包括变量与函数
     for (auto table = tables.rbegin(); table != tables.rend(); table++) {
         auto symbol = table->find_symbol(root.get_value());
@@ -67,16 +59,16 @@ string Semantic::check_ident(const Token &root) {
     }
     throw semantic_error("Variable `" + root.get_value() + "` is not defined in such scope.", root);
 }
-string Semantic::check_binary_expr(const Token &root) {
+string Semantic::check_binary_expr(Token &root) {
     // a + b | a & b | a * b
     // 0 1 2
-    auto l_value = root.get_child(0);
-    auto l_type  = check_ty(l_value);
+    auto &l_value = root.get_child(0);
+    auto  l_type  = check_ty(l_value);
 
     auto op = root.get_child(1).get_value();
 
-    auto r_value = root.get_child(2);
-    auto r_type  = check_ty(r_value);
+    auto &r_value = root.get_child(2);
+    auto  r_type  = check_ty(r_value);
 
     if (l_type != r_type) {
         throw semantic_error(
@@ -87,16 +79,16 @@ string Semantic::check_binary_expr(const Token &root) {
     return l_type;
 }
 
-string Semantic::check_relational_expr(const Token &root) {
+string Semantic::check_relational_expr(Token &root) {
     // a >= b | a == b | a != b
     // 0 1  2
-    auto l_value = root.get_child(0);
-    auto l_type  = check_ty(l_value);
+    auto &l_value = root.get_child(0);
+    auto  l_type  = check_ty(l_value);
 
     auto op = root.get_child(1).get_value();
 
-    auto r_value = root.get_child(2);
-    auto r_type  = check_ty(r_value);
+    auto &r_value = root.get_child(2);
+    auto  r_type  = check_ty(r_value);
 
     if (l_type != r_type) {
         throw semantic_error(
@@ -109,13 +101,13 @@ string Semantic::check_relational_expr(const Token &root) {
     return "int";
 }
 
-string Semantic::check_assignment_expr(const Token &root) {
+string Semantic::check_assignment_expr(Token &root) {
     // a = 12 | a[10][9][8] = b[10][11]
-    auto l_value = root.get_child(0);
-    auto l_type  = check_ty(l_value);
+    auto &l_value = root.get_child(0);
+    auto  l_type  = check_ty(l_value);
 
-    auto r_value = root.get_child(2);
-    auto r_type  = check_ty(r_value);
+    auto &r_value = root.get_child(2);
+    auto  r_type  = check_ty(r_value);
 
     if (l_type != r_type) {
         throw semantic_error(
@@ -125,16 +117,16 @@ string Semantic::check_assignment_expr(const Token &root) {
     }
     return l_type;
 }
-string Semantic::check_parenthesis_expr(const Token &root) {
+string Semantic::check_parenthesis_expr(Token &root) {
     // (expr)
     return check_ty(root.get_child(0));
 }
-string Semantic::check_prefix_expr(const Token &root) {
+string Semantic::check_prefix_expr(Token &root) {
     // ++a | *a | &a | !a
     // 0 1
-    auto node         = root.get_child(1);
-    auto op           = root.get_child(0).get_value();
-    auto vanilla_type = check_ty(node);
+    auto &node         = root.get_child(1);
+    auto  op           = root.get_child(0).get_value();
+    auto  vanilla_type = check_ty(node);
     // ty *a;
     // *a       =>  -> ty
     // &a       =>  -> ty**
@@ -172,10 +164,10 @@ string Semantic::check_prefix_expr(const Token &root) {
     }
     return vanilla_type;
 }
-string Semantic::check_postfix_expr(const Token &root) {
+string Semantic::check_postfix_expr(Token &root) {
     // a++ | a--
-    auto node         = root.get_child(0);
-    auto vanilla_type = check_ty(node);
+    auto &node         = root.get_child(0);
+    auto  vanilla_type = check_ty(node);
     if (vanilla_type != "int") {
         throw semantic_error(
             "Operand type of postfix increment/decrement expression must be "
@@ -184,13 +176,13 @@ string Semantic::check_postfix_expr(const Token &root) {
     }
     return vanilla_type;
 }
-string Semantic::check_ternary_expr(const Token &root) {
+string Semantic::check_ternary_expr(Token &root) {
     // a ? b : c
     // 0 1 2 3 4
     // ^   ^   ^
-    auto cond_value = root.get_child(0);
-    auto yes_value  = root.get_child(2);
-    auto no_value   = root.get_child(4);
+    auto &cond_value = root.get_child(0);
+    auto &yes_value  = root.get_child(2);
+    auto &no_value   = root.get_child(4);
 
     auto cond_type = check_ty(cond_value);
     auto yes_type  = check_ty(yes_value);
@@ -209,7 +201,7 @@ string Semantic::check_ternary_expr(const Token &root) {
     }
     return yes_type;
 }
-string Semantic::check_call_expr(const Token &root) {
+string Semantic::check_call_expr(Token &root) {
     // todo
     // fn(a, b, c)
     // 0  \--1--/
@@ -219,8 +211,8 @@ string Semantic::check_call_expr(const Token &root) {
         2. 参数量匹配
         3. 参数类型匹配
     */
-    auto function = root.get_child(0);
-    auto args     = root.get_child(1).get_children();
+    auto &function = root.get_child(0);
+    auto  args     = root.get_child(1).get_children();
     for (auto table = tables.rbegin(); table != tables.rend(); table++) {
         auto symbol = table->find_symbol(function.get_value());
         if (symbol != nullopt) {
@@ -252,12 +244,12 @@ string Semantic::check_call_expr(const Token &root) {
     throw semantic_error(
         "Function `" + function.get_value() + "` is accessed before declaration.", root);
 }
-string Semantic::check_index_expr(const Token &root) {
+string Semantic::check_index_expr(Token &root) {
     // a[1][1][1]
     // 0 1  2  3 ...
-    auto tokens     = root.get_children();
-    auto array_name = tokens[0];
-    auto type       = check_ty(array_name);
+    auto &tokens     = root.get_children();
+    auto &array_name = tokens[0];
+    auto  type       = check_ty(array_name);
     for (auto index = tokens.begin() + 1; index != tokens.end(); index++) {
         // 1. index -> int
         if (check_ty(index->get_child(0)) == "int") {
@@ -273,9 +265,9 @@ string Semantic::check_index_expr(const Token &root) {
     return type;
 }
 
-string Semantic::check_array_literal(const Token &root) {
+string Semantic::check_array_literal(Token &root) {
     string type;
-    for (const auto &item : root.get_children()) {
+    for (auto &item : root.get_children()) {
         auto current = check_ty(item);
         if (!type.empty() && current != type) {
             throw semantic_error("Item in array literal should be of the same type.", item);
@@ -285,7 +277,7 @@ string Semantic::check_array_literal(const Token &root) {
     return type + "*";
 }
 
-string Semantic::check_ty(const Token &root) {
+string Semantic::check_ty(Token &root) {
     // TODO
     string res = "";
     match(root.get_name())(
@@ -307,30 +299,32 @@ string Semantic::check_ty(const Token &root) {
         pattern("StringLiteral")          = [&] { res = "char*"; },
         pattern(_)                        = [&] { res = ""; });
 
+    root.set_type(res);
     return res;
 }
 /*
  pattern("")        = [&] { return (root); },
  */
-void Semantic::walk_var_decl(const Token &root) {
+void Semantic::walk_var_decl(Token &root) {
     // 声明部分
     /*
         int a, b, c = 12;
         float *a = &b;
     */
-    auto value    = root.get_value();
-    auto children = root.get_children();
-    auto type     = children[0];
+    auto  value    = root.get_value();
+    auto &children = root.get_children();
+    auto &type     = children[0];
 
     // [Type], [VarList]
     // VarList -> | VarDef | VarDecl
-    for (const auto &decl_def : children[1].get_children()) {
-        auto var = decl_def.get_child(0);
+    for (auto &decl_def : children[1].get_children()) {
+        auto &var = decl_def.get_child(0);
         try {
             auto l_type = type.get_value();
             auto name   = var.get_name();
             if (name == "Identifier") {
                 try_insert(var, type);
+                check_ty(var);
             } else if (name == "IndexExpr") {
                 l_type += string(var.get_children().size() - 1, '*');
                 try_insert(var.get_child(0), l_type);
@@ -338,8 +332,8 @@ void Semantic::walk_var_decl(const Token &root) {
             }
 
             if (decl_def == "VarDef") {
-                auto r_value = decl_def.get_child(2);
-                auto r_type  = check_ty(r_value);
+                auto &r_value = decl_def.get_child(2);
+                auto  r_type  = check_ty(r_value);
                 if (l_type != r_type) {
                     throw semantic_error(
                         "Cannot assign `" + r_type + "` to `" + l_type + "`.", r_value);
@@ -352,16 +346,17 @@ void Semantic::walk_var_decl(const Token &root) {
     }
 }
 
-void Semantic::walk_func_def(const Token &root) {
+void Semantic::walk_func_def(Token &root) {
     inner_return_ty.clear();
-    auto children   = root.get_children();
-    auto parameters = children[2].get_children();
+    auto &children   = root.get_children();
+    auto &parameters = children[2].get_children();
     try_insert(children[1], children[0], parameters);
     new_table("F(" + children[1].get_value() + ")");
-    for (const auto &param : parameters) {
+    for (auto &param : parameters) {
         try_insert(param.get_child(1), param.get_child(0));
+        check_ty(param.get_child(1));
     }
-    for (const auto &child : children[3].get_children()) {
+    for (auto &child : children[3].get_children()) {
         walk(child);
     }
     auto ret_type = children[0].get_value();
@@ -377,16 +372,16 @@ void Semantic::walk_func_def(const Token &root) {
     leave_table();
 }
 
-void Semantic::walk_block(const Token &root) {
-    auto children = root.get_children();
+void Semantic::walk_block(Token &root) {
+    auto &children = root.get_children();
     new_table();
-    for (const auto &child : children) {
+    for (auto &child : children) {
         walk(child);
     }
     leave_table();
 }
 
-void Semantic::walk(const Token &root) {
+void Semantic::walk(Token &root) {
     bool matched = true;
     match(root.get_name())(
         pattern("GlobalVarDecl") = [&] { walk_var_decl(root); },
@@ -400,7 +395,7 @@ void Semantic::walk(const Token &root) {
     );
     if (matched)
         return;
-    auto children = root.get_children();
+    auto &children = root.get_children();
     if (root == "ReturnStmt" && inner_return_ty.empty() && !children.empty()) {
         try {
             inner_return_ty = check_ty(children[0]);
@@ -436,7 +431,7 @@ void Semantic::walk(const Token &root) {
 
             );
 
-            for (const auto &child : children) {
+            for (auto &child : children) {
                 walk(child);
             }
 

@@ -42,7 +42,7 @@ string Token::get_name() const { return name; }
 
 void Token::set_name(const string &_name) { name = _name; }
 
-string Token::get_value() const {
+string Token::get_value() {
     if (name == "Pointer") {
         return get_child(0).get_value() + "*";
     } else {
@@ -50,9 +50,9 @@ string Token::get_value() const {
     }
 }
 
-vector<Token> Token::get_children() const { return children; }
+vector<Token> &Token::get_children() { return children; }
 
-Token Token::get_child(int index) const { return children.at(index); }
+Token &Token::get_child(int index) { return children.at(index); }
 
 optional<location> Token::get_loc() const {
     if (loc == nullopt) {
@@ -71,7 +71,7 @@ string Token::print(const string pre, const string ch_pre) const {
     s << endl;
     build_str(s, pre, GREEN);
 
-    build_str(s, "(");
+    build_str(s, "{");
 
     match(name)(
         pattern("ErrorStmt") = [&] { build_str(s, name, BOLD_RED); },
@@ -85,11 +85,17 @@ string Token::print(const string pre, const string ch_pre) const {
             pattern("Operator")   = [&] { build_str(s, value, BOLD_YELLOW); },
             pattern(_)            = [&] { build_str(s, value, BOLD_GREEN); });
     }
-    build_str(s, ")");
+    build_str(s, "}");
+
+    if (!type.empty()) {
+        build_str(s, " [");
+        build_str(s, type, BOLD_CYAN);
+        build_str(s, "]");
+    }
 
     if (loc != nullopt) {
         auto &[begin, end] = *loc;
-        build_str(s, " @ (");
+        build_str(s, " (");
         s << RED << begin.line << "," << begin.column << RESET_COLOR;
         build_str(s, ")->(");
         s << RED << end.line << "," << end.column << RESET_COLOR;
@@ -100,8 +106,10 @@ string Token::print(const string pre, const string ch_pre) const {
         for (auto &item : children) {
             if (&item == &children.back()) {
                 s << item.print(ch_pre + "└── ", ch_pre + "    ");
+                // s << item.print(ch_pre + "`---", ch_pre + "    ");
             } else {
                 s << item.print(ch_pre + "├── ", ch_pre + "│   ");
+                // s << item.print(ch_pre + "|---", ch_pre + "|   ");
             }
         }
     }
@@ -109,3 +117,7 @@ string Token::print(const string pre, const string ch_pre) const {
 }
 
 bool Token::operator==(const string &str) const { return name == str; }
+
+void Token::set_type(const string &new_type) { type = new_type; }
+
+// string &Token::get_type() const { return type; }

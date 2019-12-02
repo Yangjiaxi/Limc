@@ -11,27 +11,22 @@ class Driver {
   public:
     Driver();
 
-    int parse();
+    int  parse();
+    void analyze();
 
     void clear();
 
-    void analyze();
-
     string print() const;
-
-    void set_entry(istream *is);
+    void   set_entry(istream *is);
 
     friend class Parser;
-
     friend class Scanner;
-
     friend class Semantic;
 
   private:
     void add_token(const Token &token);
 
     void inc_x(int x);
-
     void inc_y(int y);
 
     location &get_loc();
@@ -39,9 +34,7 @@ class Driver {
     static string gen_error(const string &msg, const location &loc);
 
     void add_error(const string &msg, const Token &token);
-
     void add_error(const string &msg, const location &loc);
-
     void add_error(const string &msg);
 
     Scanner  scanner;

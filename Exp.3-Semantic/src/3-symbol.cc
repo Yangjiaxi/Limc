@@ -26,12 +26,11 @@ Symbol::Symbol(string name, string type, int scope, string scope_alias)
     : name(move(name)), type(move(type)), scope(scope), parameters(), is_func(false),
       scope_alias(move(scope_alias)) {}
 
-Symbol::Symbol(const Token &name, const Token &type, int scope, string scope_alias)
+Symbol::Symbol(Token &name, Token &type, int scope, string scope_alias)
     : name(name.get_value()), type(type.get_value()), scope(scope), parameters(), is_func(false),
       scope_alias(move(scope_alias)) {}
 
-Symbol::Symbol(
-    const Token &name, const Token &type, vector<string> parameters, int scope, string scope_alias)
+Symbol::Symbol(Token &name, Token &type, vector<string> parameters, int scope, string scope_alias)
     : name(name.get_value()), type(type.get_value()), parameters(move(parameters)), scope(scope),
       is_func(true), scope_alias(move(scope_alias)) {}
 

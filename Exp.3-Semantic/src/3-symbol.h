@@ -13,14 +13,9 @@ class Symbol {
   public:
     Symbol(string name, string type, int scope, string scope_alias);
 
-    Symbol(const Token &name, const Token &type, int scope, string scope_alias);
+    Symbol(Token &name, Token &type, int scope, string scope_alias);
 
-    Symbol(
-        const Token &  name,
-        const Token &  type,
-        vector<string> parameters,
-        int            scope,
-        string         scope_alias);
+    Symbol(Token &name, Token &type, vector<string> parameters, int scope, string scope_alias);
 
     string         name;
     string         type;
