@@ -52,9 +52,9 @@ pub enum TokenType {
     LeftAngleBracket,    // <
     RightAngleBracket,   // >
     Equal,               // =
-    Logor,               // ||
-    Logand,              // &&
-    SHL,                 // <<
+    LogOr,               // ||
+    LogAnd,              // &&
+    Shl,                 // <<
     Inc,                 // ++
     Dec,                 // --
     MulEQ,               // *=
@@ -67,7 +67,7 @@ pub enum TokenType {
     BitandEQ,            // &=
     XorEQ,               // ^=
     BitorEQ,             // |=
-    SHR,                 // >>
+    Shr,                 // >>
     Mod,                 // %
     Return,              // "return"
     Sizeof,              // "sizeof"

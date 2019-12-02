@@ -344,6 +344,12 @@ impl Preprocessor {
         self.env.output.append(&mut v);
     }
 
+    // 宏替换入口
+    // 1. 处理include，将目标文件tokenize之后替换include的位置
+    // 2. 处理define宏，分为两种
+    //      a. 类对象，直接替换
+    //      b. 函数类型，先替换参数，再替换
+    // 3. 处理__LINE__，将当前行号给出
     fn preprocess_impl(&mut self, tokens: Vec<Token>) -> Vec<Token> {
         self.env = Box::new(Env::new(tokens, Some(self.env.clone())));
 

@@ -7,6 +7,7 @@ int max(int a, int b) { return (a > b ? a : b); }
 void write(char **s) { return; }
 
 int main() {
+    12 ++;
     float a = 10.1;
     float b = 1;
     char  c = a[5];

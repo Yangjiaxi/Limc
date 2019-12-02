@@ -116,27 +116,32 @@ impl Symbol {
 
 lazy_static! {
     static ref SYMBOLS: Vec<Symbol> = [
-        Symbol::new("<<=", TokenType::ShlEQ),
-        Symbol::new(">>=", TokenType::ShrEQ),
-        Symbol::new("!=", TokenType::NE),
-        Symbol::new("&&", TokenType::Logand),
+        // Unary Operand
         Symbol::new("++", TokenType::Inc),
         Symbol::new("--", TokenType::Dec),
-        Symbol::new("->", TokenType::Arrow),
-        Symbol::new("<<", TokenType::SHL),
-        Symbol::new("<=", TokenType::LE),
+        // Binary Operand
+        // Assignment
         Symbol::new("==", TokenType::EQ),
-        Symbol::new(">=", TokenType::GE),
-        Symbol::new(">>", TokenType::SHR),
-        Symbol::new("||", TokenType::Logor),
+        Symbol::new("+=", TokenType::AddEQ),
+        Symbol::new("-=", TokenType::SubEQ),
         Symbol::new("*=", TokenType::MulEQ),
         Symbol::new("/=", TokenType::DivEQ),
         Symbol::new("%=", TokenType::ModEQ),
-        Symbol::new("+=", TokenType::AddEQ),
-        Symbol::new("-=", TokenType::SubEQ),
         Symbol::new("&=", TokenType::BitandEQ),
         Symbol::new("^=", TokenType::XorEQ),
         Symbol::new("|=", TokenType::BitorEQ),
+        Symbol::new("<<=", TokenType::ShlEQ),
+        Symbol::new(">>=", TokenType::ShrEQ),
+        // Relational
+        Symbol::new("!=", TokenType::NE),
+        Symbol::new("<=", TokenType::LE),
+        Symbol::new(">=", TokenType::GE),
+        // Common
+        Symbol::new("||", TokenType::LogOr),
+        Symbol::new("&&", TokenType::LogAnd),
+        Symbol::new("->", TokenType::Arrow),
+        Symbol::new("<<", TokenType::Shl),
+        Symbol::new(">>", TokenType::Shr),
     ]
     .to_vec();
 }
@@ -516,7 +521,6 @@ fn print_line(buf: &[char], path: &str, pos: usize) {
             p += 1;
             continue;
         }
-
         print!("error at {}:{}:{}\n\n", path, line + 1, col);
         break;
     }
