@@ -8,7 +8,6 @@ test_new
 cmake-build-debug
 Cargo.lock
 target
-rust
 
 position.hh
 parser.cpp
