@@ -69,7 +69,6 @@ WHITESPACE  [ \t\v\f]
 "case"      { ACTION(KW_CASE); }
 "default"   { ACTION(KW_DEFAULT); }
 "struct"    { ACTION(KW_STRUCT); }
-"typedef"   { ACTION(KW_TYPEDEF); }
 
 {IDENTIFIER}    { ACTION_ARG(IDENTIFIER); }
 
@@ -77,7 +76,6 @@ WHITESPACE  [ \t\v\f]
 
 "++"    { ACTION_ARG(OP_INCREMENT); }
 "--"    { ACTION_ARG(OP_DECREMENT); }
-"->"    { ACTION_ARG(OP_POINTER); }
 
 ">"|"<"|">="|"<="|"=="|"!=" { ACTION_ARG(OP_RELATIONAL); }
 
@@ -97,6 +95,7 @@ WHITESPACE  [ \t\v\f]
 "^"     { ACTION_ARG(OP_BITWISE_XOR); }
 "~"     { ACTION_ARG(OP_BITWISE_NOT); }
 "!"     { ACTION_ARG(OP_LOGICAL_NOT); }
+"."     { ACTION_ARG(OP_DOT); }
 
 "?"     { ACTION(DELIM_QUESTION); }
 ":"     { ACTION(DELIM_COLON); }
