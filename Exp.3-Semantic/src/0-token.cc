@@ -1,6 +1,7 @@
 #include "0-token.h"
 #include "../lib/patterns.hpp"
 #include "0-color.h"
+#include "location.hh"
 #include <optional>
 
 using namespace Limc;
@@ -55,15 +56,35 @@ vector<Token> &Token::get_children() { return children; }
 Token &Token::get_child(int index) { return children.at(index); }
 
 optional<location> Token::get_loc() const {
-    if (loc == nullopt) {
-        for (const auto &child : children) {
-            auto child_loc = child.get_loc();
-            if (child_loc != nullopt) {
-                return child_loc;
-            }
-        }
+    // 最左 + 最右
+    if (loc != nullopt) {
+        return loc;
     }
-    return loc;
+    auto left  = children.cbegin();
+    auto right = children.crbegin();
+    while (left != children.cend() && right != children.crend()) {
+        if (left->get_loc() != nullopt && right->get_loc() != nullopt) {
+            location res;
+            res.begin = left->get_loc().value().begin;
+            res.end   = right->get_loc().value().end;
+            return res;
+        }
+        if (left->get_loc() == nullopt)
+            left++;
+        if (right->get_loc() == nullopt)
+            right++;
+    }
+    return nullopt;
+
+    // if (loc == nullopt) {
+    //     for (const auto &child : children) {
+    //         auto child_loc = child.get_loc();
+    //         if (child_loc != nullopt) {
+    //             return child_loc;
+    //         }
+    //     }
+    // }
+    // return loc;
 }
 
 string Token::print(const string pre, const string ch_pre) const {

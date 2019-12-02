@@ -8,7 +8,7 @@ using namespace mpark::patterns;
 Semantic::Semantic(Driver &driver) : driver(driver) {}
 
 runtime_error Semantic::semantic_error(const string &msg, const Token &token) {
-    return runtime_error(Driver::gen_error(msg, token.get_loc().value()));
+    return runtime_error(driver.gen_error(msg, token.get_loc().value()));
 }
 
 void Semantic::try_insert(Token &name, Token &type) {
@@ -255,7 +255,7 @@ string Semantic::check_index_expr(Token &root) {
         if (check_ty(index->get_child(0)) == "int") {
             // 2. is array(pointer of such type)
             if (type.back() != '*') {
-                throw semantic_error(type + " can not be indexed.", *index);
+                throw semantic_error("Type `" + type + "` can not be indexed.", array_name);
             }
             type.pop_back();
         } else {
@@ -364,10 +364,11 @@ void Semantic::walk_func_def(Token &root) {
     } else if (ret_type == "void" && inner_return_ty.empty()) {
     } else {
         // type not match, error
-        driver.add_error(
+        throw semantic_error(
             "Return type not match: Function `" + children[1].get_value() +
-            "` requires return type: `" + ret_type + "`, but `" +
-            (inner_return_ty.empty() ? "void" : inner_return_ty) + "` was given.");
+                "` requires return type: `" + ret_type + "`, but `" +
+                (inner_return_ty.empty() ? "void" : inner_return_ty) + "` was given.",
+            children[0]);
     }
     leave_table();
 }
@@ -383,16 +384,20 @@ void Semantic::walk_block(Token &root) {
 
 void Semantic::walk(Token &root) {
     bool matched = true;
-    match(root.get_name())(
-        pattern("GlobalVarDecl") = [&] { walk_var_decl(root); },
-        pattern("LocalVarDecl")  = [&] { walk_var_decl(root); },
-        pattern("FuncDecl")      = [&] {},
-        pattern("FuncDef")       = [&] { walk_func_def(root); },
-        pattern("BlockStmt")     = [&] { walk_block(root); },
-        pattern("Program")       = [&] { walk_block(root); },
-        pattern(_)               = [&] { matched = false; }
+    try {
+        match(root.get_name())(
+            pattern("GlobalVarDecl") = [&] { walk_var_decl(root); },
+            pattern("LocalVarDecl")  = [&] { walk_var_decl(root); },
+            pattern("FuncDecl")      = [&] {},
+            pattern("FuncDef")       = [&] { walk_func_def(root); },
+            pattern("BlockStmt")     = [&] { walk_block(root); },
+            pattern("Program")       = [&] { walk_block(root); },
+            pattern(_)               = [&] { matched = false; }
 
-    );
+        );
+    } catch (runtime_error &e) {
+        driver.add_error(e.what());
+    }
     if (matched)
         return;
     auto &children = root.get_children();
@@ -414,17 +419,18 @@ void Semantic::walk(Token &root) {
                 pattern("WhileStmt")   = [&] { ++loops; },
                 pattern("DoWhileStmt") = [&] { ++loops; },
                 pattern("ForStmt")     = [&] { ++loops; },
-                pattern("SwitchStmt")  = [&] { ++switchs; },
+                pattern("SwitchStmt")  = [&] { ++switches; },
                 pattern("ContinueStmt") =
                     [&] {
                         if (!loops) {
-                            driver.add_error("Continue should stay in loop blocks.", root);
+                            throw semantic_error("Continue should stay in loop blocks.", root);
                         }
                     },
                 pattern("BreakStmt") =
                     [&] {
-                        if (!loops && !switchs) {
-                            driver.add_error("Break should stay in loop or switch blocks.", root);
+                        if (!loops && !switches) {
+                            throw semantic_error(
+                                "Break should stay in loop or switch blocks.", root);
                         }
                     },
                 pattern(_) = [] {}
@@ -439,7 +445,7 @@ void Semantic::walk(Token &root) {
                 pattern("WhileStmt")   = [&] { --loops; },
                 pattern("DoWhileStmt") = [&] { --loops; },
                 pattern("ForStmt")     = [&] { --loops; },
-                pattern("SwitchStmt")  = [&] { --switchs; },
+                pattern("SwitchStmt")  = [&] { --switches; },
                 pattern(_)             = [] {}
 
             );

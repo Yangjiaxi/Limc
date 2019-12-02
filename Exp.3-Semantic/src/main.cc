@@ -38,11 +38,9 @@ int main(int argc, char **argv) {
     string line = string(50, '-');
 
     // print AST or not
-    if (opts_res.count("t") || opts_res.count("tree")) {
-        cout << line << endl;
-        cout << driver.print() << endl;
-        cout << line << endl;
-    }
+    // if (opts_res.count("t") || opts_res.count("tree")) {
+    //     cout << driver.print() << endl;
+    // }
 
     // end
     if (!res) {
@@ -52,5 +50,8 @@ int main(int argc, char **argv) {
     }
 
     driver.analyze();
+    if (opts_res.count("t") || opts_res.count("tree")) {
+        cout << driver.print() << endl;
+    }
     return res;
 }

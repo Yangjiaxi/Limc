@@ -42,7 +42,7 @@ int SymbolTable::insert_symbol(const Symbol &symbol) {
     build_str(ss, symbol.name, BLUE, 7);
 
     build_str(ss, " | ", RED);
-    build_str(ss, std::to_string(symbol.scope), YELLOW, 3);
+    build_str(ss, std::to_string(symbol.scope), YELLOW, 5);
 
     build_str(ss, " | ", RED);
     string alias = symbol.scope_alias;

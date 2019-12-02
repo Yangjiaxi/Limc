@@ -31,7 +31,7 @@ class Driver {
 
     location &get_loc();
 
-    static string gen_error(const string &msg, const location &loc);
+    string gen_error(const string &msg, const location &loc);
 
     void add_error(const string &msg, const Token &token);
     void add_error(const string &msg, const location &loc);
@@ -45,6 +45,8 @@ class Driver {
     location      loc;
 
     stringstream errors;
+
+    vector<string> input_file;
 };
 } // namespace Limc
 

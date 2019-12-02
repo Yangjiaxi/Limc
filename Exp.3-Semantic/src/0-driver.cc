@@ -1,11 +1,13 @@
 #include "0-driver.h"
 #include "0-color.h"
+#include <iomanip>
 #include <sstream>
 
 using namespace Limc;
 
 Driver::Driver()
-    : tokens(), scanner(*this), parser(scanner, *this), analyzer(*this), loc(location()) {}
+    : tokens(), scanner(*this), parser(scanner, *this), analyzer(*this), loc(location()),
+      input_file() {}
 
 int Driver::parse() {
     errors.str("");
@@ -20,22 +22,61 @@ void Driver::clear() {
     tokens.clear();
 }
 
+static stringstream &
+build_str(stringstream &ss, const string &value, const char *color, const unsigned width = 0) {
+    if (width)
+        ss << color << setw(width) << value << RESET_COLOR;
+    else
+        ss << color << value << RESET_COLOR;
+    return ss;
+}
+
+static stringstream &build_str(stringstream &ss, const string &value, const unsigned width = 0) {
+    if (width)
+        ss << setw(width) << value << RESET_COLOR;
+    else
+        ss << value << RESET_COLOR;
+    return ss;
+}
+
+void table_head() {
+    stringstream ss;
+
+    build_str(ss, " | ", RED);
+    build_str(ss, "Name", BLUE, 7);
+
+    build_str(ss, " | ", RED);
+    build_str(ss, "Scope", YELLOW, 5);
+
+    build_str(ss, " | ", RED);
+    build_str(ss, "Alias", BOLD_YELLOW, 10);
+
+    build_str(ss, " | ", RED);
+    build_str(ss, "Type", GREEN, 15);
+
+    build_str(ss, " | ", RED);
+    build_str(ss, "Func?", MAGENTA, 8);
+
+    build_str(ss, " | ", RED);
+    build_str(ss, "Params", CYAN);
+
+    cout << ss.str() << endl;
+    cout << string(100, '-') << endl;
+}
+
 void Driver::analyze() {
     errors.str("");
     string line(50, '-');
+    table_head();
     for (auto &token : tokens) {
         analyzer.walk(token);
-        cout << line << endl << "Errors: " << endl << line << endl << errors.str() << endl;
+        cout << line << endl << "Errors: " << endl << errors.str() << endl;
     }
     cout << BOLD_YELLOW << "Analyze Finish." << RESET_COLOR << endl;
-    for (const auto &token : tokens) {
-        cout << token.print() << endl;
-    }
 }
 
 string Driver::print() const {
     stringstream s;
-    s << "Abstract Syntax Tree:" << endl;
     for (const auto &token : tokens) {
         s << token.print() << endl;
     }
@@ -44,6 +85,14 @@ string Driver::print() const {
 
 void Driver::set_entry(istream *is) {
     loc.initialize();
+    istream *file_is = is;
+    string   s;
+    while (!is->eof()) {
+        std::getline(*file_is, s);
+        input_file.push_back(s);
+    }
+    is->clear();
+    is->seekg(0);
     scanner.switch_streams(is, nullptr);
     tokens.clear();
 }
@@ -66,10 +115,17 @@ string Driver::gen_error(const string &msg, const location &loc) {
     stringstream ss;
     string       line(50, '-');
 
-    ss << RED << "At: " << loc << endl;
-    ss << YELLOW << msg << endl;
-    ss << BLUE << line << RESET_COLOR << endl;
+    ss << BOLD_RED << "semantic error: " << RESET_COLOR << msg << endl;
+    ss << BLUE << "  -->" << RESET_COLOR << " : " << YELLOW << loc << RESET_COLOR << endl;
 
+    auto &[begin, end] = loc;
+    if (begin.line == end.line) {
+        ss << CYAN << setw(4) << begin.line << RESET_COLOR << " | " << input_file[begin.line - 1]
+           << endl;
+        ss << "     | " << string(begin.column - 1, ' ') << BOLD_RED
+           << string(end.column - begin.column, '^') << RESET_COLOR << endl;
+    }
+    ss << BOLD_MAGENTA << line << RESET_COLOR << endl;
     return ss.str();
 }
 
