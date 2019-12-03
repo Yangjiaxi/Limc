@@ -16,8 +16,6 @@ class Semantic {
     void walk(Token &root);
 
   private:
-    runtime_error semantic_error(const string &msg, const Token &token);
-
     void try_insert(Token &name, Token &type);
     void try_insert(Token &name, string &type);
     void try_insert(Token &name, Token &type, vector<Token> &paramaters);

@@ -111,9 +111,6 @@ GlobalDeclDef:
 Type:
     KW_TYPE {
         $$ = Token("Type", $1, @1);
-    } | Type OP_MULTIPLY {
-        $$ = Token("Pointer", @1);
-        $$.build_AST($1);
     } | StructType {
         $$ = $1;
     };
@@ -507,5 +504,8 @@ Index:
 %%
 
 void Parser::error(const location &loc, const string &msg) {
-    driver.add_error(msg, loc);
+    driver.report()
+          .report_level(Level::Error)
+          .report_loc(loc)
+          .report_msg(msg);
 }

@@ -1,14 +1,5 @@
-struct ex {
-    int   a;
-    float f;
-    struct {
-        int  b;
-        char c;
-    } p;
-};
-
-void fn() {
-    struct ex v = {1, 1.1, {1, 'c'}};
-    v.p.b       = 12;
-    char a[]    = {'a', 'c', 'c'};
+int main() {
+    int a[4][4];
+    int b[4] = a[0];
+    return b;
 }

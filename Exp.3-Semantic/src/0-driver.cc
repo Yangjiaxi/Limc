@@ -10,10 +10,10 @@ Driver::Driver()
       input_file() {}
 
 int Driver::parse() {
-    errors.str("");
+    reports.clear();
     loc.initialize();
     auto res = parser.parse();
-    cout << errors.str() << endl;
+    print_reports();
     return res;
 }
 
@@ -65,12 +65,12 @@ void table_head() {
 }
 
 void Driver::analyze() {
-    errors.str("");
+    reports.clear();
     string line(50, '-');
     table_head();
     for (auto &token : tokens) {
         analyzer.walk(token);
-        cout << errors.str() << endl;
+        print_reports();
     }
     cout << BOLD_YELLOW << "Analyze Finish." << RESET_COLOR << endl;
 }
@@ -111,31 +111,59 @@ void Driver::inc_y(int y) {
 
 location &Driver::get_loc() { return loc; }
 
-string Driver::gen_error(const string &msg, const location &loc) {
+Report &Driver::report() {
+    reports.emplace_back();
+    return reports.back();
+}
+
+void Driver::print_reports() {
     stringstream ss;
     string       line(50, '-');
+    for (auto &report : reports) {
+        auto &msg   = report.get_msg();
+        auto  level = report.get_level();
+        auto &loc   = report.get_loc();
 
-    ss << BOLD_RED << "error: " << RESET_COLOR << msg << endl;
-    ss << BLUE << "  -->" << RESET_COLOR << " : " << YELLOW << loc << RESET_COLOR << endl;
+        ss << BOLD_RED << "error: " << RESET_COLOR << msg << endl;
+        ss << BLUE << "  -->" << RESET_COLOR << " : " << YELLOW << loc[0] << RESET_COLOR << endl;
 
-    auto &[begin, end] = loc;
-    if (begin.line == end.line) {
-        ss << CYAN << setw(4) << begin.line << RESET_COLOR << " | " << input_file[begin.line - 1]
-           << endl;
-        ss << "     | " << string(begin.column - 1, ' ') << BOLD_RED
-           << string(end.column - begin.column, '^') << RESET_COLOR << endl;
+        auto &[begin, end] = loc[0];
+        if (begin.line == end.line) {
+            ss << CYAN << setw(4) << begin.line << RESET_COLOR << " | "
+               << input_file[begin.line - 1] << endl;
+            ss << "     | " << string(begin.column - 1, ' ') << BOLD_RED
+               << string(end.column - begin.column, '^') << RESET_COLOR << endl;
+        }
+        ss << BOLD_MAGENTA << line << RESET_COLOR << endl;
     }
-    ss << BOLD_MAGENTA << line << RESET_COLOR << endl;
-    return ss.str();
+    cout << ss.str();
 }
 
-void Driver::add_error(const string &msg, const Token &token) {
-    add_error(msg, token.get_loc().value());
-}
+// string Driver::gen_error(const string &msg, const location &loc) {
+//     stringstream ss;
+//     string       line(50, '-');
 
-void Driver::add_error(const string &msg, const location &loc) { errors << gen_error(msg, loc); }
+//     ss << BOLD_RED << "error: " << RESET_COLOR << msg << endl;
+//     ss << BLUE << "  -->" << RESET_COLOR << " : " << YELLOW << loc << RESET_COLOR << endl;
 
-void Driver::add_error(const string &msg) {
-    // enhence later
-    errors << YELLOW << msg << RESET_COLOR;
-}
+//     auto &[begin, end] = loc;
+//     if (begin.line == end.line) {
+//         ss << CYAN << setw(4) << begin.line << RESET_COLOR << " | " << input_file[begin.line - 1]
+//            << endl;
+//         ss << "     | " << string(begin.column - 1, ' ') << BOLD_RED
+//            << string(end.column - begin.column, '^') << RESET_COLOR << endl;
+//     }
+//     ss << BOLD_MAGENTA << line << RESET_COLOR << endl;
+//     return ss.str();
+// }
+
+// void Driver::add_error(const string &msg, const Token &token) {
+//     add_error(msg, token.get_loc().value());
+// }
+
+// void Driver::add_error(const string &msg, const location &loc) { errors << gen_error(msg, loc); }
+
+// void Driver::add_error(const string &msg) {
+//     // enhence later
+//     errors << YELLOW << msg << RESET_COLOR;
+// }

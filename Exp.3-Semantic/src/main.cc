@@ -49,9 +49,9 @@ int main(int argc, char **argv) {
     //     cout << BOLD_RED << "Parse Failed!" << RESET_COLOR << endl;
     // }
 
-    // driver.analyze();
-    // if (opts_res.count("t") || opts_res.count("tree")) {
-    //     cout << driver.print() << endl;
-    // }
+    driver.analyze();
+    if (opts_res.count("t") || opts_res.count("tree")) {
+        cout << driver.print() << endl;
+    }
     return res;
 }

@@ -7,15 +7,14 @@ using namespace mpark::patterns;
 
 Semantic::Semantic(Driver &driver) : driver(driver) {}
 
-runtime_error Semantic::semantic_error(const string &msg, const Token &token) {
-    return runtime_error(driver.gen_error(msg, token.get_loc().value()));
-}
-
 void Semantic::try_insert(Token &name, Token &type) {
     auto &alias = tables.back().get_alias();
     auto  err   = tables.back().insert_symbol(Symbol(name, type, tables.size(), alias));
     if (err) {
-        driver.add_error("Symbol `" + name.get_value() + "` has already been declared. ", name);
+        driver.report()
+            .report_level(Level::Error)
+            .report_loc(name.get_loc().value())
+            .report_msg("Symbol `" + name.get_value() + "` has already been declared. ");
     }
 }
 
@@ -23,7 +22,10 @@ void Semantic::try_insert(Token &name, string &type) {
     auto err = tables.back().insert_symbol(
         Symbol(name.get_value(), type, tables.size(), tables.back().get_alias()));
     if (err) {
-        driver.add_error("Symbol `" + name.get_value() + "` has already been declared. ", name);
+        driver.report()
+            .report_level(Level::Error)
+            .report_loc(name.get_loc().value())
+            .report_msg("Symbol `" + name.get_value() + "` has already been declared. ");
     }
 }
 
@@ -36,7 +38,10 @@ void Semantic::try_insert(Token &name, Token &type, vector<Token> &paramaters) {
     auto err = tables.back().insert_symbol(
         Symbol(name, type, param_types, tables.size(), tables.back().get_alias()));
     if (err) {
-        driver.add_error("Symbol `" + name.get_value() + "` has already been declared. ", name);
+        driver.report()
+            .report_level(Level::Error)
+            .report_loc(name.get_loc().value())
+            .report_msg("Symbol `" + name.get_value() + "` has already been declared. ");
     }
 }
 
@@ -57,8 +62,13 @@ string Semantic::check_ident(Token &root) {
             return symbol.value().type;
         }
     }
-    throw semantic_error("Variable `" + root.get_value() + "` is not defined in such scope.", root);
+    driver.report()
+        .report_level(Level::Error)
+        .report_loc(root.get_loc().value())
+        .report_msg("Variable `" + root.get_value() + "` is not defined in such scope.");
+    return "";
 }
+
 string Semantic::check_binary_expr(Token &root) {
     // a + b | a & b | a * b
     // 0 1 2
@@ -71,10 +81,13 @@ string Semantic::check_binary_expr(Token &root) {
     auto  r_type  = check_ty(r_value);
 
     if (l_type != r_type) {
-        throw semantic_error(
-            "Type around operator `" + op + "` is not the same: `" + l_type + "` and `" + r_type +
-                ".",
-            root);
+        driver.report()
+            .report_level(Level::Error)
+            .report_loc(root.get_loc().value())
+            .report_msg(
+                "Type around operator `" + op + "` is not the same: `" + l_type + "` and `" +
+                r_type + ".");
+        return "ERROR_TYPE";
     }
     return l_type;
 }
@@ -91,10 +104,13 @@ string Semantic::check_relational_expr(Token &root) {
     auto  r_type  = check_ty(r_value);
 
     if (l_type != r_type) {
-        throw semantic_error(
-            "Type around operator `" + op + "` is not the same: `" + l_type + "` and `" + r_type +
-                ".",
-            root);
+        driver.report()
+            .report_level(Level::Error)
+            .report_loc(root.get_loc().value())
+            .report_msg(
+                "Type around operator `" + op + "` is not the same: `" + l_type + "` and `" +
+                r_type + ".");
+        return "ERROR_TYPE";
     }
     // int as bool
     // maybe fix later
@@ -110,10 +126,14 @@ string Semantic::check_assignment_expr(Token &root) {
     auto  r_type  = check_ty(r_value);
 
     if (l_type != r_type) {
-        throw semantic_error(
-            "Type around assignment operator `=` is not the same: `" + l_type + "` and `" + r_type +
-                ".",
-            root);
+        driver.report()
+            .report_level(Level::Error)
+            .report_loc(l_value.get_loc().value())
+            .report_loc(r_value.get_loc().value())
+            .report_msg(
+                "Type around assignment operator `=` is not the same: `" + l_type + "` and `" +
+                r_type + ".");
+        return "ERROR_TYPE";
     }
     return l_type;
 }
@@ -128,38 +148,26 @@ string Semantic::check_prefix_expr(Token &root) {
     auto  op           = root.get_child(0).get_value();
     auto  vanilla_type = check_ty(node);
     // ty *a;
-    // *a       =>  -> ty
-    // &a       =>  -> ty**
     // - +      =>  无约束
     // ! ~      =>  ty == int -> int
     // ++ --    =>  ty-ident -> int
 
-    /*  e.g
-        int ***a;
-        ***a = 12;
-        ^^^
-        123
-        * (**a) => * (* (*a)) => * (* (* (int***))) => * (* (int**)) => * (int*) => int
-    */
-    if (op == "*") {
-        if (vanilla_type.back() == '*') {
-            return vanilla_type.substr(0, vanilla_type.size() - 1);
-        } else {
-            throw semantic_error(
-                "Can't defer at non-pointer variable: `" + node.get_value() + "`.", root);
-        }
-    } else if (op == "&") {
-        return vanilla_type + "*";
-    } else if (op == "--" || op == "++") {
+    if (op == "--" || op == "++") {
         if (vanilla_type != "int") {
-            throw semantic_error(
-                "Operand type of prefix increment/decrement expression must be "
-                "integer.",
-                root);
+            driver.report()
+                .report_level(Level::Error)
+                .report_loc(root.get_loc().value())
+                .report_msg(
+                    "Operand type of prefix increment/decrement expression must be integer.");
+            return "ERROR_TYPE";
         }
     } else if (op == "!" || op == "~") {
         if (vanilla_type != "int") {
-            throw semantic_error("Bitwise operand must perform on integer expression.", root);
+            driver.report()
+                .report_level(Level::Error)
+                .report_loc(root.get_loc().value())
+                .report_msg("Bitwise operand must perform on integer expression.");
+            return "ERROR_TYPE";
         }
     }
     return vanilla_type;
@@ -169,10 +177,11 @@ string Semantic::check_postfix_expr(Token &root) {
     auto &node         = root.get_child(0);
     auto  vanilla_type = check_ty(node);
     if (vanilla_type != "int") {
-        throw semantic_error(
-            "Operand type of postfix increment/decrement expression must be "
-            "integer.",
-            root);
+        driver.report()
+            .report_level(Level::Error)
+            .report_loc(root.get_loc().value())
+            .report_msg("Operand type of postfix increment/decrement expression must be integer.");
+        return "ERROR_TYPE";
     }
     return vanilla_type;
 }
@@ -189,15 +198,22 @@ string Semantic::check_ternary_expr(Token &root) {
     auto no_type   = check_ty(no_value);
 
     if (yes_type != no_type) {
-        throw semantic_error(
-            "Branches' type of ternary expression should be the same, got: `" + yes_type +
-                "` and `" + no_type + "`.",
-            yes_value);
+        driver.report()
+            .report_level(Level::Error)
+            .report_loc(root.get_loc().value())
+            .report_msg(
+                "Branches' type of ternary expression should be the same, got: `" + yes_type +
+                "` and `" + no_type + "`.");
+        return "ERROR_TYPE";
     }
     if (cond_type != "int") {
-        throw semantic_error(
-            "Condition's type of ternary expression should be `int`, got: `" + cond_type + "`.",
-            cond_value);
+        driver.report()
+            .report_level(Level::Error)
+            .report_loc(root.get_loc().value())
+            .report_msg(
+                "Condition's type of ternary expression should be `int`, got: `" + cond_type +
+                "`.");
+        return "ERROR_TYPE";
     }
     return yes_type;
 }
@@ -217,32 +233,46 @@ string Semantic::check_call_expr(Token &root) {
         auto symbol = table->find_symbol(function.get_value());
         if (symbol != nullopt) {
             if (!symbol->is_func) {
-                throw semantic_error(
-                    "Variable `" + function.get_value() + "` is not callable.", function);
+                driver.report()
+                    .report_level(Level::Error)
+                    .report_loc(function.get_loc().value())
+                    .report_msg("Variable `" + function.get_value() + "` is not callable.");
+                return "ERROR_TYPE";
             }
             auto params       = symbol.value().parameters;
             auto params_count = params.size();
             auto args_count   = args.size();
             if (params_count != args_count) {
-                throw semantic_error(
-                    "Function `" + function.get_value() + "` requires " + to_string(params_count) +
-                        " parameters, but " + to_string(args_count) + " is given.",
-                    function);
+                driver.report()
+                    .report_level(Level::Error)
+                    .report_loc(function.get_loc().value())
+                    .report_msg(
+                        "Function `" + function.get_value() + "` requires " +
+                        to_string(params_count) + " parameters, but " + to_string(args_count) +
+                        " is given.");
+                return "ERROR_TYPE";
             }
             for (int i = 0; i < args_count; i++) {
                 auto type = check_ty(args[i]);
                 if (type != params[i]) {
-                    throw semantic_error(
-                        "Function `" + function.get_value() + "` requires type `" + params[i] +
-                            "` as parameter, but type `" + type + "` is given.",
-                        args[i]);
+                    driver.report()
+                        .report_level(Level::Error)
+                        .report_loc(args[i].get_loc().value())
+                        .report_msg(
+                            "Function `" + function.get_value() + "` requires type `" + params[i] +
+                            "` as parameter, but type `" + type + "` is given.");
+                    return "ERROR_TYPE";
                 }
             }
             return symbol.value().type;
         }
     }
-    throw semantic_error(
-        "Function `" + function.get_value() + "` is accessed before declaration.", root);
+    // 到这里说明没有在符号表中找到函数
+    driver.report()
+        .report_level(Level::Error)
+        .report_loc(root.get_loc().value())
+        .report_msg("Function `" + function.get_value() + "` is accessed before declaration.");
+    return "ERROR_TYPE";
 }
 string Semantic::check_index_expr(Token &root) {
     // a[1][1][1]
@@ -255,11 +285,19 @@ string Semantic::check_index_expr(Token &root) {
         if (check_ty(index->get_child(0)) == "int") {
             // 2. is array(pointer of such type)
             if (type.back() != '*') {
-                throw semantic_error("Type `" + type + "` can not be indexed.", array_name);
+                driver.report()
+                    .report_level(Level::Error)
+                    .report_loc(array_name.get_loc().value())
+                    .report_msg("Type `" + type + "` can not be indexed.");
+                return "ERROR_TYPE";
             }
             type.pop_back();
         } else {
-            throw semantic_error("Array index should be integer.", *index);
+            driver.report()
+                .report_level(Level::Error)
+                .report_loc(index->get_loc().value())
+                .report_msg("Array index should be integer.");
+            return "ERROR_TYPE";
         }
     }
     return type;
@@ -270,7 +308,11 @@ string Semantic::check_array_literal(Token &root) {
     for (auto &item : root.get_children()) {
         auto current = check_ty(item);
         if (!type.empty() && current != type) {
-            throw semantic_error("Item in array literal should be of the same type.", item);
+            driver.report()
+                .report_level(Level::Error)
+                .report_loc(item.get_loc().value())
+                .report_msg("Item in array literal should be of the same type.");
+            return "ERROR_TYPE";
         }
         type = current;
     }
@@ -279,6 +321,10 @@ string Semantic::check_array_literal(Token &root) {
 
 string Semantic::check_ty(Token &root) {
     // TODO
+
+    if (root.get_type() != "") {
+        return root.get_type();
+    }
     string res = "";
     match(root.get_name())(
         pattern("Identifier")             = [&] { res = check_ident(root); },
@@ -319,29 +365,28 @@ void Semantic::walk_var_decl(Token &root) {
     // VarList -> | VarDef | VarDecl
     for (auto &decl_def : children[1].get_children()) {
         auto &var = decl_def.get_child(0);
-        try {
-            auto l_type = type.get_value();
-            auto name   = var.get_name();
-            if (name == "Identifier") {
-                try_insert(var, type);
-                check_ty(var);
-            } else if (name == "IndexExpr") {
-                l_type += string(var.get_children().size() - 1, '*');
-                try_insert(var.get_child(0), l_type);
-                check_ty(var);
-            }
 
-            if (decl_def == "VarDef") {
-                auto &r_value = decl_def.get_child(2);
-                auto  r_type  = check_ty(r_value);
-                if (l_type != r_type) {
-                    throw semantic_error(
-                        "Cannot assign `" + r_type + "` to `" + l_type + "`.", r_value);
-                }
-            }
+        auto l_type = type.get_value();
+        auto name   = var.get_name();
+        if (name == "Identifier") {
+            try_insert(var, type);
+            check_ty(var);
+        } else if (name == "IndexExpr") {
+            l_type += string(var.get_children().size() - 1, '*');
+            try_insert(var.get_child(0), l_type);
+            check_ty(var);
+        }
 
-        } catch (runtime_error &e) {
-            driver.add_error(e.what());
+        if (decl_def == "VarDef") {
+            auto &r_value = decl_def.get_child(2);
+            auto  r_type  = check_ty(r_value);
+            if (l_type != r_type) {
+                driver.report()
+                    .report_level(Level::Error)
+                    .report_loc(var.get_loc().value())
+                    .report_loc(r_value.get_loc().value())
+                    .report_msg("Cannot assign `" + r_type + "` to `" + l_type + "`.");
+            }
         }
     }
 }
@@ -364,11 +409,13 @@ void Semantic::walk_func_def(Token &root) {
     } else if (ret_type == "void" && inner_return_ty.empty()) {
     } else {
         // type not match, error
-        throw semantic_error(
-            "Return type not match: Function `" + children[1].get_value() +
+        driver.report()
+            .report_level(Level::Error)
+            .report_loc(children[0].get_loc().value())
+            .report_msg(
+                "Return type not match: Function `" + children[1].get_value() +
                 "` requires return type: `" + ret_type + "`, but `" +
-                (inner_return_ty.empty() ? "void" : inner_return_ty) + "` was given.",
-            children[0]);
+                (inner_return_ty.empty() ? "void" : inner_return_ty) + "` was given.");
     }
     leave_table();
 }
@@ -384,36 +431,26 @@ void Semantic::walk_block(Token &root) {
 
 void Semantic::walk(Token &root) {
     bool matched = true;
-    try {
-        match(root.get_name())(
-            pattern("GlobalVarDecl") = [&] { walk_var_decl(root); },
-            pattern("LocalVarDecl")  = [&] { walk_var_decl(root); },
-            pattern("FuncDecl")      = [&] {},
-            pattern("FuncDef")       = [&] { walk_func_def(root); },
-            pattern("BlockStmt")     = [&] { walk_block(root); },
-            pattern("Program")       = [&] { walk_block(root); },
-            pattern(_)               = [&] { matched = false; }
+    match(root.get_name())(
+        pattern("GlobalVarDecl") = [&] { walk_var_decl(root); },
+        pattern("LocalVarDecl")  = [&] { walk_var_decl(root); },
+        pattern("FuncDecl")      = [&] {},
+        pattern("FuncDef")       = [&] { walk_func_def(root); },
+        pattern("BlockStmt")     = [&] { walk_block(root); },
+        pattern("Program")       = [&] { walk_block(root); },
+        pattern(_)               = [&] { matched = false; }
 
-        );
-    } catch (runtime_error &e) {
-        driver.add_error(e.what());
-    }
+    );
+
     if (matched)
         return;
     auto &children = root.get_children();
     if (root == "ReturnStmt" && inner_return_ty.empty() && !children.empty()) {
-        try {
-            inner_return_ty = check_ty(children[0]);
-        } catch (runtime_error &e) {
-            driver.add_error(e.what());
-        }
+        inner_return_ty = check_ty(children[0]);
     } else {
         optional<string> res = nullopt;
-        try {
-            res = check_ty(root);
-        } catch (runtime_error &e) {
-            driver.add_error(e.what());
-        }
+
+        res = check_ty(root);
         if (res != nullopt && res.value().empty()) {
             match(root.get_name())(
                 pattern("WhileStmt")   = [&] { ++loops; },
@@ -423,14 +460,19 @@ void Semantic::walk(Token &root) {
                 pattern("ContinueStmt") =
                     [&] {
                         if (!loops) {
-                            throw semantic_error("Continue should stay in loop blocks.", root);
+                            driver.report()
+                                .report_level(Level::Error)
+                                .report_loc(root.get_loc().value())
+                                .report_msg("Continue should stay in loop blocks.");
                         }
                     },
                 pattern("BreakStmt") =
                     [&] {
                         if (!loops && !switches) {
-                            throw semantic_error(
-                                "Break should stay in loop or switch blocks.", root);
+                            driver.report()
+                                .report_level(Level::Error)
+                                .report_loc(root.get_loc().value())
+                                .report_msg("Break should stay in loop or switch blocks.");
                         }
                     },
                 pattern(_) = [] {}

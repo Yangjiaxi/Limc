@@ -141,4 +141,4 @@ bool Token::operator==(const string &str) const { return name == str; }
 
 void Token::set_type(const string &new_type) { type = new_type; }
 
-// string &Token::get_type() const { return type; }
+string &Token::get_type() { return type; }

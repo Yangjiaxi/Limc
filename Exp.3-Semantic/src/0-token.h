@@ -40,7 +40,7 @@ class Token {
     bool operator==(const string &str) const;
 
     void    set_type(const string &new_type);
-    string &get_type() const;
+    string &get_type();
 
   private:
     string             name;
