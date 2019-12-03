@@ -13,7 +13,7 @@ int Driver::parse() {
     errors.str("");
     loc.initialize();
     auto res = parser.parse();
-    cout << "[Scan] and [Parse] Errors: " << errors.str() << endl;
+    cout << errors.str() << endl;
     return res;
 }
 
@@ -70,7 +70,7 @@ void Driver::analyze() {
     table_head();
     for (auto &token : tokens) {
         analyzer.walk(token);
-        cout << line << endl << "Errors: " << endl << errors.str() << endl;
+        cout << errors.str() << endl;
     }
     cout << BOLD_YELLOW << "Analyze Finish." << RESET_COLOR << endl;
 }
@@ -115,7 +115,7 @@ string Driver::gen_error(const string &msg, const location &loc) {
     stringstream ss;
     string       line(50, '-');
 
-    ss << BOLD_RED << "semantic error: " << RESET_COLOR << msg << endl;
+    ss << BOLD_RED << "error: " << RESET_COLOR << msg << endl;
     ss << BLUE << "  -->" << RESET_COLOR << " : " << YELLOW << loc << RESET_COLOR << endl;
 
     auto &[begin, end] = loc;
@@ -133,9 +133,7 @@ void Driver::add_error(const string &msg, const Token &token) {
     add_error(msg, token.get_loc().value());
 }
 
-void Driver::add_error(const string &msg, const location &loc) {
-    errors << RED << "Error: " << msg << endl << YELLOW << "At: " << loc << RESET_COLOR << endl;
-}
+void Driver::add_error(const string &msg, const location &loc) { errors << gen_error(msg, loc); }
 
 void Driver::add_error(const string &msg) {
     // enhence later

@@ -506,6 +506,6 @@ Index:
     };
 %%
 
-void Parser::error(const location &loc, const string &message) {
-     cout << RED << "Error: " << message << endl << YELLOW << "Location: " << loc << RESET_COLOR << endl;
+void Parser::error(const location &loc, const string &msg) {
+    driver.add_error(msg, loc);
 }

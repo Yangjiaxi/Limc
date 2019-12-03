@@ -38,9 +38,9 @@ int main(int argc, char **argv) {
     string line = string(50, '-');
 
     // print AST or not
-    if (opts_res.count("t") || opts_res.count("tree")) {
-        cout << driver.print() << endl;
-    }
+    // if (opts_res.count("t") || opts_res.count("tree")) {
+    //     cout << driver.print() << endl;
+    // }
 
     // end
     // if (!res) {

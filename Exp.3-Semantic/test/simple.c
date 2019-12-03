@@ -10,4 +10,5 @@ struct ex {
 void fn() {
     struct ex v = {1, 1.1, {1, 'c'}};
     v.p.b       = 12;
+    char a[]    = {'a', 'c', 'c'};
 }
