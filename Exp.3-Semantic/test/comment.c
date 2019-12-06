@@ -1,6 +1,14 @@
-/* First allocation is just for 2 elements, since we don't know if this *
- * scanner will even need a stack. We use 2 instead of 1 to avoid an *
- * immediate realloc on the next call.*
- */
+struct A {
+    int a;
+    struct {
+        float s;
+        char c;
+    } b;
+    int c;
+};
 
-// Inline Comment
+
+int main() {
+    struct A p1 = {1, {1.1}, 1};
+    return 0;
+}

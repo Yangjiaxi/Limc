@@ -3,6 +3,7 @@
 
 #include "0-token.h"
 #include <unordered_map>
+#include <utility>
 
 namespace Limc {
 
@@ -27,7 +28,7 @@ class Symbol {
 
 class SymbolTable {
   public:
-    SymbolTable(const string &name) : name(name) {}
+    SymbolTable(string name) : name(std::move(name)) {}
 
     SymbolTable() = default;
 

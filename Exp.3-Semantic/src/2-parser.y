@@ -36,7 +36,7 @@
 
 %type <Token> Program GlobalDeclDefList GlobalDeclDef Type VarList AssignmentExpr BlockStmt ParamList Param Stmt StmtList SwitchBodyStmt CaseStmtList CaseStmt DefaultStmt LocalDeclDef Expr CallExpr ArgumentList IndexExpr Index Assignable Identifier Literal AggrLiteral AggrItemList AggrItem
 
-%type <Token> StructType StructDeclList StructDecl MemberExpr
+%type <Token> StructType StructDeclList StructDecl MemberExpr StructVarList
 
 %token END 0 "EOF"
 %token DELIM_PARENTHESIS_LEFT DELIM_PARENTHESIS_RIGHT DELIM_BRACE_LEFT DELIM_BRACE_RIGHT DELIM_BRACKET_LEFT DELIM_BRACKET_RIGHT DELIM_SEMICOLON DELIM_COMMA DELIM_QUESTION DELIM_COLON
@@ -135,10 +135,22 @@ StructDeclList:
         $$.build_AST($1);
     };
 StructDecl: 
-    Type Assignable DELIM_SEMICOLON {
+    Type StructVarList DELIM_SEMICOLON {
         $$ = Token("StructItemDecl");
         $$.build_AST($1)
           .build_AST($2);
+    };
+StructVarList:
+    Assignable {
+        $$ = Token("VarList");
+        Token decl("VarDecl");
+        decl.build_AST($1);
+        $$.build_AST(decl);
+    } | StructVarList DELIM_COMMA Assignable {
+        $$ = $1;
+        Token decl("VarDecl");
+        decl.build_AST($3);
+        $$.build_AST(decl);
     };
 Assignable:
     Identifier {
@@ -158,6 +170,7 @@ Identifier:
     IDENTIFIER {
         $$ = Token("Identifier", $1, @1);
     };
+
 VarList:
     Assignable {
         $$ = Token("VarList");
@@ -166,7 +179,7 @@ VarList:
         $$.build_AST(decl);
     } | AssignmentExpr {
         $$ = Token("VarList");
-        $1.set_name("VarDef");
+        $1.set_kind("VarDef");
         $$.build_AST($1);
     } | VarList DELIM_COMMA Assignable {
         $$ = $1;
@@ -175,9 +188,10 @@ VarList:
         $$.build_AST(decl);
     } | VarList DELIM_COMMA AssignmentExpr {
         $$ = $1;
-        $3.set_name("VarDef");
+        $3.set_kind("VarDef");
         $$.build_AST($3);
     };
+
 AssignmentExpr:
     Assignable OP_ASSIGNMENT Expr {
         $$ = Token("AssignmentExpr");

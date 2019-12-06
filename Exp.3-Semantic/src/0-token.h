@@ -11,13 +11,13 @@ using namespace std;
 namespace Limc {
 class Token {
   public:
-    Token(string name, string value);
+    Token(string kind, string value);
 
     explicit Token(string name);
 
-    Token(string name, string value, location loc);
+    Token(string kind, string value, location loc);
 
-    Token(string name, location loc);
+    Token(string kind, location loc);
 
     Token();
 
@@ -25,11 +25,11 @@ class Token {
 
     string print(const string pre = "", const string ch_pre = "") const;
 
-    string get_name() const;
+    string get_kind() const;
 
-    void set_name(const string &name);
+    void set_kind(const string &kind);
 
-    string get_value();
+    string get_value() const;
 
     vector<Token> &get_children();
 
@@ -43,7 +43,7 @@ class Token {
     string &get_type();
 
   private:
-    string             name;
+    string             kind;
     string             value;
     optional<location> loc;
     vector<Token>      children;

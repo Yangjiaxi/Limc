@@ -21,6 +21,7 @@ class Driver {
     string print() const;
     void   set_entry(istream *is);
     void   print_reports();
+    Token &get_root();
 
     friend class Parser;
     friend class Scanner;

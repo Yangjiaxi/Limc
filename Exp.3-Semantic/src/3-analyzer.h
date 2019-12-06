@@ -2,6 +2,7 @@
 #define _ANALYZER_H
 
 #include "0-token.h"
+#include "3-type.h"
 #include "3-symbol.h"
 
 namespace Limc {
@@ -20,13 +21,12 @@ class Semantic {
     void try_insert(Token &name, string &type);
     void try_insert(Token &name, Token &type, vector<Token> &paramaters);
 
-    static optional<Token> find(const Token &root, const string &name);
-
     void new_table(const string &name);
     void new_table();
     void leave_table();
 
     vector<SymbolTable> tables;
+    //vector<Type> type_table;
 
     int loops = 0;
 

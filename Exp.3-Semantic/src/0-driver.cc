@@ -9,6 +9,8 @@ Driver::Driver()
     : tokens(), scanner(*this), parser(scanner, *this), analyzer(*this), loc(location()),
       input_file() {}
 
+Token &Driver::get_root() { return tokens.at(0); }
+
 int Driver::parse() {
     reports.clear();
     loc.initialize();

@@ -326,7 +326,7 @@ string Semantic::check_ty(Token &root) {
         return root.get_type();
     }
     string res = "";
-    match(root.get_name())(
+    match(root.get_kind())(
         pattern("Identifier")             = [&] { res = check_ident(root); },
         pattern("BinaryExpr")             = [&] { res = check_binary_expr(root); },
         pattern("RelationalExpr")         = [&] { res = check_relational_expr(root); },
@@ -367,11 +367,12 @@ void Semantic::walk_var_decl(Token &root) {
         auto &var = decl_def.get_child(0);
 
         auto l_type = type.get_value();
-        auto name   = var.get_name();
+        auto name   = var.get_kind();
         if (name == "Identifier") {
             try_insert(var, type);
             check_ty(var);
         } else if (name == "IndexExpr") {
+            // 定义数组
             l_type += string(var.get_children().size() - 1, '*');
             try_insert(var.get_child(0), l_type);
             check_ty(var);
@@ -431,7 +432,7 @@ void Semantic::walk_block(Token &root) {
 
 void Semantic::walk(Token &root) {
     bool matched = true;
-    match(root.get_name())(
+    match(root.get_kind())(
         pattern("GlobalVarDecl") = [&] { walk_var_decl(root); },
         pattern("LocalVarDecl")  = [&] { walk_var_decl(root); },
         pattern("FuncDecl")      = [&] {},
@@ -452,7 +453,7 @@ void Semantic::walk(Token &root) {
 
         res = check_ty(root);
         if (res != nullopt && res.value().empty()) {
-            match(root.get_name())(
+            match(root.get_kind())(
                 pattern("WhileStmt")   = [&] { ++loops; },
                 pattern("DoWhileStmt") = [&] { ++loops; },
                 pattern("ForStmt")     = [&] { ++loops; },
@@ -483,7 +484,7 @@ void Semantic::walk(Token &root) {
                 walk(child);
             }
 
-            match(root.get_name())(
+            match(root.get_kind())(
                 pattern("WhileStmt")   = [&] { --loops; },
                 pattern("DoWhileStmt") = [&] { --loops; },
                 pattern("ForStmt")     = [&] { --loops; },

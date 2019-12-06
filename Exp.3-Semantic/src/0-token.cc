@@ -22,15 +22,15 @@ static stringstream &build_str(stringstream &ss, const string &value) {
     return ss;
 }
 
-Token::Token(string name, string value)
-    : name(move(name)), value(move(value)), children(), loc(nullopt) {}
+Token::Token(string kind, string value)
+    : kind(move(kind)), value(move(value)), children(), loc(nullopt) {}
 
-Token::Token(string name) : name(move(name)), value(), children(), loc(nullopt) {}
+Token::Token(string kind) : kind(move(kind)), value(), children(), loc(nullopt) {}
 
-Token::Token(string name, string value, location loc)
-    : name(move(name)), value(move(value)), children(), loc(loc) {}
+Token::Token(string kind, string value, location loc)
+    : kind(move(kind)), value(move(value)), children(), loc(loc) {}
 
-Token::Token(string name, location loc) : name(move(name)), value(), children(), loc(loc) {}
+Token::Token(string kind, location loc) : kind(move(kind)), value(), children(), loc(loc) {}
 
 Token::Token() = default;
 
@@ -39,17 +39,11 @@ Token &Token::build_AST(const Token &child) {
     return *this;
 }
 
-string Token::get_name() const { return name; }
+string Token::get_kind() const { return kind; }
 
-void Token::set_name(const string &_name) { name = _name; }
+void Token::set_kind(const string &_kind) { kind = _kind; }
 
-string Token::get_value() {
-    if (name == "Pointer") {
-        return get_child(0).get_value() + "*";
-    } else {
-        return value;
-    }
-}
+string Token::get_value() const { return value; }
 
 vector<Token> &Token::get_children() { return children; }
 
@@ -94,13 +88,13 @@ string Token::print(const string pre, const string ch_pre) const {
 
     build_str(s, "{");
 
-    match(name)(
-        pattern("ErrorStmt") = [&] { build_str(s, name, BOLD_RED); },
-        pattern(_)           = [&] { build_str(s, name, BLUE); });
+    match(kind)(
+        pattern("ErrorStmt") = [&] { build_str(s, kind, BOLD_RED); },
+        pattern(_)           = [&] { build_str(s, kind, BLUE); });
 
     if (!value.empty()) {
         s << ", ";
-        match(name)(
+        match(kind)(
             pattern("Type")       = [&] { build_str(s, value, MAGENTA); },
             pattern("Identifier") = [&] { build_str(s, value, CYAN); },
             pattern("Operator")   = [&] { build_str(s, value, BOLD_YELLOW); },
@@ -137,7 +131,7 @@ string Token::print(const string pre, const string ch_pre) const {
     return s.str();
 }
 
-bool Token::operator==(const string &str) const { return name == str; }
+bool Token::operator==(const string &str) const { return kind == str; }
 
 void Token::set_type(const string &new_type) { type = new_type; }
 
