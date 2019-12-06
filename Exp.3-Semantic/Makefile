@@ -1,5 +1,5 @@
-# target = build/Semantic
-target = cmake-build-debug/Semantic
+target = build/Semantic
+# target = cmake-build-debug/Semantic
 flags = --tree
 
 

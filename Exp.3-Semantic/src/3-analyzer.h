@@ -2,8 +2,8 @@
 #define _ANALYZER_H
 
 #include "0-token.h"
-#include "3-type.h"
 #include "3-symbol.h"
+#include "3-type.h"
 
 namespace Limc {
 
@@ -26,7 +26,7 @@ class Semantic {
     void leave_table();
 
     vector<SymbolTable> tables;
-    //vector<Type> type_table;
+    // vector<Type> type_table;
 
     int loops = 0;
 
