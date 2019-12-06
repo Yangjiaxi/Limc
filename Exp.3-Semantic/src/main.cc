@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
 
     string input(
 
-        "struct { struct {int a;} a,b[10],c; } a;"
+        "int fn(int a, int c, struct {int a;} d);"
 
     );
     istringstream ss(input);
@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
     driver.parse();
     cout << driver.print() << endl;
 
-    auto root = driver.get_root().get_child(0).get_child(0);
+    auto root = driver.get_root().get_child(0);
     auto type = Limc::Type::build_type(root);
 
     cout << "Type: " << type.to_string() << endl;
