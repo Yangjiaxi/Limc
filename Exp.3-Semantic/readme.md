@@ -1,327 +1,171 @@
-# Grammar
+# Limc
 
-## Note
+Limc Is a Minimal Compiler
 
-- Pointer is not same as std C
-  - C: `int *a, b;`
-    - `a` : pointer to `int`
-    - `b` : `int`
-  - Limc: `int* a, b;`
-    - `a` : pointer to `int`
-    - `b` : pointer to `int`
-  - Explain: DO_NOT_USE_int_*a,_b;__OR_YOU_WILL_BE_FIRED
+## Token Kinds
 
-## Check List
 
-### Other
+### Part.1 Token without Type
 
-- [x] Program
-- [ ] Type
-- [x] Pointer
-- [x] Identifier
-- [ ] Operator
-- [ ] Index
-
-### Def
-
-- [x] FuncDef
-- [x] VarDef
-
-### Decl
-
-- [x] GlobalVarDecl
-- [ ] FuncDecl
-- [ ] VarDecl
-- [ ] ParamDecl
-- [x] LocalVarDecl
-
-### List
-
-- [ ] VarList
-- [ ] ParamList
-- [ ] ArgumentList
-
-### Expr
-
-- [x] AssignmentExpr
-- [x] CompoundAssignmentExpr
-- [x] TernaryExpr
-- [x] BinaryExpr
-  - [x] && ||
-  - [x] & | ^
-  - [x] << >>
-  - [x] + - * / %
-- [x] RelationalExpr
-  - [x] > < >= <= == !=
-- [x] ParenthesisExpr
-- [x] PrefixExpr
-  - [x] - + (pos/neg)
-  - [x] * &
-  - [x] !
-  - [x] ~
-  - [x] ++
-  - [x] --
-- [x] PostfixExpr
-  - [x] ++
-  - [x] --
-- [x] CallExpr
-- [x] IndexExpr
-
-### Stmt
-
-- [x] BlockStmt
-- [x] ReturnStmt
-- [x] ContinueStmt
-- [x] BreakStmt
-- [ ] IfStmt
-- [ ] ElseStmt
-- [x] WhileStmt
-- [x] DoWhileStmt
-- [x] ForStmt
-- [x] SwitchStmt
-- [ ] SwitchBodyStmt
-- [ ] CaseStmt
-- [ ] DefaultStmt
-
-### Literal
-
-- [x] IntegerLiteral
-- [x] FloatLiteral
-- [x] CharLiteral
-- [x] StringLiteral
-- [x] ArrayLiteral
-
-### Error
-
-- [ ] ErrorStmt
-
-## AST Building
-
-```java
-Program:
-    | GlobalDeclDefList
-
-GlobalDeclDefList:
-    | GlobalDeclDefList GlobalDeclDef
-    | GlobalDeclDef
-
-GlobalDeclDef:
-    | Type VarList DELIM_SEMICOLON
-    | Type Assignable DELIM_PARENTHESIS_LEFT ParamList DELIM_PARENTHESIS_RIGHT BlockStmt
-    | Type Assignable DELIM_PARENTHESIS_LEFT ParamList DELIM_PARENTHESIS_RIGHT DELIM_SEMICOLON
-    | error DELIM_SEMICOLON
-
-Type:
-    | KW_TYPE
-    | Type OP_MULTIPLY
-
-Assignable:
-    | Identifier
-    | IndexExpr
-
-Identifier:
-    | IDENTIFIER
-
-VarList:
-    | Assignable
-    | AssignmentExpr
-    | VarList DELIM_COMMA Assignable
-    | VarList DELIM_COMMA AssignmentExpr
-
-AssignmentExpr:
-    | Assignable OP_ASSIGNMENT Expr
-    | Assignable OP_ASSIGNMENT ArrayLiteral
-
-ParamList:
-    | ParamList DELIM_COMMA Param
-    | Param
-    | %empty
-
-Param:
-    | Type Assignable
-
-BlockStmt:
-    | DELIM_BRACE_LEFT StmtList DELIM_BRACE_RIGHT
-    | DELIM_BRACE_LEFT DELIM_BRACE_RIGHT
-    | error DELIM_BRACE_RIGHT
-
-StmtList:
-    | StmtList Stmt
-    | Stmt
-
-Stmt:
-    | LocalDeclDef
-    | BlockStmt
-    | Expr DELIM_SEMICOLON
-    | KW_RETURN Expr DELIM_SEMICOLON
-    | KW_CONTINUE Expr DELIM_SEMICOLON
-    | KW_BREAK Expr DELIM_SEMICOLON
-    | KW_RETURN DELIM_SEMICOLON
-    | KW_CONTINUE DELIM_SEMICOLON
-    | KW_BREAK DELIM_SEMICOLON
-    | KW_IF DELIM_PARENTHESIS_LEFT Expr DELIM_PARENTHESIS_RIGHT Stmt
-    | KW_IF DELIM_PARENTHESIS_LEFT Expr DELIM_PARENTHESIS_RIGHT Stmt KW_ELSE Stmt
-    | KW_WHILE DELIM_PARENTHESIS_LEFT Expr DELIM_PARENTHESIS_RIGHT Stmt
-    | KW_DO Stmt KW_WHILE DELIM_PARENTHESIS_LEFT Expr DELIM_PARENTHESIS_RIGHT DELIM_SEMICOLON
-    | KW_FOR DELIM_PARENTHESIS_LEFT LocalDeclDef Expr DELIM_SEMICOLON Expr DELIM_PARENTHESIS_RIGHT Stmt
-    | KW_FOR DELIM_PARENTHESIS_LEFT Expr DELIM_SEMICOLON Expr DELIM_SEMICOLON Expr DELIM_PARENTHESIS_RIGHT Stmt
-    | KW_SWITCH DELIM_PARENTHESIS_LEFT Expr DELIM_PARENTHESIS_RIGHT DELIM_BRACE_LEFT SwitchBodyStmt DELIM_BRACE_RIGHT
-    | error DELIM_SEMICOLON
-
-SwitchBodyStmt:
-    | CaseStmtList DefaultStmt
-    | CaseStmtList
-    | DefaultStmt
-    | %empty
-
-CaseStmtList:
-    | CaseStmtList CaseStmt
-    | CaseStmt
-
-CaseStmt:
-    | KW_CASE Expr DELIM_COLON StmtList
-    | KW_CASE Expr DELIM_COLON
-
-DefaultStmt:
-    | KW_DEFAULT DELIM_COLON StmtList
-    | KW_DEFAULT DELIM_COLON
-
-LocalDeclDef:
-    | Type VarList DELIM_SEMICOLON
-
-Expr:
-    | Assignable
-    | Literal
-    | CallExpr
-    | AssignmentExpr
-    | Assignable OP_COMPOUND_ASSIGNMENT Expr
-    | Expr DELIM_QUESTION Expr DELIM_COLON Expr
-    | Expr OP_LOGICAL_AND Expr
-    | Expr OP_LOGICAL_OR Expr
-    | Expr OP_BITWISE_AND Expr
-    | Expr OP_BITWISE_OR Expr
-    | Expr OP_BITWISE_XOR Expr
-    | Expr OP_SHIFT_RIGHT Expr
-    | Expr OP_SHIFT_LEFT Expr
-    | Expr OP_RELATIONAL Expr
-    | Expr OP_PLUS Expr
-    | Expr OP_MINUS Expr
-    | Expr OP_MULTIPLY Expr
-    | Expr OP_DIVIDE Expr
-    | Expr OP_MODULUS Expr
-    | DELIM_PARENTHESIS_LEFT Expr DELIM_PARENTHESIS_RIGHT
-    | OP_PLUS Expr
-    | OP_MINUS Expr
-    | OP_MULTIPLY Identifier
-    | OP_BITWISE_AND Identifier
-    | OP_LOGICAL_NOT Expr
-    | OP_BITWISE_NOT Expr
-    | OP_INCREMENT Expr
-    | OP_DECREMENT Expr
-    | Expr OP_INCREMENT
-    | Expr OP_DECREMENT
-
-Literal:
-    | LITERAL_INTEGER
-    | LITERAL_FLOAT
-    | LITERAL_CHAR
-    | LITERAL_STRING
-
-ArrayLiteral:
-    | DELIM_BRACE_LEFT ArrayItemList DELIM_BRACE_RIGHT
-
-ArrayItemList:
-    | ArrayItemList DELIM_COMMA ArrayItem
-    | ArrayItem
-    | %empty
-
-ArrayItem:
-    | Expr
-    | ArrayLiteral
-
-CallExpr:
-    | CallExpr DELIM_PARENTHESIS_LEFT ArgumentList DELIM_PARENTHESIS_RIGHT
-    | Assignable DELIM_PARENTHESIS_LEFT ArgumentList DELIM_PARENTHESIS_RIGHT
-
-ArgumentList:
-    | ArgumentList DELIM_COMMA Expr
-    | Expr
-    | %empty
-
-IndexExpr:
-    | IndexExpr DELIM_BRACKET_LEFT Index DELIM_BRACKET_RIGHT
-    | Identifier DELIM_BRACKET_LEFT Index DELIM_BRACKET_RIGHT
-
-Index:
-    | Expr
-    | %empty
 ```
 
-### Name of AST Node
+// 程序，AST的根，包含所有
+Program
 
-```Java
-Error ->
-    | ErrorStmt
+// 全局*变量*声明
+// 需要大小作为相对全局基址的偏移
+GlobalVarDecl
+  - 0: <Type>
+  - 1: <VarList>
 
-Def ->
-    | FuncDef
-    | VarDef
+// 函数定义
+FuncDef
+  - 0: `return` <Type>
+  - 1: `name` <Identifier>
+  - 2: ParamList
+    - {ParamDecl}
+  - 3: BlockStmt
 
-Decl ->
-    | GlobalVarDecl
-    | FuncDecl
-    | VarDecl
-    | ParamDecl
-    | LocalVarDecl
+// 函数声明
+FuncDecl
+  - 0: `return` Type
+  - 1: `name` <Identifier>
+  - 2: ParamList
+    - {ParamDecl}
 
-List ->
-    | VarList
-    | ParamList
-    | ArgumentList
+// 普通类型，由关键字给出
+Type
+  - 0: <Type>
 
-Expr ->
-    | AssignmentExpr
-    | CompoundAssignmentExpr
-    | TernaryExpr
-    | BinaryExpr
-    | RelationalExpr
-    | ParenthesisExpr
-    | PrefixExpr
-    | PostfixExpr
-    | CallExpr
-    | IndexExpr
+// 结构体类型
+Struct
+  - 0: StructList
+    - {StructItemDecl}
 
-Stmt ->
-    | BlockStmt
-    | ReturnStmt
-    | ContinueStmt
-    | BreakStmt
-    | IfStmt
-    | ElseStmt
+// 变量列表，声明+定义都可以有
+VarList
+  - {VarDecl}
+  - {VarDef}
+
+// 由花括号包围的多条语句，可为空块
+BlockStmt
+
+// 一般来说用于函数末尾，返回值`<Expr>`类型需要匹配所在函数的需求类型
+ReturnStmt
+  - 0: <Expr>
+
+// 循环中的continue与break关键字
+ContinueStmt | BreakStmt
+  IN:
     | WhileStmt
     | DoWhileStmt
     | ForStmt
-    | SwitchStmt
-    | SwitchBodyStmt
-    | CaseStmt
-    | DefaultStmt
 
-Literal ->
-    | IntegerLiteral
-    | FloatLiteral
-    | CharLiteral
-    | StringLiteral
-    | ArrayLiteral
+// while循环，真假表达式+块
+WhileStmt
+  - 0: <Expr>
+  - 1: <Stmt>
 
-Program
+// do-while循环
+DoWhileStmt
+  - 0: <Stmt>
+  - 1: <Expr>
 
-Type
+// for循环
+ForStmt
+  - 0: <LocalDeclDef> | <Expr>
+  - 1: <Expr>
+  - 2: <Expr>
+  - 3: <Stmt>
 
-Pointer
+// if判断，条件，为真时语句，为假时语句
+IfStmt
+  - 0: `cond` <Expr>
+  - 1: `then` <Stmt>
+  - [2]: `else` <Stmt>
 
+// 局部变量声明，只可能成为`stmt`或在`for`中
+// 需要得到变量的大小，作为相对基址的偏移
+// 一个块内的所有变量大小求和，得到这个块需要的大小
+// 这个块的大小便是分配局部空间的依据
+LocalVarDecl:
+// 只在块中出现
+ IN:
+    | Stmt
+
+// 传递给被调函数的参数列表，需要匹配数量与类型
+ArgumentList:
+  - {Expr}
+
+// 数组下标索引，可以多重
+Index:
+// 使用时需要判断是不是`整数`类型即可
+  IN:
+    | IndexExpr
+
+```
+
+### Part.2 Token with Type
+
+总之，一切`Expr`都是具有类型的，大块的`Expr`的类型可以从小块的`Expr`拼起来
+
+比如`cond ? then : els;`
+
+`cond`类型为`int`，`then`与`els`在具有相同类型时，该表达式具有`then`的类型
+
+```
+
+标识符，在使用时需要查看符号表，返回符号表中相应条目的类型
 Identifier
 
-Operator
+数组元素索引表达式，获得被索引的元素类型后进行Array的解套娃
+IndexExpr
 
-Index
+成员访问，需要判断是否为struct，成员是否存在，返回成员的类型，给出相对目标结构体的偏移
+MemberExpr
+
+聚合字面量，数组或结构体初始化，不具有Type，但是可以通过比较后赋值给Struct或Array类型
+AggrLiteral
+
+整数字面量
+IntegerLiteral
+
+浮点数字面量
+FloatLiteral
+
+字符字面量
+CharLiteral
+
+/// TODO
+字符串字面量
+StringLiteral
+
+调用函数的语句，需要检查类型、数量，返回对应函数的返回值的类型
+CallExpr
+
+赋值语句，返回被赋值的左值的类型
+AssignmentExpr
+
+结合赋值，先运算后赋值，同上
+CompoundAssignmentExpr
+
+括号表达式，返回内部类型
+ParenthesisExpr
+
+前缀表达式
+PrefixExpr
+
+后缀表达式
+PostfixExpr
+
+二元(逻辑 | 算数)表达式
+BinaryExpr
+
+关系表达式，返回int 0->false, 1->true
+RelationalExpr
+
+三元表达式
+TernaryExpr
+
 ```
+

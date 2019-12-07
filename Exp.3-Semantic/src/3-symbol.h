@@ -23,7 +23,7 @@ class Symbol {
     string scope_alias;
     int    scope;
     // 类型，对于所有都有效
-    // 平凡类型、数组、结构体、函数
+    // 平凡类型 | 数组 | 结构体 | 函数
     Type type;
 
     // 对于整个函数，有一个栈大小

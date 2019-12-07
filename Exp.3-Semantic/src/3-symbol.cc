@@ -1,12 +1,14 @@
 #include "3-symbol.h"
+
 #include "0-color.h"
 #include "optional"
 #include "util.h"
 
 using namespace Limc;
+using namespace std;
 
 Symbol::Symbol(string name, Type type, int scope, string scope_alias)
-    : name(move(name)), type(move(type)), scope(scope), scope_alias(scope_alias) {}
+    : name(move(name)), type(move(type)), scope(scope), scope_alias(move(scope_alias)) {}
 
 // int SymbolTable::insert_symbol(const Symbol &symbol) {
 //     // otherwise, insert

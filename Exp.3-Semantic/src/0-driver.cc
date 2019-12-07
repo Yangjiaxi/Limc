@@ -52,12 +52,12 @@ void table_head() {
 void Driver::analyze() {
     reports.clear();
     string line(50, '-');
-    table_head();
+    // table_head();
     for (auto &token : tokens) {
-        analyzer.walk(token);
+        analyzer.walk_stmt(token);
         print_reports();
     }
-    cout << BOLD_YELLOW << "Analyze Finish." << RESET_COLOR << endl;
+    // cout << BOLD_YELLOW << "Analyze Finish." << RESET_COLOR << endl;
 }
 
 string Driver::print() const {

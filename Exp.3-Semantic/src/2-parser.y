@@ -87,19 +87,18 @@ GlobalDeclDefList:
         $$.build_AST($1);
     };
 GlobalDeclDef:
-    StructType DELIM_SEMICOLON {
-        $$ = $1;
-    } | Type VarList DELIM_SEMICOLON {
+    StructType DELIM_SEMICOLON
+    | Type VarList DELIM_SEMICOLON {
         $$ = Token("GlobalVarDecl");
         $$.build_AST($1)
           .build_AST($2);
-    } | Type Assignable DELIM_PARENTHESIS_LEFT ParamList DELIM_PARENTHESIS_RIGHT BlockStmt {
+    } | Type Identifier DELIM_PARENTHESIS_LEFT ParamList DELIM_PARENTHESIS_RIGHT BlockStmt {
         $$ = Token("FuncDef");
         $$.build_AST($1)
           .build_AST($2)
           .build_AST($4)
           .build_AST($6);
-    } | Type Assignable DELIM_PARENTHESIS_LEFT ParamList DELIM_PARENTHESIS_RIGHT DELIM_SEMICOLON {
+    } | Type Identifier DELIM_PARENTHESIS_LEFT ParamList DELIM_PARENTHESIS_RIGHT DELIM_SEMICOLON {
         $$ = Token("FuncDecl");
         $$.build_AST($1)
           .build_AST($2)
@@ -111,9 +110,7 @@ GlobalDeclDef:
 Type:
     KW_TYPE {
         $$ = Token("Type", $1, @1);
-    } | StructType {
-        $$ = $1;
-    };
+    } | StructType ;
 StructType: 
     KW_STRUCT IDENTIFIER DELIM_BRACE_LEFT StructDeclList DELIM_BRACE_RIGHT {
         $$ = Token("Struct", $2);
@@ -153,13 +150,9 @@ StructVarList:
         $$.build_AST(decl);
     };
 Assignable:
-    Identifier {
-        $$ = $1;
-    } | IndexExpr {
-        $$ = $1;
-    } | MemberExpr {
-        $$ = $1;
-    };
+    Identifier
+    | IndexExpr
+    | MemberExpr;
 MemberExpr:
     Assignable OP_DOT Identifier {
         $$ = Token("MemberExpr");
@@ -242,12 +235,6 @@ Stmt:
       | Expr DELIM_SEMICOLON
       | KW_RETURN Expr DELIM_SEMICOLON {
         $$ = Token("ReturnStmt", @1);
-        $$.build_AST($2);
-    } | KW_CONTINUE Expr DELIM_SEMICOLON {
-        $$ = Token("ContinueStmt", @1);
-        $$.build_AST($2);
-    } | KW_BREAK Expr DELIM_SEMICOLON {
-        $$ = Token("BreakStmt", @1);
         $$.build_AST($2);
     } | KW_RETURN DELIM_SEMICOLON {
         $$ = Token("ReturnStmt", @1);

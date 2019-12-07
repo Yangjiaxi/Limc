@@ -14,7 +14,8 @@ class Semantic {
   public:
     explicit Semantic(Driver &driver);
 
-    void walk(Token &root);
+    void walk_stmt(Token &root);
+    Type check_type(Token &root);
 
   private:
     // void try_insert(Token &name, Token &type);
