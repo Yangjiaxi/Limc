@@ -65,9 +65,6 @@ WHITESPACE  [ \t\v\f]
 "else"      { ACTION(KW_ELSE); }
 "while"     { ACTION(KW_WHILE); }
 "do"        { ACTION(KW_DO); }
-"switch"    { ACTION(KW_SWITCH); }
-"case"      { ACTION(KW_CASE); }
-"default"   { ACTION(KW_DEFAULT); }
 "struct"    { ACTION(KW_STRUCT); }
 
 {IDENTIFIER}    { ACTION_ARG(IDENTIFIER); }

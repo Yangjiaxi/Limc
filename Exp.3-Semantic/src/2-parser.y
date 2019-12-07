@@ -34,13 +34,13 @@
 %define parse.trace
 %define parse.error verbose
 
-%type <Token> Program GlobalDeclDefList GlobalDeclDef Type VarList AssignmentExpr BlockStmt ParamList Param Stmt StmtList SwitchBodyStmt CaseStmtList CaseStmt DefaultStmt LocalDeclDef Expr CallExpr ArgumentList IndexExpr Index Assignable Identifier Literal AggrLiteral AggrItemList AggrItem
+%type <Token> Program GlobalDeclDefList GlobalDeclDef Type VarList AssignmentExpr BlockStmt ParamList Param Stmt StmtList LocalDeclDef Expr CallExpr ArgumentList IndexExpr Index Assignable Identifier Literal AggrLiteral AggrItemList AggrItem
 
 %type <Token> StructType StructDeclList StructDecl MemberExpr StructVarList
 
 %token END 0 "EOF"
 %token DELIM_PARENTHESIS_LEFT DELIM_PARENTHESIS_RIGHT DELIM_BRACE_LEFT DELIM_BRACE_RIGHT DELIM_BRACKET_LEFT DELIM_BRACKET_RIGHT DELIM_SEMICOLON DELIM_COMMA DELIM_QUESTION DELIM_COLON
-%token KW_FOR KW_IF KW_ELSE KW_WHILE KW_DO KW_RETURN KW_BREAK KW_CONTINUE KW_SWITCH KW_DEFAULT KW_CASE KW_STRUCT
+%token KW_FOR KW_IF KW_ELSE KW_WHILE KW_DO KW_RETURN KW_BREAK KW_CONTINUE KW_CASE KW_STRUCT
 
 %token <string> IDENTIFIER KW_TYPE LITERAL_FLOAT LITERAL_INTEGER LITERAL_CHAR LITERAL_STRING
 %token <string> OP_SHIFT_RIGHT OP_SHIFT_LEFT OP_BITWISE_AND OP_BITWISE_OR OP_BITWISE_XOR OP_BITWISE_NOT
@@ -161,16 +161,15 @@ Assignable:
         $$ = $1;
     };
 MemberExpr:
-    Assignable OP_DOT IDENTIFIER {
+    Assignable OP_DOT Identifier {
         $$ = Token("MemberExpr");
         $$.build_AST($1)
-          .build_AST(Token("Identifier", $3));
-    }
+          .build_AST($3);
+    };
 Identifier:
     IDENTIFIER {
         $$ = Token("Identifier", $1, @1);
     };
-
 VarList:
     Assignable {
         $$ = Token("VarList");
@@ -287,48 +286,9 @@ Stmt:
           .build_AST($5)
           .build_AST($7)
           .build_AST($9);
-    } | KW_SWITCH DELIM_PARENTHESIS_LEFT Expr DELIM_PARENTHESIS_RIGHT DELIM_BRACE_LEFT SwitchBodyStmt DELIM_BRACE_RIGHT {
-        $$ = Token("SwitchStmt");
-        $$.build_AST($3)
-          .build_AST($6);
     } | error DELIM_SEMICOLON {
         $$ = Token("ErrorStmt");
         yyerrok;
-    };
-SwitchBodyStmt:
-    CaseStmtList DefaultStmt {
-        $$ = $1;
-        $$.build_AST($2);
-    } | CaseStmtList
-      | DefaultStmt {
-        $$ = Token("SwitchBodyStmt");
-        $$.build_AST($1);
-    } | {
-        $$ = Token("SwitchBodyStmt");
-    };
-CaseStmtList:
-    CaseStmtList CaseStmt {
-        $$ = $1;
-        $$.build_AST($2);
-    } | CaseStmt {
-        $$ = Token("SwitchBodyStmt");
-        $$.build_AST($1);
-    };
-CaseStmt:
-    KW_CASE Expr DELIM_COLON StmtList {
-        $$ = Token("CaseStmt");
-        $$.build_AST($2)
-          .build_AST($4);
-    } | KW_CASE Expr DELIM_COLON {
-        $$ = Token("CaseStmt");
-        $$.build_AST($2);
-    };
-DefaultStmt:
-    KW_DEFAULT DELIM_COLON StmtList {
-        $$ = Token("DefaultStmt");
-        $$.build_AST($3);
-    } | KW_DEFAULT DELIM_COLON {
-        $$ = Token("DefaultStmt");
     };
 LocalDeclDef:
     Type VarList DELIM_SEMICOLON {
@@ -481,10 +441,7 @@ AggrItemList:
 AggrItem:
     Expr | AggrLiteral;
 CallExpr:
-    CallExpr DELIM_PARENTHESIS_LEFT ArgumentList DELIM_PARENTHESIS_RIGHT {
-        $$ = $1;
-        $$.build_AST($3);
-    } | Assignable DELIM_PARENTHESIS_LEFT ArgumentList DELIM_PARENTHESIS_RIGHT {
+    Identifier DELIM_PARENTHESIS_LEFT ArgumentList DELIM_PARENTHESIS_RIGHT {
         $$ = Token("CallExpr");
         $$.build_AST($1)
           .build_AST($3);
@@ -507,7 +464,11 @@ IndexExpr:
         $$ = Token("IndexExpr");
         $$.build_AST($1)
           .build_AST($3);
-    };
+    } | MemberExpr DELIM_BRACKET_LEFT Index DELIM_BRACKET_RIGHT {
+        $$ = Token("IndexExpr");
+        $$.build_AST($1)
+          .build_AST($3);
+    }  ;
 Index:
     Expr {
         $$ = Token("Index", @1);

@@ -1,26 +1,12 @@
 #include "0-token.h"
-#include "../lib/patterns.hpp"
 #include "0-color.h"
 #include "location.hh"
+#include "patterns.hpp"
+#include "util.h"
 #include <optional>
 
 using namespace Limc;
-using mpark::patterns::_;
-using mpark::patterns::arg;
-using mpark::patterns::if_let;
-using mpark::patterns::match;
-using mpark::patterns::pattern;
-using mpark::patterns::some;
-
-static stringstream &build_str(stringstream &ss, const string &value, const char *color) {
-    ss << color << value << RESET_COLOR;
-    return ss;
-}
-
-static stringstream &build_str(stringstream &ss, const string &value) {
-    ss << value;
-    return ss;
-}
+using namespace mpark::patterns;
 
 Token::Token(string kind, string value)
     : kind(move(kind)), value(move(value)), children(), loc(nullopt) {}
@@ -69,16 +55,6 @@ optional<location> Token::get_loc() const {
             right++;
     }
     return nullopt;
-
-    // if (loc == nullopt) {
-    //     for (const auto &child : children) {
-    //         auto child_loc = child.get_loc();
-    //         if (child_loc != nullopt) {
-    //             return child_loc;
-    //         }
-    //     }
-    // }
-    // return loc;
 }
 
 string Token::print(const string pre, const string ch_pre) const {
@@ -120,11 +96,11 @@ string Token::print(const string pre, const string ch_pre) const {
     if (!children.empty()) {
         for (auto &item : children) {
             if (&item == &children.back()) {
-                s << item.print(ch_pre + "└── ", ch_pre + "    ");
-                // s << item.print(ch_pre + "`---", ch_pre + "    ");
+                // s << item.print(ch_pre + "└──", ch_pre + "    ");
+                s << item.print(ch_pre + "`---", ch_pre + "    ");
             } else {
-                s << item.print(ch_pre + "├── ", ch_pre + "│   ");
-                // s << item.print(ch_pre + "|---", ch_pre + "|   ");
+                // s << item.print(ch_pre + "├──", ch_pre + "│   ");
+                s << item.print(ch_pre + "|---", ch_pre + "|   ");
             }
         }
     }

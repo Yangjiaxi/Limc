@@ -6,3 +6,4 @@ AlignConsecutiveAssignments: true
 BinPackArguments: false
 BinPackParameters: false
 AlignConsecutiveDeclarations: true
+AllowShortBlocksOnASingleLine: true

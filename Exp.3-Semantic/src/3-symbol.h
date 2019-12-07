@@ -2,33 +2,40 @@
 #define VARIABLE_TABLE_H
 
 #include "0-token.h"
+#include "3-type.h"
 #include <unordered_map>
 #include <utility>
 
 namespace Limc {
 
-// class Driver;
-
 // Var(Lvar | GVar) | Func | StringLiteral
 class Symbol {
   public:
-    Symbol(string name, string type, int scope, string scope_alias);
+    // Symbol(string name, string type, int scope, string scope_alias);
+    //
+    // Symbol(Token &name, Token &type, int scope, string scope_alias);
+    //
+    // Symbol(Token &name, Token &type, vector<string> parameters, int scope, string scope_alias);
 
-    Symbol(Token &name, Token &type, int scope, string scope_alias);
+    Symbol(string name, Type type, int scope, string scope_alias);
 
-    Symbol(Token &name, Token &type, vector<string> parameters, int scope, string scope_alias);
+    string name;
+    string scope_alias;
+    int    scope;
+    // 类型，对于所有都有效
+    // 平凡类型、数组、结构体、函数
+    Type type;
 
-    string         name;
-    string         type;
-    vector<string> parameters;
-    string         scope_alias; // for debug
-    int            scope;
-    bool           is_func;
+    // 对于整个函数，有一个栈大小
+    int stack_size; // for func
+
+    // 对于每个变量，有一个基址偏移
+    int offset; // for Lvar and Gvar
 };
 
 class SymbolTable {
   public:
-    SymbolTable(string name) : name(std::move(name)) {}
+    explicit SymbolTable(string name) : name(std::move(name)) {}
 
     SymbolTable() = default;
 

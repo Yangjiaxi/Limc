@@ -23,7 +23,7 @@ int PT(int *a, int left, int right) {
     //这时数组模型：[比Key小][比Key大]Key --交换-->
     //[比Key小]Key[比Key大]
     return i + 1;
-    // i保存的是比关键字小的最后一个元素的下标，故i+1表示key的位置，下一次递归进行[lefti-1]和[i+1,right]的排序
+    // i保存的是比关键字小的最后一个元素的下标，故i+1表示key的位置，下一次递归进行[left,i-1]和[i+1,right]的排序
 }
 
 void QS(int *a, int left, int right) {

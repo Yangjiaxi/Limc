@@ -23,7 +23,7 @@ class Token {
 
     Token &build_AST(const Token &child);
 
-    string print(const string pre = "", const string ch_pre = "") const;
+    string print(string pre = "", string ch_pre = "") const;
 
     string get_kind() const;
 

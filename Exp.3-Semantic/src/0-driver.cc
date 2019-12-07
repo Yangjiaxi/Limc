@@ -1,6 +1,6 @@
 #include "0-driver.h"
 #include "0-color.h"
-#include <iomanip>
+#include "util.h"
 #include <sstream>
 
 using namespace Limc;
@@ -22,23 +22,6 @@ int Driver::parse() {
 void Driver::clear() {
     loc.initialize();
     tokens.clear();
-}
-
-static stringstream &
-build_str(stringstream &ss, const string &value, const char *color, const unsigned width = 0) {
-    if (width)
-        ss << color << setw(width) << value << RESET_COLOR;
-    else
-        ss << color << value << RESET_COLOR;
-    return ss;
-}
-
-static stringstream &build_str(stringstream &ss, const string &value, const unsigned width = 0) {
-    if (width)
-        ss << setw(width) << value << RESET_COLOR;
-    else
-        ss << value << RESET_COLOR;
-    return ss;
 }
 
 void table_head() {

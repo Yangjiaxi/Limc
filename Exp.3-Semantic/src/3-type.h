@@ -3,7 +3,8 @@
 
 #include "0-token.h"
 #include <memory>
-#include <unordered_map>
+// #include <unordered_map>
+#include <map>
 
 /*
  * 节点的大类型：(Type)
@@ -47,26 +48,32 @@ class Type {
     unsigned length;
 
     // Struct:
-    unordered_map<string, Type> members;
+    map<string, Type> members;
+
+    // for struct element
+    unsigned member_offset;
 
     // Function:
     Type *       return_type;
     vector<Type> args;
 
+    // array, struct,
     unsigned size;
     unsigned align;
 
     Type();
 
-    static Type build_type(Token &root, vector<unsigned> array_depth = {});
+    static Type build_type(Token &root, const vector<unsigned> &array_depth = {});
 
     string to_string() const;
 
   private:
-    string str_kind() const;
     string str_content() const;
 
     static vector<unsigned> make_array_depths(Token &root);
+
+    // size, align
+    static pair<unsigned, unsigned> make_array_info(Type *root);
 };
 
 } // namespace Limc
