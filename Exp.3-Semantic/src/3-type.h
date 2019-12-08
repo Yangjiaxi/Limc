@@ -67,6 +67,8 @@ class Type {
 
     Type();
 
+    bool is_int();
+
     static Type *build_type(Token &root, const vector<unsigned> &array_depth = {});
 
     static Type *build_literal(Token &root);
@@ -78,6 +80,8 @@ class Type {
     static vector<unsigned> make_array_depths(Token &root);
 
     static Type *make_void_type();
+
+    static Type *make_int_type();
 
     static Type *make_error_type();
 

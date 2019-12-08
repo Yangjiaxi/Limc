@@ -60,12 +60,12 @@ Type *Semantic::expr(Token &root) {
         // END OF [Identifier]
     } else if (kind == "IndexExpr") {
         cout << "IndexExpr" << endl;
-        auto children   = root.get_children();
-        auto array_root = children[0];
-        auto current    = expr(array_root);
+        auto &children   = root.get_children();
+        auto &array_root = children[0];
+        auto  current    = expr(array_root);
         for (auto index = children.begin() + 1; index != children.end(); ++index) {
             auto index_type = expr(index->get_child(0));
-            if (index_type->c_type == Ctype::Plain && index_type->plain_type == PlainType::Int) {
+            if (index_type->is_int()) {
                 if (current->c_type != Ctype::Array) {
                     driver.report()
                         .report_level(Level::Error)
@@ -74,7 +74,8 @@ Type *Semantic::expr(Token &root) {
                     type_res = Type::make_error_type();
                     break;
                 } else {
-                    current = current->base_type;
+                    current  = current->base_type;
+                    type_res = current;
                 }
             } else {
                 driver.report()
@@ -85,7 +86,135 @@ Type *Semantic::expr(Token &root) {
                 break;
             }
         }
-        type_res = current;
+        // END OF [IndexExpr]
+    } else if (kind == "ArithBinaryExpr") {
+        // 算术二元运算，没有额外限制，表达式的结果由权值高的决定
+        auto &a_node = root.get_child(0);
+        auto  a_type = expr(a_node);
+
+        auto &op = root.get_child(1);
+
+        auto &b_node = root.get_child(2);
+        auto  b_type = expr(b_node);
+
+        if (a_type->c_type != Ctype::Plain || b_type->c_type != Ctype::Plain) {
+            driver.report()
+                .report_level(Level::Error)
+                .report_loc(root.get_loc().value())
+                .report_msg(
+                    "Types around operand `" + op.get_value() + "` : `" + a_type->to_string() +
+                    "`" + " and `" + b_type->to_string() +
+                    "` can't perform this arithmetic calculate.");
+            type_res = Type::make_error_type();
+        } else {
+            type_res = upper_type(a_type, b_type);
+        }
+        // END OF [ArithBinaryExpr]
+    } else if (kind == "LogBinaryExpr") {
+        // 逻辑二元运算，必须是int类型
+        auto &a_node = root.get_child(0);
+        auto  a_type = expr(a_node);
+
+        auto &op = root.get_child(1);
+
+        auto &b_node = root.get_child(2);
+        auto  b_type = expr(b_node);
+
+        if (!a_type->is_int() || !b_type->is_int()) {
+            driver.report()
+                .report_level(Level::Error)
+                .report_loc(root.get_loc().value())
+                .report_msg(
+                    "Types around logical operand `" + op.get_value() +
+                    "` must both be `int`, but got : `" + a_type->to_string() + "`" + " and `" +
+                    b_type->to_string() + "`.");
+            type_res = Type::make_error_type();
+        } else {
+            type_res = a_type;
+        }
+        // END OF [ArithBinaryExpr]
+    } else if (kind == "RelationalExpr") {
+
+        // 关系表达式，平凡类型随意比较，复合类型必须成员相同
+        auto &a_node = root.get_child(0);
+        auto  a_type = expr(a_node);
+
+        auto &op = root.get_child(1);
+
+        auto &b_node = root.get_child(2);
+        auto  b_type = expr(b_node);
+
+        if (!comparable(a_type, b_type)) {
+            driver.report()
+                .report_level(Level::Error)
+                .report_loc(root.get_loc().value())
+                .report_msg(
+                    "Types `" + a_type->to_string() + "` and `" + b_type->to_string() +
+                    " is not comparable.");
+            type_res = Type::make_error_type();
+        } else {
+            type_res = Type::make_int_type();
+        }
+        // END OF [RelationalExpr]
+    } else if (kind == "TernaryExpr") {
+        // 三目表达式，条件具有int，分支取高来返回
+        auto &cond_value = root.get_child(0);
+        auto &yes_value  = root.get_child(1);
+        auto &no_value   = root.get_child(2);
+
+        auto cond_type = expr(cond_value);
+        auto yes_type  = expr(yes_value);
+        auto no_type   = expr(no_value);
+
+        if (!cond_type->is_int()) {
+            driver.report()
+                .report_level(Level::Error)
+                .report_loc(root.get_loc().value())
+                .report_msg(
+                    "Condition's type of ternary expression should be `int`, got: `" +
+                    cond_type->to_string() + "`.");
+            type_res = Type::make_error_type();
+        } else {
+            auto upper_one = upper_type(yes_type, no_type);
+            if (upper_one == nullptr) {
+                driver.report()
+                    .report_level(Level::Error)
+                    .report_loc(root.get_loc().value())
+                    .report_msg(
+                        "Branches' types of ternary expression not match, got `" +
+                        yes_type->to_string() + "`" + " and `" + no_type->to_string() + "`.");
+                type_res = Type::make_error_type();
+            } else {
+                type_res = upper_one;
+            }
+        }
+        // END OF [TernaryExpr]
+    } else if (kind == "MemberExpr") {
+        // 取成员操作符，a.b
+        // a是一个结构体，b是a所属结构体中的一个成员
+        auto &struct_node = root.get_child(0);
+        auto  struct_type = expr(struct_node);
+        cout << "Struct: " << struct_type->to_string() << endl;
+        auto member_name = root.get_child(1).get_value();
+        if (struct_type->c_type != Ctype::Struct) {
+            driver.report()
+                .report_level(Level::Error)
+                .report_loc(root.get_loc().value())
+                .report_msg("Can't use member expresssion on non-struct value.");
+            type_res = Type::make_error_type();
+        } else {
+            if (struct_type->members.find(member_name) == struct_type->members.cend()) {
+                driver.report()
+                    .report_level(Level::Error)
+                    .report_loc(root.get_loc().value())
+                    .report_msg(
+                        "Struct type `" + struct_type->to_string() +
+                        "` doesn't have member named `" + member_name + "`.");
+            } else {
+                type_res = struct_type->members.at(member_name);
+            }
+        }
+        // END OF [MemberExpr]
     }
     // FALL TO
     else if (
@@ -147,12 +276,12 @@ void Semantic::stmt(Token &root) {
         //
 
         // [构建类型] -> [构建数组尺度] -> [构建符号] -> [统计全局/局部增长]
-        auto type_node = root.get_child(0);
+        auto &type_node = root.get_child(0);
 
         Type *type_res = parse_type(type_node);
 
         // VarList
-        auto ident_list = root.get_child(1).get_children();
+        auto &ident_list = root.get_child(1).get_children();
         for (auto &ident_node_wrap : ident_list) {
             // if (ident_node_wrap.get_kind() == "VarDecl") {
 
@@ -204,8 +333,8 @@ void Semantic::stmt(Token &root) {
         // 2. 参数列表作为局部定义变量
         auto &params = root.get_child(2).get_children();
         for (auto &param : params) {
-            auto param_type = parse_type(param.get_child(0));
-            auto param_name = param.get_child(1);
+            auto  param_type = parse_type(param.get_child(0));
+            auto &param_name = param.get_child(1);
 
             Token name;
             if (param_name.get_kind() == "IndexExpr") {
@@ -350,7 +479,7 @@ Type *Semantic::parse_type(Token &root) {
     return type_res;
 }
 
-// 判断能否总类型to转换到类型from
+// 判断能否从类型from转换到类型to
 bool Semantic::can_convert(Type *from, Type *to) {
     /*
      *  Char -> Int
@@ -365,7 +494,7 @@ bool Semantic::can_convert(Type *from, Type *to) {
         return false;
     }
     if (from->c_type == Ctype::Array) {
-        return can_convert(from->base_type, to->base_type);
+        return from->length == to->length && can_convert(from->base_type, to->base_type);
     }
     if (from->c_type == Ctype::Struct) {
         if (from->members.size() != to->members.size()) {
@@ -393,4 +522,56 @@ bool Semantic::can_convert(Type *from, Type *to) {
     return false;
 }
 
-// Type Semantic::check_type(Token &root) { return Type(); }
+// 给出两个类型中，高的一个
+/*
+    1. char -> int -> float
+    2. 结构体与数组不存在高低，必须相等
+ */
+Type *Semantic::upper_type(Type *a, Type *b) {
+    if (a->c_type == Ctype::Plain && b->c_type == Ctype::Plain) {
+        if (a->plain_type > b->plain_type) {
+            return a;
+        } else {
+            return b;
+        }
+    } else {
+        if (can_convert(a, b)) {
+            return a;
+        } else {
+            return nullptr;
+        }
+    }
+    return nullptr;
+}
+
+// 两个是否可比
+bool Semantic::comparable(Type *a, Type *b) {
+    if ((a != nullptr && b == nullptr) || (a == nullptr && b != nullptr))
+        return false;
+    if (a->c_type == Ctype::Function || b->c_type == Ctype::Function) {
+        return false;
+    }
+    if (a->c_type != b->c_type) {
+        return false;
+    }
+    if (a->c_type == Ctype::Plain)
+        return true;
+    if (a->c_type == Ctype::Array) {
+        return a->length == b->length && comparable(a->base_type, b->base_type);
+    }
+    if (a->c_type == Ctype::Struct) {
+        if (a->members.size() != b->members.size()) {
+            return false;
+        }
+        auto a_iter = a->members.cbegin();
+        auto b_iter = b->members.cbegin();
+        while (a_iter != a->members.cend()) {
+            if (!can_convert(a_iter->second, b_iter->second))
+                return false;
+            ++a_iter;
+            ++b_iter;
+        }
+        return true;
+    }
+    return false;
+}

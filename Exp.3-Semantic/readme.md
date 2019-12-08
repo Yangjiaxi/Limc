@@ -4,10 +4,9 @@ Limc Is a Minimal Compiler
 
 ## Token Kinds
 
-
 ### Part.1 Token without Type
 
-```
+```java
 
 // 程序，AST的根，包含所有
 [x] Program
@@ -113,59 +112,58 @@ Limc Is a Minimal Compiler
 
 `cond`类型为`int`，`then`与`els`在具有相同类型时，该表达式具有`then`的类型
 
-```
+```java
 
-标识符，在使用时需要查看符号表，返回符号表中相应条目的类型
+// 标识符，在使用时需要查看符号表，返回符号表中相应条目的类型
 [x] Identifier
 
-数组元素索引表达式，获得被索引的元素类型后进行Array的解套娃
+// 数组元素索引表达式，获得被索引的元素类型后进行Array的解套娃
 [x] IndexExpr
 
-成员访问，需要判断是否为struct，成员是否存在，返回成员的类型，给出相对目标结构体的偏移
-[ ] MemberExpr
+// 成员访问，需要判断是否为struct，成员是否存在，返回成员的类型，给出相对目标结构体的偏移
+[x] MemberExpr
 
-聚合字面量，数组或结构体初始化，不具有Type，但是可以通过比较后赋值给Struct或Array类型
+// 聚合字面量，数组或结构体初始化，不具有Type，但是可以通过比较后赋值给Struct或Array类型
 [ ] AggrLiteral
 
-整数字面量
+// 整数字面量
 [x] IntegerLiteral
 
-浮点数字面量
+// 浮点数字面量
 [x] FloatLiteral
 
-字符字面量
+// 字符字面量
 [x] CharLiteral
 
 /// TODO
-字符串字面量
+// 字符串字面量
 [ ] StringLiteral
 
-调用函数的语句，需要检查类型、数量，返回对应函数的返回值的类型
+// 调用函数的语句，需要检查类型、数量，返回对应函数的返回值的类型
 [ ] CallExpr
 
-赋值语句，返回被赋值的左值的类型
+// 赋值语句，返回被赋值的左值的类型
 [ ] AssignmentExpr
 
-结合赋值，先运算后赋值，同上
+// 结合赋值，先运算后赋值，同上
 [ ] CompoundAssignmentExpr
 
-括号表达式，返回内部类型
+// 括号表达式，返回内部类型
 [ ] ParenthesisExpr
 
-前缀表达式
+// 前缀表达式
 [ ] PrefixExpr
 
-后缀表达式
+// 后缀表达式
 [ ] PostfixExpr
 
-二元(逻辑 | 算数)表达式
-[ ] BinaryExpr
+// 二元(逻辑 | 算数)表达式
+[x] LogBinaryExpr | ArithBinaryExpr
 
-关系表达式，返回int 0->false, 1->true
-[ ] RelationalExpr
+// 关系表达式，返回int 0->false, 1->true
+[x] RelationalExpr
 
-三元表达式
-[ ] TernaryExpr
+// 三元表达式
+[x] TernaryExpr
 
 ```
-

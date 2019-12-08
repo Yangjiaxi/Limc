@@ -296,42 +296,40 @@ Expr:
     } | Expr DELIM_QUESTION Expr DELIM_COLON Expr {
         $$ = Token("TernaryExpr");
         $$.build_AST($1)
-          .build_AST(Token("Operator", "?", @2))
           .build_AST($3)
-          .build_AST(Token("Operator", ":", @4))
           .build_AST($5);
     } | Expr OP_LOGICAL_AND Expr {
-        $$ = Token("BinaryExpr");
+        $$ = Token("LogBinaryExpr");
         $$.build_AST($1)
           .build_AST(Token("Operator", $2, @2))
           .build_AST($3);
     } | Expr OP_LOGICAL_OR Expr {
-        $$ = Token("BinaryExpr");
+        $$ = Token("LogBinaryExpr");
         $$.build_AST($1)
           .build_AST(Token("Operator", $2, @2))
           .build_AST($3);
     } | Expr OP_BITWISE_AND Expr {
-        $$ = Token("BinaryExpr");
+        $$ = Token("LogBinaryExpr");
         $$.build_AST($1)
           .build_AST(Token("Operator", $2, @2))
           .build_AST($3);
     } | Expr OP_BITWISE_OR Expr {
-        $$ = Token("BinaryExpr");
+        $$ = Token("LogBinaryExpr");
         $$.build_AST($1)
           .build_AST(Token("Operator", $2, @2))
           .build_AST($3);
     } | Expr OP_BITWISE_XOR Expr {
-        $$ = Token("BinaryExpr");
+        $$ = Token("LogBinaryExpr");
         $$.build_AST($1)
           .build_AST(Token("Operator", $2, @2))
           .build_AST($3);
     } | Expr OP_SHIFT_RIGHT Expr {
-        $$ = Token("BinaryExpr");
+        $$ = Token("LogBinaryExpr");
         $$.build_AST($1)
           .build_AST(Token("Operator", $2, @2))
           .build_AST($3);
     } | Expr OP_SHIFT_LEFT Expr {
-        $$ = Token("BinaryExpr");
+        $$ = Token("LogBinaryExpr");
         $$.build_AST($1)
           .build_AST(Token("Operator", $2, @2))
           .build_AST($3);
@@ -341,27 +339,27 @@ Expr:
           .build_AST(Token("Operator", $2, @2))
           .build_AST($3);
     } | Expr OP_PLUS Expr {
-        $$ = Token("BinaryExpr");
+        $$ = Token("ArithBinaryExpr");
         $$.build_AST($1)
           .build_AST(Token("Operator", $2, @2))
           .build_AST($3);
     } | Expr OP_MINUS Expr {
-        $$ = Token("BinaryExpr");
+        $$ = Token("ArithBinaryExpr");
         $$.build_AST($1)
           .build_AST(Token("Operator", $2, @2))
           .build_AST($3);
     } | Expr OP_MULTIPLY Expr {
-        $$ = Token("BinaryExpr");
+        $$ = Token("ArithBinaryExpr");
         $$.build_AST($1)
           .build_AST(Token("Operator", $2, @2))
           .build_AST($3);
     } | Expr OP_DIVIDE Expr {
-        $$ = Token("BinaryExpr");
+        $$ = Token("ArithBinaryExpr");
         $$.build_AST($1)
           .build_AST(Token("Operator", $2, @2))
           .build_AST($3);
     } | Expr OP_MODULUS Expr {
-        $$ = Token("BinaryExpr");
+        $$ = Token("ArithBinaryExpr");
         $$.build_AST($1)
           .build_AST(Token("Operator", $2, @2))
           .build_AST($3);

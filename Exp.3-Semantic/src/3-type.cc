@@ -4,7 +4,7 @@
 using namespace Limc;
 using namespace std;
 
-Type::Type() : base_type(nullptr), return_type(nullptr), members(), args() {}
+Type::Type() : base_type(nullptr), return_type(nullptr), members(), args(), align(0), size(0) {}
 
 Type *Type::build_literal(Token &root) {
     Type *new_type   = new Type();
@@ -230,6 +230,7 @@ Type *Type::wrap_array(Type *root, const vector<unsigned> &array_depth) {
     make_array_info(new_type);
     return new_type;
 }
+
 Type *Type::make_void_type() {
     Type *current       = new Type();
     current->c_type     = Ctype::Plain;
@@ -238,8 +239,24 @@ Type *Type::make_void_type() {
     current->size       = 0;
     return current;
 }
+
+Type *Type::make_int_type() {
+    Type *current       = new Type();
+    current->c_type     = Ctype::Plain;
+    current->plain_type = PlainType::Int;
+    current->align      = 4;
+    current->size       = 4;
+    return current;
+}
+
 Type *Type::make_error_type() {
     Type *current   = new Type();
     current->c_type = Ctype::ErrorType;
     return current;
+}
+bool Type::is_int() {
+    if (c_type == Ctype::Plain && plain_type == PlainType::Int) {
+        return true;
+    }
+    return false;
 }
