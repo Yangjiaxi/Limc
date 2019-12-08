@@ -1,5 +1,4 @@
 #include "3-type.h"
-#include "patterns.hpp"
 #include "util.h"
 
 using namespace Limc;
@@ -7,9 +6,27 @@ using namespace std;
 
 Type::Type() : base_type(nullptr), return_type(nullptr), members(), args() {}
 
-Type Type::build_type(Token &root, const vector<unsigned> &array_depth) {
-    Type  new_type = Type();
-    Type *current  = &new_type;
+Type *Type::build_literal(Token &root) {
+    Type *new_type   = new Type();
+    new_type->c_type = Ctype ::Plain;
+
+    auto node_kind = root.get_kind();
+
+    if (node_kind == "IntegerLiteral") {
+        new_type->plain_type = PlainType::Int;
+    } else if (node_kind == "FloatLiteral") {
+        new_type->plain_type = PlainType::Float;
+    } else if (node_kind == "CharLiteral") {
+        new_type->plain_type = PlainType::Char;
+    } else if (node_kind == "StringLiteral") {
+        throw runtime_error("Not finish:  `StringLiteral`.");
+    }
+    return new_type;
+}
+
+Type *Type::build_type(Token &root, const vector<unsigned> &array_depth) {
+    Type *new_type = new Type();
+    Type *current  = new_type;
     if (!array_depth.empty()) {
         // 嵌套数组
         // array_depth保存了数组每一层的大小，最后一维是基类型的长度
@@ -61,11 +78,11 @@ Type Type::build_type(Token &root, const vector<unsigned> &array_depth) {
                     vector<unsigned> depths      = make_array_depths(ident_node);
                     auto             member_type = build_type(item.get_child(0), depths);
 
-                    s_size                    = align_memory(s_size, member_type.align);
-                    member_type.member_offset = s_size;
-                    s_size += member_type.size;
-                    if (s_align < member_type.align) {
-                        s_align = member_type.align;
+                    s_size                     = align_memory(s_size, member_type->align);
+                    member_type->member_offset = s_size;
+                    s_size += member_type->size;
+                    if (s_align < member_type->align) {
+                        s_align = member_type->align;
                     }
 
                     current->members.insert({name, member_type});
@@ -74,11 +91,11 @@ Type Type::build_type(Token &root, const vector<unsigned> &array_depth) {
                     auto name        = ident_node.get_value();
                     auto member_type = build_type(item.get_child(0));
 
-                    s_size                    = align_memory(s_size, member_type.align);
-                    member_type.member_offset = s_size;
-                    s_size += member_type.size;
-                    if (s_align < member_type.align) {
-                        s_align = member_type.align;
+                    s_size                     = align_memory(s_size, member_type->align);
+                    member_type->member_offset = s_size;
+                    s_size += member_type->size;
+                    if (s_align < member_type->align) {
+                        s_align = member_type->align;
                     }
 
                     current->members.insert({name, member_type});
@@ -91,14 +108,16 @@ Type Type::build_type(Token &root, const vector<unsigned> &array_depth) {
         auto &ret            = root.get_child(0);
         auto &arguments      = root.get_child(2).get_children();
         current->c_type      = Ctype::Function;
-        current->return_type = new Type();
-        current->return_type->build_type(ret);
+        current->return_type = build_type(ret);
+        // 对于函数来说，对齐和偏移量没啥用
+        /// TODO 待证实
+        current->align = current->size = 0;
         for (auto &arg : arguments) {
             assert(arg.get_kind() == "ParamDecl");
             current->args.push_back(build_type(arg.get_child(0)));
         }
     }
-    make_array_info(&new_type);
+    make_array_info(new_type);
     return move(new_type);
 }
 
@@ -116,6 +135,12 @@ pair<unsigned, unsigned> Type::make_array_info(Type *root) {
 
 string Type::to_string() const {
     stringstream ss;
+    if (c_type == Ctype::ErrorType) {
+        ss << BOLD_RED << "ERROR" << RESET_COLOR;
+        return ss.str();
+    }
+
+    ss << BOLD_GREEN;
     if (c_type == Ctype::Plain) {
         ss << "";
     } else if (c_type == Ctype::Struct) {
@@ -138,7 +163,11 @@ string Type::to_string() const {
         ss << ")"
            << "->" << return_type->to_string();
     }
-    ss << "(" << size << "," << align << ")";
+    if (c_type != Ctype::Function) {
+        ss << "(" << size << "," << align << ")";
+    }
+
+    ss << RESET_COLOR;
     return ss.str();
 }
 
@@ -159,14 +188,14 @@ string Type::str_content() const {
     } else if (c_type == Ctype::Struct) {
         bool first = true;
         for (auto &[name, type] : members) {
-            ss << (first ? "" : " | ") << "<" << type.member_offset << ">" << name << ":"
-               << type.to_string();
+            ss << (first ? "" : " | ") << "<" << type->member_offset << ">" << name << ":"
+               << type->to_string();
             first = false;
         }
     } else if (c_type == Ctype::Function) {
         bool first = true;
         for (auto &arg : args) {
-            ss << (first ? "" : ",") << arg.to_string();
+            ss << (first ? "" : ",") << arg->to_string();
             first = false;
         }
     }
@@ -182,4 +211,35 @@ vector<unsigned> Type::make_array_depths(Token &root) {
         res.push_back(stoi(c0.get_value()));
     }
     return res;
+}
+
+Type *Type::wrap_array(Type *root, const vector<unsigned> &array_depth) {
+    Type *new_type = new Type();
+    Type *current  = new_type;
+    if (!array_depth.empty()) {
+        for (auto iter = array_depth.cbegin(); iter != array_depth.cend() - 1; ++iter) {
+            current->c_type    = Ctype::Array;
+            current->length    = *iter;
+            current->base_type = new Type();
+            current            = current->base_type;
+        }
+        current->c_type    = Ctype::Array;
+        current->length    = array_depth.back();
+        current->base_type = root;
+    }
+    make_array_info(new_type);
+    return new_type;
+}
+Type *Type::make_void_type() {
+    Type *current       = new Type();
+    current->c_type     = Ctype::Plain;
+    current->plain_type = PlainType ::Void;
+    current->align      = 0;
+    current->size       = 0;
+    return current;
+}
+Type *Type::make_error_type() {
+    Type *current   = new Type();
+    current->c_type = Ctype::ErrorType;
+    return current;
 }

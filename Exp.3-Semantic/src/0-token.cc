@@ -1,12 +1,10 @@
 #include "0-token.h"
 #include "0-color.h"
 #include "location.hh"
-#include "patterns.hpp"
 #include "util.h"
 #include <optional>
 
 using namespace Limc;
-using namespace mpark::patterns;
 
 Token::Token(string kind, string value)
     : kind(move(kind)), value(move(value)), children(), loc(nullopt) {}
@@ -40,19 +38,22 @@ optional<location> Token::get_loc() const {
     if (loc != nullopt) {
         return loc;
     }
-    auto left  = children.cbegin();
-    auto right = children.crbegin();
-    while (left != children.cend() && right != children.crend()) {
-        if (left->get_loc() != nullopt && right->get_loc() != nullopt) {
+    auto len   = children.size() - 1;
+    auto left  = 0;
+    auto right = len;
+    while (left <= right) {
+        auto left_loc  = children.at(left).get_loc();
+        auto right_loc = children.at(right).get_loc();
+        if (left_loc != nullopt && right_loc != nullopt) {
             location res;
-            res.begin = left->get_loc().value().begin;
-            res.end   = right->get_loc().value().end;
+            res.begin = left_loc.value().begin;
+            res.end   = right_loc.value().end;
             return res;
         }
-        if (left->get_loc() == nullopt)
-            left++;
-        if (right->get_loc() == nullopt)
-            right++;
+        if (left_loc == nullopt)
+            ++left;
+        if (right_loc == nullopt)
+            --right;
     }
     return nullopt;
 }
@@ -64,23 +65,29 @@ string Token::print(const string pre, const string ch_pre) const {
 
     build_str(s, "{");
 
-    match(kind)(
-        pattern("ErrorStmt") = [&] { build_str(s, kind, BOLD_RED); },
-        pattern(_)           = [&] { build_str(s, kind, BLUE); });
+    if (kind == "ErrorStmt") {
+        build_str(s, kind, BOLD_RED);
+    } else {
+        build_str(s, kind, BLUE);
+    }
 
     if (!value.empty()) {
         s << ", ";
-        match(kind)(
-            pattern("Type")       = [&] { build_str(s, value, MAGENTA); },
-            pattern("Identifier") = [&] { build_str(s, value, CYAN); },
-            pattern("Operator")   = [&] { build_str(s, value, BOLD_YELLOW); },
-            pattern(_)            = [&] { build_str(s, value, BOLD_GREEN); });
+        if (kind == "Type") {
+            build_str(s, value, MAGENTA);
+        } else if (kind == "Identifier") {
+            build_str(s, value, CYAN);
+        } else if (kind == "Operator") {
+            build_str(s, value, BOLD_YELLOW);
+        } else {
+            build_str(s, value, BOLD_GREEN);
+        }
     }
     build_str(s, "}");
 
-    if (!type.empty()) {
+    if (type != nullptr) {
         build_str(s, " [");
-        build_str(s, type, BOLD_CYAN);
+        build_str(s, type->to_string(), BOLD_CYAN);
         build_str(s, "]");
     }
 
@@ -96,7 +103,7 @@ string Token::print(const string pre, const string ch_pre) const {
     if (!children.empty()) {
         for (auto &item : children) {
             if (&item == &children.back()) {
-                // s << item.print(ch_pre + "└──", ch_pre + "    ");
+                // s << item.print(ch_pre + "└──", ch_pre + "     ");
                 s << item.print(ch_pre + "`---", ch_pre + "    ");
             } else {
                 // s << item.print(ch_pre + "├──", ch_pre + "│   ");
@@ -109,6 +116,6 @@ string Token::print(const string pre, const string ch_pre) const {
 
 bool Token::operator==(const string &str) const { return kind == str; }
 
-void Token::set_type(const string &new_type) { type = new_type; }
+void Token::set_type(Type *new_type) { type = new_type; }
 
-string &Token::get_type() { return type; }
+Type *&Token::get_type() { return type; }

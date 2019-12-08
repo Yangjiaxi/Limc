@@ -11,31 +11,26 @@ namespace Limc {
 // Var(Lvar | GVar) | Func | StringLiteral
 class Symbol {
   public:
-    // Symbol(string name, string type, int scope, string scope_alias);
-    //
-    // Symbol(Token &name, Token &type, int scope, string scope_alias);
-    //
-    // Symbol(Token &name, Token &type, vector<string> parameters, int scope, string scope_alias);
+    Symbol(string name, Type *type, unsigned offset);
 
-    Symbol(string name, Type type, int scope, string scope_alias);
-
+    // 变量的名字
     string name;
-    string scope_alias;
-    int    scope;
+
     // 类型，对于所有都有效
     // 平凡类型 | 数组 | 结构体 | 函数
-    Type type;
+    Type *type;
 
     // 对于整个函数，有一个栈大小
-    int stack_size; // for func
+    int stack_size; // for Type.c_type == Ctype::Func
 
     // 对于每个变量，有一个基址偏移
-    int offset; // for Lvar and Gvar
+    unsigned offset; // for others
 };
 
+// 一个作用域的符号表
 class SymbolTable {
   public:
-    explicit SymbolTable(string name) : name(std::move(name)) {}
+    explicit SymbolTable(string name) : name(move(name)) {}
 
     SymbolTable() = default;
 

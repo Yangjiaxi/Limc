@@ -423,11 +423,11 @@ Semantic::Semantic(Driver &driver) : driver(driver) {}
 //
 // void Semantic::walk_block(Token &root) {
 //     auto &children = root.get_children();
-//     new_table();
+//     enter_scope();
 //     for (auto &child : children) {
 //         walk(child);
 //     }
-//     leave_table();
+//     leave_scope();
 // }
 //
 // void Semantic::walk(Token &root) {

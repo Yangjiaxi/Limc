@@ -54,7 +54,7 @@ void Driver::analyze() {
     string line(50, '-');
     // table_head();
     for (auto &token : tokens) {
-        analyzer.walk_stmt(token);
+        analyzer.stmt(token);
         print_reports();
     }
     // cout << BOLD_YELLOW << "Analyze Finish." << RESET_COLOR << endl;

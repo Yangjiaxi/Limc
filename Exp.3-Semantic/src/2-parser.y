@@ -113,15 +113,15 @@ Type:
     } | StructType ;
 StructType: 
     KW_STRUCT IDENTIFIER DELIM_BRACE_LEFT StructDeclList DELIM_BRACE_RIGHT {
-        $$ = Token("Struct", $2);
+        $$ = Token("Struct", $2, @1);
         $$.build_AST($4);
     } | KW_STRUCT DELIM_BRACE_LEFT StructDeclList DELIM_BRACE_RIGHT {
-        $$ = Token("Struct");
+        $$ = Token("Struct", @1);
         $$.build_AST($3);
     } | KW_STRUCT IDENTIFIER DELIM_BRACE_LEFT DELIM_BRACE_RIGHT {
-        $$ = Token("Struct", $2);
+        $$ = Token("Struct", $2, @1);
     } | KW_STRUCT IDENTIFIER {
-        $$ = Token("Struct", $2);
+        $$ = Token("Struct", $2, @1);
     };
 StructDeclList:
     StructDeclList StructDecl {

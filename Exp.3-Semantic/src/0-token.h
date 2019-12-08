@@ -1,6 +1,7 @@
 #ifndef _TOKEN_H
 #define _TOKEN_H
 
+#include "3-type.h"
 #include "location.hh"
 #include <optional>
 #include <sstream>
@@ -9,6 +10,9 @@
 using namespace std;
 
 namespace Limc {
+
+class Type;
+
 class Token {
   public:
     Token(string kind, string value);
@@ -39,8 +43,8 @@ class Token {
 
     bool operator==(const string &str) const;
 
-    void    set_type(const string &new_type);
-    string &get_type();
+    void   set_type(Type *new_type);
+    Type *&get_type();
 
   private:
     string             kind;
@@ -48,7 +52,7 @@ class Token {
     optional<location> loc;
     vector<Token>      children;
 
-    string type;
+    Type *type = nullptr;
 };
 } // namespace Limc
 

@@ -1,6 +1,4 @@
-struct A;
-
-int main() {
-    struct B s;
-    return s.a;
+int fn(int a, int b) {
+    // add
+    return a + b;
 }

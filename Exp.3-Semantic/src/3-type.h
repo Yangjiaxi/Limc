@@ -3,6 +3,7 @@
 
 #include "0-token.h"
 #include <memory>
+#include <vector>
 // #include <unordered_map>
 #include <map>
 
@@ -33,10 +34,13 @@ using namespace std;
 
 namespace Limc {
 
-enum Ctype { Plain, Array, Struct, Function };
-enum PlainType { Int, Float, Char, Void };
+enum Ctype { Plain, Array, Struct, Function, ErrorType };
+enum PlainType { Char = 0, Int = 1, Float = 2, Void };
+
+class Token;
 
 class Type {
+
   public:
     Ctype c_type;
 
@@ -48,14 +52,14 @@ class Type {
     unsigned length;
 
     // Struct:
-    map<string, Type> members;
+    map<string, Type *> members;
 
     // for struct element
     unsigned member_offset;
 
     // Function:
-    Type *       return_type;
-    vector<Type> args;
+    Type *         return_type;
+    vector<Type *> args;
 
     // array, struct,
     unsigned size;
@@ -63,14 +67,22 @@ class Type {
 
     Type();
 
-    static Type build_type(Token &root, const vector<unsigned> &array_depth = {});
+    static Type *build_type(Token &root, const vector<unsigned> &array_depth = {});
+
+    static Type *build_literal(Token &root);
+
+    static Type *wrap_array(Type *root, const vector<unsigned> &array_depth);
 
     string to_string() const;
 
+    static vector<unsigned> make_array_depths(Token &root);
+
+    static Type *make_void_type();
+
+    static Type *make_error_type();
+
   private:
     string str_content() const;
-
-    static vector<unsigned> make_array_depths(Token &root);
 
     // size, align
     static pair<unsigned, unsigned> make_array_info(Type *root);

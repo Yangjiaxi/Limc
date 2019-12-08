@@ -68,7 +68,8 @@ int main(int argc, char **argv) {
     // if (opts_res.count("t") || opts_res.count("tree")) {
     //     cout << driver.print() << endl;
     // }
-    return res;
+
+    return 0;
 
     // string        input("struct { char a[10]; }; ");
     // istringstream ss(input);
