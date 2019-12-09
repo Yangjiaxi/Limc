@@ -66,9 +66,11 @@ class Type {
 
     Type();
 
-    bool is_int();
+    bool is_int() const;
 
-    bool is_arith();
+    bool is_arith() const;
+
+    bool is_plain() const;
 
     static Type *
     build_type(Token &root, const vector<unsigned> &array_depth, map<string, Type *> type_table);

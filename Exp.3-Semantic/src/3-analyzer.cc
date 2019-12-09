@@ -2,7 +2,7 @@
 #include "0-driver.h"
 #include "util.h"
 
-#define DEBUG
+// #define DEBUG
 
 using namespace Limc;
 
@@ -19,7 +19,8 @@ void Semantic::enter_scope(const string &name) {
 
 void Semantic::leave_scope() {
 #ifdef DEBUG
-    cout << "<<< Leave Scope\t: [" << tables.back().get_alias() << "]" << endl;
+    cout << "<<< Leave Scope\t: [" << tables.back().get_alias() << "]"
+         << " Local Stack Size: " << local_stack_size << endl;
 #endif
     tables.pop_back();
     current_table = &tables.back();
@@ -59,7 +60,6 @@ Type *Semantic::expr(Token &root) {
         }
         // END OF [Identifier]
     } else if (kind == "IndexExpr") {
-        cout << "IndexExpr" << endl;
         auto &children   = root.get_children();
         auto &array_root = children[0];
         auto  current    = expr(array_root);
@@ -97,7 +97,7 @@ Type *Semantic::expr(Token &root) {
         auto &b_node = root.get_child(2);
         auto  b_type = expr(b_node);
 
-        if (a_type->c_type != Ctype::Plain || b_type->c_type != Ctype::Plain) {
+        if (!a_type->is_plain() || !b_type->is_plain()) {
             driver.report()
                 .report_level(Level::Error)
                 .report_loc(root.get_loc().value())
@@ -194,8 +194,7 @@ Type *Semantic::expr(Token &root) {
         // a是一个结构体，b是a所属结构体中的一个成员
         auto &struct_node = root.get_child(0);
         auto  struct_type = expr(struct_node);
-        cout << "Struct: " << struct_type->to_string() << endl;
-        auto member_name = root.get_child(1).get_value();
+        auto  member_name = root.get_child(1).get_value();
         if (struct_type->c_type != Ctype::Struct) {
             driver.report()
                 .report_level(Level::Error)
@@ -225,7 +224,6 @@ Type *Semantic::expr(Token &root) {
         auto &func      = root.get_child(0);
         auto &args      = root.get_child(1).get_children();
         auto  func_type = expr(func);
-        cout << "Func: " << func_type->to_string() << endl;
         if (func_type->c_type != Ctype::Function) {
             driver.report()
                 .report_level(Level::Error)
@@ -267,7 +265,6 @@ Type *Semantic::expr(Token &root) {
                     }
                 }
                 if (is_ok) {
-                    cout << "Call Success : " << func_type->return_type->to_string() << endl;
                     type_res = func_type->return_type;
                 }
             }
@@ -494,7 +491,6 @@ void Semantic::stmt(Token &root) {
                 try_insert_symbol(name, type_res, global_stack_size);
                 global_stack_size += type_res->size;
             } else if (kind == "LocalVarDecl") {
-                // cout << "Insert " << name.get_value() << endl;
                 local_stack_size = align_memory(local_stack_size, type_res->align);
                 try_insert_symbol(name, type_res, local_stack_size);
                 local_stack_size += type_res->size;
@@ -534,7 +530,6 @@ void Semantic::stmt(Token &root) {
         auto &name_node = root.get_child(1);
 
         auto func_type = Type::build_type(root, {}, type_table);
-        cout << name_node.get_value() << " : " << func_type->to_string() << endl;
         try_insert_symbol(name_node, func_type);
 
         enter_scope("F(" + name_node.get_value() + ")");
@@ -542,8 +537,7 @@ void Semantic::stmt(Token &root) {
         // 2. 参数列表作为局部定义变量
         auto &params = root.get_child(2).get_children();
         for (auto &param : params) {
-            auto param_type = parse_type(param.get_child(0));
-            cout << "Param Type : " << param_type->to_string() << endl;
+            auto  param_type = parse_type(param.get_child(0));
             auto &param_name = param.get_child(1);
 
             Token name;
@@ -591,7 +585,6 @@ void Semantic::stmt(Token &root) {
          */
         if (!root.get_children().empty()) {
             inner_return_ty = expr(root.get_child(0));
-            cout << "Inner : " << inner_return_ty->to_string() << endl;
         }
         // END OF [ReturnStmt]
     } else if (kind == "ContinueStmt") {
@@ -720,7 +713,7 @@ bool Semantic::can_convert(Type *from, Type *to) {
         }
         return true;
     }
-    if (from->c_type == Ctype::Plain) {
+    if (from->is_plain()) {
         if (from->plain_type == to->plain_type) {
             return true;
         }
@@ -738,7 +731,7 @@ bool Semantic::can_convert(Type *from, Type *to) {
     2. 结构体与数组不存在高低，必须相等
  */
 Type *Semantic::upper_type(Type *a, Type *b) {
-    if (a->c_type == Ctype::Plain && b->c_type == Ctype::Plain) {
+    if (a->is_plain() && b->is_plain()) {
         if (a->plain_type > b->plain_type) {
             return a;
         } else {
@@ -764,7 +757,7 @@ bool Semantic::comparable(Type *a, Type *b) {
     if (a->c_type != b->c_type) {
         return false;
     }
-    if (a->c_type == Ctype::Plain)
+    if (a->is_plain())
         return true;
     if (a->c_type == Ctype::Array) {
         return a->length == b->length && comparable(a->base_type, b->base_type);

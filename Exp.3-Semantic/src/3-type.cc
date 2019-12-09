@@ -149,7 +149,7 @@ string Type::to_string() const {
     }
 
     ss << BOLD_GREEN;
-    if (c_type == Ctype::Plain) {
+    if (is_plain()) {
         ss << "";
     } else if (c_type == Ctype::Struct) {
         ss << "{";
@@ -161,7 +161,7 @@ string Type::to_string() const {
 
     ss << str_content();
 
-    if (c_type == Ctype::Plain) {
+    if (is_plain()) {
         ss << "";
     } else if (c_type == Ctype::Struct) {
         ss << "}";
@@ -181,7 +181,7 @@ string Type::to_string() const {
 
 string Type::str_content() const {
     stringstream ss;
-    if (c_type == Ctype::Plain) {
+    if (is_plain()) {
         if (plain_type == PlainType::Int) {
             ss << "int";
         } else if (plain_type == PlainType::Float) {
@@ -263,15 +263,17 @@ Type *Type::make_error_type() {
     return current;
 }
 
-bool Type::is_int() {
-    if (c_type == Ctype::Plain && plain_type == PlainType::Int) {
+bool Type::is_plain() const { return c_type == Ctype::Plain; }
+
+bool Type::is_int() const {
+    if (is_plain() && plain_type == PlainType::Int) {
         return true;
     }
     return false;
 }
 
-bool Type::is_arith() {
-    if (c_type == Ctype::Plain) {
+bool Type::is_arith() const {
+    if (is_plain()) {
         return plain_type == PlainType::Int || plain_type == PlainType::Float;
     }
     return false;
