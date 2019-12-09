@@ -24,8 +24,8 @@ Type *Type::build_literal(Token &root) {
     return new_type;
 }
 
-Type *Type::build_type(
-    Token &root, const vector<unsigned> &array_depth, const map<string, Type *> &type_table) {
+Type *
+Type::build_type(Token &root, const vector<unsigned> &array_depth, map<string, Type *> type_table) {
     Type *new_type = new Type();
     Type *current  = new_type;
     if (!array_depth.empty()) {
@@ -61,10 +61,8 @@ Type *Type::build_type(
 
     } else if (node_kind == "Struct") {
         // 结构体
-        cout << "Font" << endl;
         current->c_type = Ctype::Struct;
         if (root.get_children().empty()) {
-            cout << type_table.size() << endl;
             if (type_table.find(root.get_value()) == type_table.end()) {
                 throw runtime_error("Unknown struct type `" + root.get_value() + "`");
             }
@@ -84,9 +82,9 @@ Type *Type::build_type(
                 auto &ident_node = ident_node_wrap.get_child(0);
                 if (ident_node.get_kind() == "IndexExpr") {
                     // 成员定义为数组
-                    auto             name        = ident_node.get_child(0).get_value();
-                    vector<unsigned> depths      = make_array_depths(ident_node);
-                    auto             member_type = build_type(item.get_child(0), depths);
+                    auto             name   = ident_node.get_child(0).get_value();
+                    vector<unsigned> depths = make_array_depths(ident_node);
+                    auto member_type        = build_type(item.get_child(0), depths, type_table);
 
                     s_size                     = align_memory(s_size, member_type->align);
                     member_type->member_offset = s_size;
@@ -99,7 +97,7 @@ Type *Type::build_type(
                 } else if (ident_node.get_kind() == "Identifier") {
                     // 成员为普通标识符
                     auto name        = ident_node.get_value();
-                    auto member_type = build_type(item.get_child(0));
+                    auto member_type = build_type(item.get_child(0), {}, type_table);
 
                     s_size                     = align_memory(s_size, member_type->align);
                     member_type->member_offset = s_size;
@@ -118,13 +116,13 @@ Type *Type::build_type(
         auto &ret            = root.get_child(0);
         auto &arguments      = root.get_child(2).get_children();
         current->c_type      = Ctype::Function;
-        current->return_type = build_type(ret);
+        current->return_type = build_type(ret, {}, type_table);
         // 对于函数来说，对齐和偏移量没啥用
         /// TODO 待证实
         current->align = current->size = 0;
         for (auto &arg : arguments) {
             assert(arg.get_kind() == "ParamDecl");
-            current->args.push_back(build_type(arg.get_child(0)));
+            current->args.push_back(build_type(arg.get_child(0), {}, type_table));
         }
     }
     make_array_info(new_type);

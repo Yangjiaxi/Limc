@@ -70,10 +70,8 @@ class Type {
 
     bool is_arith();
 
-    static Type *build_type(
-        Token &                    root,
-        const vector<unsigned> &   array_depth = {},
-        const map<string, Type *> &type_table  = {});
+    static Type *
+    build_type(Token &root, const vector<unsigned> &array_depth, map<string, Type *> type_table);
 
     static Type *build_literal(Token &root);
 

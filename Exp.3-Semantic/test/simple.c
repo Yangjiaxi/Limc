@@ -4,7 +4,7 @@ struct A {
     } b[10];
 };
 
-void fn(struct A p[10]) {
+int fn(struct A p[10]) {
     // tt
-    p[5].b[3].a++;
+    return p[5].b[3].a[0]++;
 }

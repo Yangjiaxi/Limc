@@ -532,7 +532,8 @@ void Semantic::stmt(Token &root) {
 
         // 1. 函数签名
         auto &name_node = root.get_child(1);
-        auto  func_type = Type::build_type(root, {}, type_table);
+
+        auto func_type = Type::build_type(root, {}, type_table);
         cout << name_node.get_value() << " : " << func_type->to_string() << endl;
         try_insert_symbol(name_node, func_type);
 
