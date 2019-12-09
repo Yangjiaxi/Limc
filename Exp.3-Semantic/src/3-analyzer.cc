@@ -455,7 +455,7 @@ void Semantic::stmt(Token &root) {
                 .report_msg("Struct type `" + root.get_value() + "` has already been declared.");
             return;
         }
-        auto struct_type = Type::build_type(root);
+        auto struct_type = Type::build_type(root, {}, type_table);
         type_table.insert({root.get_value(), struct_type});
     } else if (kind == "GlobalVarDecl" || kind == "LocalVarDecl") {
         // [声明/定义][全局/局部]变量
@@ -532,7 +532,7 @@ void Semantic::stmt(Token &root) {
 
         // 1. 函数签名
         auto &name_node = root.get_child(1);
-        auto  func_type = Type::build_type(root);
+        auto  func_type = Type::build_type(root, {}, type_table);
         cout << name_node.get_value() << " : " << func_type->to_string() << endl;
         try_insert_symbol(name_node, func_type);
 
@@ -541,7 +541,8 @@ void Semantic::stmt(Token &root) {
         // 2. 参数列表作为局部定义变量
         auto &params = root.get_child(2).get_children();
         for (auto &param : params) {
-            auto  param_type = parse_type(param.get_child(0));
+            auto param_type = parse_type(param.get_child(0));
+            cout << "Param Type : " << param_type->to_string() << endl;
             auto &param_name = param.get_child(1);
 
             Token name;
@@ -660,7 +661,7 @@ Type *Semantic::parse_type(Token &root) {
          */
         if (root.get_value().empty()) {
             // 匿名结构体
-            type_res = Type::build_type(root);
+            type_res = Type::build_type(root, {}, type_table);
         } else if (root.get_children().empty()) {
             // 具名 且 无成员定义
             if (type_table.find(root.get_value()) == type_table.end()) {
@@ -680,7 +681,7 @@ Type *Semantic::parse_type(Token &root) {
         }
     } else if (root.get_kind() == "Type") {
         // 平凡类型
-        type_res = Type::build_type(root);
+        type_res = Type::build_type(root, {}, type_table);
     } else {
         throw runtime_error("Uncaught Kind : `" + root.get_kind() + "`.");
     }

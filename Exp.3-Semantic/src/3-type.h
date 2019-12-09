@@ -2,10 +2,9 @@
 #define SEMANTIC_SRC_3_TYPE_H_
 
 #include "0-token.h"
+#include <map>
 #include <memory>
 #include <vector>
-// #include <unordered_map>
-#include <map>
 
 /*
  * 节点的大类型：(Type)
@@ -71,7 +70,10 @@ class Type {
 
     bool is_arith();
 
-    static Type *build_type(Token &root, const vector<unsigned> &array_depth = {});
+    static Type *build_type(
+        Token &                    root,
+        const vector<unsigned> &   array_depth = {},
+        const map<string, Type *> &type_table  = {});
 
     static Type *build_literal(Token &root);
 

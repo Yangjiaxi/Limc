@@ -24,7 +24,8 @@ Type *Type::build_literal(Token &root) {
     return new_type;
 }
 
-Type *Type::build_type(Token &root, const vector<unsigned> &array_depth) {
+Type *Type::build_type(
+    Token &root, const vector<unsigned> &array_depth, const map<string, Type *> &type_table) {
     Type *new_type = new Type();
     Type *current  = new_type;
     if (!array_depth.empty()) {
@@ -60,8 +61,17 @@ Type *Type::build_type(Token &root, const vector<unsigned> &array_depth) {
 
     } else if (node_kind == "Struct") {
         // 结构体
-        current->c_type  = Ctype::Struct;
-        auto &   items   = root.get_child(0).get_children();
+        cout << "Font" << endl;
+        current->c_type = Ctype::Struct;
+        if (root.get_children().empty()) {
+            cout << type_table.size() << endl;
+            if (type_table.find(root.get_value()) == type_table.end()) {
+                throw runtime_error("Unknown struct type `" + root.get_value() + "`");
+            }
+            return type_table.at(root.get_value());
+        }
+        auto &items = root.get_child(0).get_children();
+
         unsigned s_size  = 0;
         unsigned s_align = 0;
         for (auto &item : items) {
@@ -118,7 +128,7 @@ Type *Type::build_type(Token &root, const vector<unsigned> &array_depth) {
         }
     }
     make_array_info(new_type);
-    return move(new_type);
+    return new_type;
 }
 
 // (size, align)

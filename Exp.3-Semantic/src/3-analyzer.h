@@ -4,7 +4,7 @@
 #include "0-token.h"
 #include "3-symbol.h"
 #include "3-type.h"
-#include <unordered_map>
+#include <map>
 
 namespace Limc {
 
@@ -32,7 +32,7 @@ class Semantic {
     SymbolTable *current_table;
     // 类型表，存放Struct结构的定义信息
     // <结构体类型名，结构体类型>
-    unordered_map<string, Type *> type_table;
+    map<string, Type *> type_table;
 
     // 全局存储区大小
     unsigned global_stack_size = 0;
