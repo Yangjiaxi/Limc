@@ -69,7 +69,8 @@ WHITESPACE  [ \t\v\f]
 
 {IDENTIFIER}    { ACTION_ARG(IDENTIFIER); }
 
-"+="|"-="|"*="|"/="|"%="|"&="|"|="|"^="|"<<="|">>=" { ACTION_ARG(OP_COMPOUND_ASSIGNMENT); }
+"+="|"-="|"*="|"/="|"%="    { ACTION_ARG(OP_ARITH_COMPOUND_ASSIGNMENT); }
+"&="|"|="|"^="|"<<="|">>="  { ACTION_ARG(OP_LOG_COMPOUND_ASSIGNMENT); }
 
 "++"    { ACTION_ARG(OP_INCREMENT); }
 "--"    { ACTION_ARG(OP_DECREMENT); }

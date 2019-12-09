@@ -1,10 +1,1 @@
-struct A {
-    struct {
-        int a[10];
-    } b[10];
-};
-
-void fn() {
-    struct A t[10];
-    t[0].b[5].a[3];
-}
+void fn(float a[1][1][1]) { a[0][0][0]++; }

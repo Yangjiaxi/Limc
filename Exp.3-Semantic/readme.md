@@ -93,11 +93,11 @@ Limc Is a Minimal Compiler
     | Stmt
 
 // 传递给被调函数的参数列表，需要匹配数量与类型
-[ ] ArgumentList:
+[x] ArgumentList:
   - {Expr}
 
 // 数组下标索引，可以多重
-[ ] Index:
+[x] Index:
 // 使用时需要判断是不是`整数`类型即可
   IN:
     | IndexExpr
@@ -140,22 +140,22 @@ Limc Is a Minimal Compiler
 [ ] StringLiteral
 
 // 调用函数的语句，需要检查类型、数量，返回对应函数的返回值的类型
-[ ] CallExpr
+[x] CallExpr
 
 // 赋值语句，返回被赋值的左值的类型
-[ ] AssignmentExpr
+[x] AssignmentExpr
 
 // 结合赋值，先运算后赋值，同上
-[ ] CompoundAssignmentExpr
+[x] CompoundLogAssignmentExpr | CompoundArithAssignmentExpr
 
 // 括号表达式，返回内部类型
-[ ] ParenthesisExpr
+[x] ParenthesisExpr
 
 // 前缀表达式
-[ ] PrefixExpr
+[x] PrefixExpr
 
 // 后缀表达式
-[ ] PostfixExpr
+[x] PostfixExpr
 
 // 二元(逻辑 | 算数)表达式
 [x] LogBinaryExpr | ArithBinaryExpr

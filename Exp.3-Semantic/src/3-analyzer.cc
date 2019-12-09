@@ -215,6 +215,195 @@ Type *Semantic::expr(Token &root) {
             }
         }
         // END OF [MemberExpr]
+    } else if (kind == "CallExpr") {
+        // 函数调用
+        /*
+            1. id为函数名
+            2. 参数数量匹配
+            3. 参数类型可转换
+         */
+        auto &func      = root.get_child(0);
+        auto &args      = root.get_child(1).get_children();
+        auto  func_type = expr(func);
+        cout << "Func: " << func_type->to_string() << endl;
+        if (func_type->c_type != Ctype::Function) {
+            driver.report()
+                .report_level(Level::Error)
+                .report_loc(func.get_loc().value())
+                .report_msg(
+                    "Variable `" + func.get_value() + "` with type `" + func_type->to_string() +
+                    "` is not callable.");
+            type_res = Type::make_error_type();
+        } else {
+            if (func_type->args.size() != args.size()) {
+                driver.report()
+                    .report_level(Level::Error)
+                    .report_loc(func.get_loc().value())
+                    .report_msg(
+                        "Function `" + func.get_value() + "` requires " +
+                        to_string(func_type->args.size()) + " parameters, but " +
+                        to_string(args.size()) + " is given.");
+                type_res = Type::make_error_type();
+            } else {
+                auto arg_iter   = args.begin();
+                auto param_iter = func_type->args.begin();
+                bool is_ok      = true;
+                while (arg_iter != args.end()) {
+                    auto arg_type = expr(*arg_iter);
+                    if (!can_convert(arg_type, *param_iter)) {
+                        driver.report()
+                            .report_level(Level::Error)
+                            .report_loc(arg_iter->get_loc().value())
+                            .report_msg(
+                                "Function `" + func.get_value() + "`requires type `" +
+                                (*param_iter)->to_string() + "` as parameter, but type `" +
+                                arg_type->to_string() + "` is given.");
+                        type_res = Type::make_error_type();
+                        is_ok    = false;
+                        break;
+                    } else {
+                        ++arg_iter;
+                        ++param_iter;
+                    }
+                }
+                if (is_ok) {
+                    cout << "Call Success : " << func_type->return_type->to_string() << endl;
+                    type_res = func_type->return_type;
+                }
+            }
+        }
+        // END OF [CallExpr]
+    } else if (kind == "AssignmentExpr") {
+        // 赋值语句 [=]
+        auto &lhs = root.get_child(0);
+        auto &rhs = root.get_child(2);
+
+        auto lhs_type = expr(lhs);
+        auto rhs_type = expr(rhs);
+        if (!can_convert(rhs_type, lhs_type)) {
+            driver.report()
+                .report_level(Level::Error)
+                .report_loc(lhs.get_loc().value())
+                .report_loc(rhs.get_loc().value())
+                .report_msg(
+                    "Type around assignment operator `=` is not assignable: `" +
+                    lhs_type->to_string() + "` and `" + rhs_type->to_string() + ".");
+            type_res = Type::make_error_type();
+        } else {
+            type_res = lhs_type;
+        }
+        // END OF [AssignmentExpr]
+    } else if (kind == "CompoundArithAssignmentExpr") {
+        // 算术结合赋值 [*= +=]
+        auto &lhs = root.get_child(0);
+        auto &op  = root.get_child(1);
+        auto &rhs = root.get_child(2);
+
+        auto lhs_type = expr(lhs);
+        auto rhs_type = expr(rhs);
+        if (!can_convert(rhs_type, lhs_type)) {
+            driver.report()
+                .report_level(Level::Error)
+                .report_loc(lhs.get_loc().value())
+                .report_loc(rhs.get_loc().value())
+                .report_msg(
+                    "Type around assignment operator `" + op.get_value() +
+                    "` is not assignable: `" + lhs_type->to_string() + "` and `" +
+                    rhs_type->to_string() + ".");
+            type_res = Type::make_error_type();
+        } else {
+            type_res = lhs_type;
+        }
+        // END OF [CompoundArithAssignmentExpr]
+    } else if (kind == "CompoundLogAssignmentExpr") {
+        // 逻辑结合赋值 [|= &= ^=]
+        auto &lhs = root.get_child(0);
+        auto &op  = root.get_child(1);
+        auto &rhs = root.get_child(2);
+
+        auto lhs_type = expr(lhs);
+        auto rhs_type = expr(rhs);
+
+        if (!lhs_type->is_int() || !rhs_type->is_int()) {
+            driver.report()
+                .report_level(Level::Error)
+                .report_loc(lhs.get_loc().value())
+                .report_loc(rhs.get_loc().value())
+                .report_msg(
+                    "Type around logical compound assignment operator `" + op.get_value() +
+                    "` should be `int`, but got `" + lhs_type->to_string() + "` and `" +
+                    rhs_type->to_string() + ".");
+            type_res = Type::make_error_type();
+        } else {
+            if (!can_convert(rhs_type, lhs_type)) {
+                driver.report()
+                    .report_level(Level::Error)
+                    .report_loc(lhs.get_loc().value())
+                    .report_loc(rhs.get_loc().value())
+                    .report_msg(
+                        "Type around assignment operator `" + op.get_value() +
+                        "` is not assignable: `" + lhs_type->to_string() + "` and `" +
+                        rhs_type->to_string() + ".");
+                type_res = Type::make_error_type();
+            } else {
+                type_res = lhs_type;
+            }
+        }
+        // END OF [CompoundLogAssignmentExpr]
+    } else if (kind == "ParenthesisExpr") {
+        auto &inner = root.get_child(0);
+        type_res    = expr(inner);
+        // END OF [ParenthesisExpr]
+    } else if (kind == "PrefixExpr") {
+        auto &op   = root.get_child(0);
+        auto &item = root.get_child(1);
+
+        auto item_type = expr(item);
+        auto op_str    = op.get_value();
+        if (op_str == "-" || op_str == "+") {
+            if (item_type->is_arith()) {
+                type_res = item_type;
+            } else {
+                driver.report()
+                    .report_level(Level::Error)
+                    .report_loc(root.get_loc().value())
+                    .report_msg(
+                        "Operand of prefix expression `" + op_str +
+                        "` should be arithmetic, but got `" + item_type->to_string() + "`");
+                type_res = Type::make_error_type();
+            }
+        } else {
+            if (!item_type->is_int()) {
+                driver.report()
+                    .report_level(Level::Error)
+                    .report_loc(root.get_loc().value())
+                    .report_msg(
+                        "Operand of prefix expression `" + op_str + "` should be `int`, but got `" +
+                        item_type->to_string() + "`");
+                type_res = Type::make_error_type();
+            } else {
+                type_res = item_type;
+            }
+        }
+        // END OF [PrefixExpr]
+    } else if (kind == "PostfixExpr") {
+        auto &item = root.get_child(0);
+        auto &op   = root.get_child(1);
+
+        auto item_type = expr(item);
+        auto op_str    = op.get_value();
+        if (!item_type->is_int()) {
+            driver.report()
+                .report_level(Level::Error)
+                .report_loc(root.get_loc().value())
+                .report_msg(
+                    "Operand of postfix expression `" + op_str + "` should be `int`, but got `" +
+                    item_type->to_string() + "`");
+            type_res = Type::make_error_type();
+        } else {
+            type_res = item_type;
+        }
+        // END OF [PostfixExpr]
     }
     // FALL TO
     else if (
@@ -309,6 +498,25 @@ void Semantic::stmt(Token &root) {
                 local_stack_size = align_memory(local_stack_size, type_res->align);
                 try_insert_symbol(name, type_res, local_stack_size);
                 local_stack_size += type_res->size;
+            }
+
+            expr(ident_node);
+
+            if (ident_node_wrap.get_kind() == "VarDef") {
+                auto &lhs = ident_node;
+                auto &rhs = ident_node_wrap.get_child(2);
+
+                auto lhs_type = expr(lhs);
+                auto rhs_type = expr(rhs);
+                if (!can_convert(rhs_type, lhs_type)) {
+                    driver.report()
+                        .report_level(Level::Error)
+                        .report_loc(lhs.get_loc().value())
+                        .report_loc(rhs.get_loc().value())
+                        .report_msg(
+                            "Type around assignment operator `=` is not assignable: `" +
+                            lhs_type->to_string() + "` and `" + rhs_type->to_string() + ".");
+                }
             }
         }
         // END OF [GlobalVarDecl] AND [LocalVarDecl]

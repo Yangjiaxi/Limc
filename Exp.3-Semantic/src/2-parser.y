@@ -45,13 +45,13 @@
 %token <string> IDENTIFIER KW_TYPE LITERAL_FLOAT LITERAL_INTEGER LITERAL_CHAR LITERAL_STRING
 %token <string> OP_SHIFT_RIGHT OP_SHIFT_LEFT OP_BITWISE_AND OP_BITWISE_OR OP_BITWISE_XOR OP_BITWISE_NOT
 %token <string> OP_LOGICAL_NOT OP_LOGICAL_AND OP_LOGICAL_OR
-%token <string> OP_COMPOUND_ASSIGNMENT OP_RELATIONAL OP_ASSIGNMENT
+%token <string> OP_ARITH_COMPOUND_ASSIGNMENT OP_LOG_COMPOUND_ASSIGNMENT OP_RELATIONAL OP_ASSIGNMENT
 %token <string> OP_PLUS OP_MINUS OP_MULTIPLY OP_DIVIDE OP_MODULUS
 %token <string> OP_INCREMENT OP_DECREMENT
 %token <string> OP_DOT
 
 %left DELIM_QUESTION DELIM_COLON
-%left OP_ASSIGNMENT OP_COMPOUND_ASSIGNMENT
+%left OP_ASSIGNMENT OP_ARITH_COMPOUND_ASSIGNMENT OP_LOG_COMPOUND_ASSIGNMENT
 %left OP_LOGICAL_OR
 %left OP_LOGICAL_AND
 %left OP_BITWISE_OR
@@ -288,8 +288,13 @@ Expr:
     | Literal 
     | CallExpr 
     | AssignmentExpr
-    | Assignable OP_COMPOUND_ASSIGNMENT Expr {
-        $$ = Token("CompoundAssignmentExpr");
+    | Assignable OP_LOG_COMPOUND_ASSIGNMENT Expr {
+        $$ = Token("CompoundLogAssignmentExpr");
+        $$.build_AST($1)
+          .build_AST(Token("Operator", $2, @2))
+          .build_AST($3);
+    } | Assignable OP_ARITH_COMPOUND_ASSIGNMENT Expr {
+        $$ = Token("CompoundArithAssignmentExpr");
         $$.build_AST($1)
           .build_AST(Token("Operator", $2, @2))
           .build_AST($3);
@@ -382,19 +387,19 @@ Expr:
         $$ = Token("PrefixExpr");
         $$.build_AST(Token("Operator", $1, @1))
           .build_AST($2);
-    } | OP_INCREMENT Expr {
+    } | OP_INCREMENT Assignable {
         $$ = Token("PrefixExpr");
         $$.build_AST(Token("Operator", $1, @1))
           .build_AST($2);
-    } | OP_DECREMENT Expr {
+    } | OP_DECREMENT Assignable {
         $$ = Token("PrefixExpr");
         $$.build_AST(Token("Operator", $1, @1))
           .build_AST($2);
-    } | Expr OP_INCREMENT {
+    } | Assignable OP_INCREMENT {
         $$ = Token("PostfixExpr");
         $$.build_AST($1)
           .build_AST(Token("Operator", $2, @2));
-    } | Expr OP_DECREMENT {
+    } | Assignable OP_DECREMENT {
         $$ = Token("PostfixExpr");
         $$.build_AST($1)
           .build_AST(Token("Operator", $2, @2));

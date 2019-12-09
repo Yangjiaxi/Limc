@@ -254,9 +254,17 @@ Type *Type::make_error_type() {
     current->c_type = Ctype::ErrorType;
     return current;
 }
+
 bool Type::is_int() {
     if (c_type == Ctype::Plain && plain_type == PlainType::Int) {
         return true;
+    }
+    return false;
+}
+
+bool Type::is_arith() {
+    if (c_type == Ctype::Plain) {
+        return plain_type == PlainType::Int || plain_type == PlainType::Float;
     }
     return false;
 }

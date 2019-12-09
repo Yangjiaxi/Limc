@@ -69,6 +69,8 @@ class Type {
 
     bool is_int();
 
+    bool is_arith();
+
     static Type *build_type(Token &root, const vector<unsigned> &array_depth = {});
 
     static Type *build_literal(Token &root);
