@@ -30,19 +30,34 @@ Type *
 Type::build_type(Token &root, const vector<unsigned> &array_depth, map<string, Type *> type_table) {
     Type *new_type = new Type();
     Type *current  = new_type;
+
+    auto node_kind = root.get_kind();
+
     if (!array_depth.empty()) {
         // 嵌套数组
         // array_depth保存了数组每一层的大小，最后一维是基类型的长度
         // int a[3][4] => build_type(`int`, Vec<usize>{3, 4});
-        for (auto &dep : array_depth) {
-            current->c_type    = Ctype::Array;
-            current->length    = dep;
+        for (auto iter = array_depth.cbegin(); iter != array_depth.cend(); ++iter) {
+            current->c_type = Ctype::Array;
+            current->length = *iter;
+
+            if (iter == array_depth.cend() - 1) {
+                if (node_kind == "Struct" && root.get_children().empty()) {
+                    // 内部 结构体 无成员
+                    if (type_table.find(root.get_value()) == type_table.end()) {
+                        throw runtime_error("Unknown struct type `" + root.get_value() + "`");
+                    }
+                    current->base_type = type_table.at(root.get_value());
+                    make_array_info(new_type);
+                    return new_type;
+                }
+            }
+
             current->base_type = new Type();
             current            = current->base_type;
         }
     }
 
-    auto node_kind = root.get_kind();
     if (node_kind == "Type") {
         // 普通类型
         current->c_type = Ctype::Plain;
@@ -64,12 +79,7 @@ Type::build_type(Token &root, const vector<unsigned> &array_depth, map<string, T
     } else if (node_kind == "Struct") {
         // 结构体
         current->c_type = Ctype::Struct;
-        if (root.get_children().empty()) {
-            if (type_table.find(root.get_value()) == type_table.end()) {
-                throw runtime_error("Unknown struct type `" + root.get_value() + "`");
-            }
-            return type_table.at(root.get_value());
-        }
+
         auto &items = root.get_child(0).get_children();
 
         unsigned s_size  = 0;

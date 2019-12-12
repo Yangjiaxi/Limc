@@ -1,20 +1,21 @@
-struct {
-    int a;
-    char b;
-    int c[10];
-    char d;
-    struct {
-        int a[10];
-        char c[5][5];
-    } s[5];
-} tt;
+struct A {
+    int  a[10];
+    char c[5][5];
+};
+
+struct B {
+    int      a;
+    char     b;
+    int      c[10];
+    char     d;
+    struct A s[5];
+};
+
+struct B p[10];
 
 int a;
 
 int main() {
-    int a = tt.a;
-    float b = tt.b;
-    tt.c;
-    tt.d;
-    return 0;
+    return p[2].s[2].c[2][2];
 }
+

@@ -676,7 +676,7 @@ Type *Semantic::parse_type(Token &root) {
                     .report_loc(root.get_loc().value())
                     .report_msg(
                         "Struct type `" + root.get_value() + "` is used before declaration.");
-                return nullptr;
+                type_res = Type::make_error_type();
             } else {
                 type_res = type_table.at(root.get_value());
             }
