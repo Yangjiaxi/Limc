@@ -1,6 +1,8 @@
 #include "3-type.h"
 #include "util.h"
 
+// #define VERBOSE
+
 using namespace Limc;
 using namespace std;
 
@@ -147,8 +149,13 @@ string Type::to_string() const {
         ss << BOLD_RED << "ERROR" << RESET_COLOR;
         return ss.str();
     }
+    ss << BOLD_GREEN << str_wrap() << RESET_COLOR;
+    return ss.str();
+}
 
-    ss << BOLD_GREEN;
+string Type::str_wrap() const {
+    stringstream ss;
+
     if (is_plain()) {
         ss << "";
     } else if (c_type == Ctype::Struct) {
@@ -169,13 +176,15 @@ string Type::to_string() const {
         ss << "]";
     } else if (c_type == Ctype::Function) {
         ss << ")"
-           << "->" << return_type->to_string();
-    }
-    if (c_type != Ctype::Function) {
-        ss << "(" << size << "," << align << ")";
+           << "->" << return_type->str_wrap();
     }
 
-    ss << RESET_COLOR;
+    if (c_type != Ctype::Function) {
+#ifdef VERBOSE
+        ss << "(" << size << "," << align << ")";
+#endif
+    }
+
     return ss.str();
 }
 
@@ -191,19 +200,24 @@ string Type::str_content() const {
         } else if (plain_type == PlainType::Void) {
             ss << "void";
         }
+
     } else if (c_type == Ctype::Array) {
-        ss << length << ";" << base_type->to_string();
+        ss << length << ";" << base_type->str_wrap();
+
     } else if (c_type == Ctype::Struct) {
         bool first = true;
         for (auto &[name, type] : members) {
-            ss << (first ? "" : " | ") << "<" << type->member_offset << ">" << name << ":"
-               << type->to_string();
+            ss << (first ? "" : " | ");
+#ifdef VERBOSE
+            ss << "<" << type->member_offset << ">";
+#endif
+            ss << name << ":" << type->str_wrap();
             first = false;
         }
     } else if (c_type == Ctype::Function) {
         bool first = true;
         for (auto &arg : args) {
-            ss << (first ? "" : ",") << arg->to_string();
+            ss << (first ? "" : ",") << arg->str_wrap();
             first = false;
         }
     }

@@ -22,6 +22,18 @@ void Semantic::leave_scope() {
     cout << "<<< Leave Scope\t: [" << tables.back().get_alias() << "]"
          << " Local Stack Size: " << local_stack_size << endl;
 #endif
+    string line(50, '=');
+
+    cout << endl << line << endl;
+    cout << "Scope: " << BOLD_YELLOW << current_table->get_alias() << RESET_COLOR << endl;
+
+    cout << endl << BOLD_RED << "<TABLE BEGIN>" << RESET_COLOR << endl;
+
+    cout << SymbolTable::table_head();
+    cout << current_table->describe();
+
+    cout << BOLD_RED << "<TABLE END>" << RESET_COLOR << endl;
+
     tables.pop_back();
     current_table = &tables.back();
 }

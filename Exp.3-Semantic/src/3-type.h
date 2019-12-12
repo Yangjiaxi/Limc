@@ -90,6 +90,7 @@ class Type {
     static Type *make_error_type();
 
   private:
+    string str_wrap() const;
     string str_content() const;
 
     // size, align

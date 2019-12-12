@@ -24,35 +24,9 @@ void Driver::clear() {
     tokens.clear();
 }
 
-void table_head() {
-    stringstream ss;
-
-    build_str(ss, " | ", RED);
-    build_str(ss, "Name", BLUE, 7);
-
-    build_str(ss, " | ", RED);
-    build_str(ss, "Scope", YELLOW, 5);
-
-    build_str(ss, " | ", RED);
-    build_str(ss, "Alias", BOLD_YELLOW, 10);
-
-    build_str(ss, " | ", RED);
-    build_str(ss, "Type", GREEN, 15);
-
-    build_str(ss, " | ", RED);
-    build_str(ss, "Func?", MAGENTA, 8);
-
-    build_str(ss, " | ", RED);
-    build_str(ss, "Params", CYAN);
-
-    cout << ss.str() << endl;
-    cout << string(100, '-') << endl;
-}
-
 void Driver::analyze() {
     reports.clear();
     string line(50, '-');
-    // table_head();
     for (auto &token : tokens) {
         analyzer.stmt(token);
         print_reports();

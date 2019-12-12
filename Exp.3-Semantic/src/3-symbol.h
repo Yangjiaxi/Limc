@@ -3,7 +3,7 @@
 
 #include "0-token.h"
 #include "3-type.h"
-#include <unordered_map>
+#include <map>
 #include <utility>
 
 namespace Limc {
@@ -40,9 +40,13 @@ class SymbolTable {
 
     optional<Symbol> find_symbol(const string &name);
 
+    string describe() const;
+
+    static string table_head();
+
   private:
-    string                        name;
-    unordered_map<string, Symbol> table;
+    string              name;
+    map<string, Symbol> table;
 };
 } // namespace Limc
 

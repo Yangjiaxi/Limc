@@ -1,5 +1,5 @@
 #define STAGE 1 // 0->type 1->file 2->cmd
-#define FILENAME "./test/simple.c"
+#define FILENAME "../test/simple.c"
 
 #include "0-color.h"
 #include "0-driver.h"
@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
         cout << driver.print() << endl;
     }
 #else
-    cout << driver.print() << endl;
+    // cout << driver.print() << endl;
 #endif
 
     // end
@@ -65,11 +65,9 @@ int main(int argc, char **argv) {
     }
 
     driver.analyze();
-    cout << driver.print() << endl;
     // if (opts_res.count("t") || opts_res.count("tree")) {
     //     cout << driver.print() << endl;
     // }
-
     return 0;
 
     // string        input("struct { char a[10]; }; ");
