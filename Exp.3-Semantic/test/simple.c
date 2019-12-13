@@ -1,21 +1,16 @@
 struct A {
-    int  a[10];
-    char c[5][5];
+    int a;
 };
 
 struct B {
-    int      a;
-    char     b;
-    int      c[10];
-    char     d;
-    struct A s[5];
-};
-
-struct B p[10];
-
-int a;
+    char     a;
+    struct A b[5];
+    int      c;
+} t1;
 
 int main() {
-    return p[2].s[2].c[2][2];
+    struct B p[5];
+    int      p1 = p[0].a;
+    int      p2 = t1.b[2].a;
+    return p1 + p2;
 }
-

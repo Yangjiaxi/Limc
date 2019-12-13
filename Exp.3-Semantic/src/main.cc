@@ -65,6 +65,7 @@ int main(int argc, char **argv) {
     }
 
     driver.analyze();
+    cout << driver.print() << endl;
     // if (opts_res.count("t") || opts_res.count("tree")) {
     //     cout << driver.print() << endl;
     // }
