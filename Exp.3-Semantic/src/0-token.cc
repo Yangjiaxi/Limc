@@ -7,14 +7,16 @@
 using namespace Limc;
 
 Token::Token(string kind, string value)
-    : kind(move(kind)), value(move(value)), children(), loc(nullopt) {}
+    : kind(move(kind)), value(move(value)), children(), loc(nullopt), func_stack_size(nullopt) {}
 
-Token::Token(string kind) : kind(move(kind)), value(), children(), loc(nullopt) {}
+Token::Token(string kind)
+    : kind(move(kind)), value(), children(), loc(nullopt), func_stack_size(nullopt) {}
 
 Token::Token(string kind, string value, location loc)
-    : kind(move(kind)), value(move(value)), children(), loc(loc) {}
+    : kind(move(kind)), value(move(value)), children(), loc(loc), func_stack_size(nullopt) {}
 
-Token::Token(string kind, location loc) : kind(move(kind)), value(), children(), loc(loc) {}
+Token::Token(string kind, location loc)
+    : kind(move(kind)), value(), children(), loc(loc), func_stack_size(nullopt) {}
 
 Token::Token() = default;
 
@@ -61,7 +63,7 @@ optional<location> Token::get_loc() const {
 string Token::print(const string pre, const string ch_pre) const {
     stringstream s;
     s << endl;
-    build_str(s, pre, GREEN);
+    build_str(s, pre, BOLD_WHITE);
 
     build_str(s, "{");
 
@@ -83,6 +85,12 @@ string Token::print(const string pre, const string ch_pre) const {
             build_str(s, value, BOLD_GREEN);
         }
     }
+
+    if (func_stack_size != nullopt) {
+        s << ", ";
+        build_str(s, to_string(*func_stack_size), BOLD_CYAN);
+    }
+
     build_str(s, "}");
 
     if (type != nullptr) {
@@ -103,11 +111,11 @@ string Token::print(const string pre, const string ch_pre) const {
     if (!children.empty()) {
         for (auto &item : children) {
             if (&item == &children.back()) {
-                // s << item.print(ch_pre + "└──", ch_pre + "     ");
-                s << item.print(ch_pre + "`---", ch_pre + "    ");
+                s << item.print(ch_pre + "└──", ch_pre + "     ");
+                // s << item.print(ch_pre + "`---", ch_pre + "    ");
             } else {
-                // s << item.print(ch_pre + "├──", ch_pre + "│   ");
-                s << item.print(ch_pre + "|---", ch_pre + "|   ");
+                s << item.print(ch_pre + "├──", ch_pre + "│   ");
+                // s << item.print(ch_pre + "|---", ch_pre + "|   ");
             }
         }
     }
@@ -119,3 +127,5 @@ bool Token::operator==(const string &str) const { return kind == str; }
 void Token::set_type(Type *new_type) { type = new_type; }
 
 Type *&Token::get_type() { return type; }
+
+void Token::set_func_stack_size(unsigned n) { func_stack_size = n; }

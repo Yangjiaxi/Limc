@@ -1,5 +1,5 @@
-#define STAGE 1 // 0->type 1->file 2->cmd
-#define FILENAME "./test/simple.c"
+#define STAGE 1 // 1->file 2->cmd
+#define FILENAME "../test/errors.c"
 
 #include "0-color.h"
 #include "0-driver.h"
@@ -62,26 +62,13 @@ int main(int argc, char **argv) {
         cout << BOLD_GREEN << "Parse Finish!" << RESET_COLOR << endl;
     } else {
         cout << BOLD_RED << "Parse Failed!" << RESET_COLOR << endl;
+        return 1;
     }
 
     driver.analyze();
-    cout << driver.print() << endl;
+    // cout << driver.print() << endl;
     // if (opts_res.count("t") || opts_res.count("tree")) {
     //     cout << driver.print() << endl;
     // }
     return 0;
-
-    // string        input("struct { char a[10]; }; ");
-    // istringstream ss(input);
-    //
-    // Limc::Driver driver;
-    // driver.set_entry(&ss);
-    // driver.parse();
-    // cout << driver.print() << endl;
-    //
-    // auto root = driver.get_root().get_child(0);
-    // auto type = Limc::Type::build_type(root, {10});
-    //
-    // cout << "Type: " << type.to_string() << endl;
-    // return 0;
 }

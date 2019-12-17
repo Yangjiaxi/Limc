@@ -24,7 +24,7 @@ class Semantic {
     void try_insert_symbol(Token &identifier, Type *type, unsigned offset = 0);
 
     void enter_scope(const string &name);
-    void leave_scope();
+    void leave_scope(unsigned frame_size);
 
     // 符号表链，栈顶存放的是当前语句块的符号表
     vector<SymbolTable> tables;

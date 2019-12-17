@@ -46,11 +46,15 @@ class Token {
     void   set_type(Type *new_type);
     Type *&get_type();
 
+    void set_func_stack_size(unsigned n);
+
   private:
     string             kind;
     string             value;
     optional<location> loc;
     vector<Token>      children;
+
+    optional<unsigned> func_stack_size;
 
     Type *type = nullptr;
 };
