@@ -99,32 +99,3 @@ void Driver::print_reports() {
     }
     cout << ss.str();
 }
-
-// string Driver::gen_error(const string &msg, const location &loc) {
-//     stringstream ss;
-//     string       line(50, '-');
-
-//     ss << BOLD_RED << "error: " << RESET_COLOR << msg << endl;
-//     ss << BLUE << "  -->" << RESET_COLOR << " : " << YELLOW << loc << RESET_COLOR << endl;
-
-//     auto &[begin, end] = loc;
-//     if (begin.line == end.line) {
-//         ss << CYAN << setw(4) << begin.line << RESET_COLOR << " | " << input_file[begin.line - 1]
-//            << endl;
-//         ss << "     | " << string(begin.column - 1, ' ') << BOLD_RED
-//            << string(end.column - begin.column, '^') << RESET_COLOR << endl;
-//     }
-//     ss << BOLD_MAGENTA << line << RESET_COLOR << endl;
-//     return ss.str();
-// }
-
-// void Driver::add_error(const string &msg, const Token &token) {
-//     add_error(msg, token.get_loc().value());
-// }
-
-// void Driver::add_error(const string &msg, const location &loc) { errors << gen_error(msg, loc); }
-
-// void Driver::add_error(const string &msg) {
-//     // enhence later
-//     errors << YELLOW << msg << RESET_COLOR;
-// }

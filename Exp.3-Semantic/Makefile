@@ -18,5 +18,8 @@ cmt:
 copy:
 	./$(target) -f ./test/copy.c	$(flags)
 
+error:
+	./$(target) -f ./test/error.c	$(flags)
+
 clean:
 	rm -rf ./build

@@ -80,8 +80,15 @@ Type::build_type(Token &root, const vector<unsigned> &array_depth, map<string, T
         // 结构体
         current->c_type = Ctype::Struct;
 
-        auto &items = root.get_child(0).get_children();
+        if (root.get_children().empty()) {
+            // 内部 结构体 无成员
+            if (type_table.find(root.get_value()) == type_table.end()) {
+                throw runtime_error("Unknown struct type `" + root.get_value() + "`");
+            }
+            return type_table.at(root.get_value());
+        }
 
+        auto &   items   = root.get_child(0).get_children();
         unsigned s_size  = 0;
         unsigned s_align = 0;
         for (auto &item : items) {

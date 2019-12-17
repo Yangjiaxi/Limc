@@ -1,18 +1,14 @@
-int a;
+struct StringBuffer {
+    char buffer[1024];
+    int  len;
+};
 
-int a(float b) {
-    int m = (b ? 1 : 2);
-    return c + b[10] + a[1.2];
-}
+struct Scanner {
+    struct StringBuffer input[10];
+    int                 max_len;
+};
 
-struct {
-    int a;
-    struct {
-        int b;
-    } p;
-} pp;
-
-int main() {
-    // cmt
-    return pp.a + pp.p.b;
+void read() {
+    struct Scanner handler;
+    int            len = handler.input.len;
 }
