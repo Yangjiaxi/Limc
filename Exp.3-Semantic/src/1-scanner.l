@@ -111,6 +111,10 @@ WHITESPACE  [ \t\v\f]
 <<EOF>>         { ACTION(END); }
 
 . {
-    cout << RED << "Error: unexpected " << yytext << endl 
-         << YELLOW << "Location: " << *loc << RESET_COLOR << endl;
+    std::stringstream ss;
+    ss << "Error: unexpected " << yytext;
+    driver.report()
+        .report_level(Level::Error)
+        .report_loc(*loc)
+        .report_msg(ss.str(), 0);
 }

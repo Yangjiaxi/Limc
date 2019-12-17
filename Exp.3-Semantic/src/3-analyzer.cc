@@ -17,7 +17,7 @@ void Semantic::enter_scope(const string &name) {
 #endif
 }
 
-void Semantic::leave_scope() {
+void Semantic::leave_scope(unsigned frame_size) {
 #ifdef DEBUG
     cout << "<<< Leave Scope\t: [" << tables.back().get_alias() << "]"
          << " Local Stack Size: " << local_stack_size << endl;
@@ -26,6 +26,8 @@ void Semantic::leave_scope() {
 
     cout << endl << line << endl;
     cout << "Scope: " << BOLD_YELLOW << current_table->get_alias() << RESET_COLOR << endl;
+
+    cout << "Frame Size: " << BOLD_WHITE << frame_size << RESET_COLOR << endl;
 
     cout << endl << BOLD_RED << "<TABLE BEGIN>" << RESET_COLOR << endl;
 
@@ -44,7 +46,7 @@ void Semantic::try_insert_symbol(Token &identifier, Type *type, unsigned offset)
         driver.report()
             .report_level(Level::Error)
             .report_loc(identifier.get_loc().value())
-            .report_msg("Symbol `" + identifier.get_value() + "` has already been declared. ");
+            .report_msg("Symbol `" + identifier.get_value() + "` has already been declared. ", 2);
     }
 }
 
@@ -62,12 +64,13 @@ Type *Semantic::expr(Token &root) {
                 break;
             }
         }
+
         if (!shot) {
             driver.report()
                 .report_level(Level::Error)
                 .report_loc(root.get_loc().value())
                 .report_msg(
-                    "Variable `" + root.get_value() + "` hasn't been declared in this scope.");
+                    "Variable `" + root.get_value() + "` hasn't been declared in this scope.", 3);
             type_res = Type::make_error_type();
         }
         // END OF [Identifier]
@@ -82,7 +85,7 @@ Type *Semantic::expr(Token &root) {
                     driver.report()
                         .report_level(Level::Error)
                         .report_loc(array_root.get_loc().value())
-                        .report_msg("Type `" + current->to_string() + "` can not be indexed.");
+                        .report_msg("Type `" + current->to_string() + "` can not be indexed.", 4);
                     type_res = Type::make_error_type();
                     break;
                 } else {
@@ -93,7 +96,7 @@ Type *Semantic::expr(Token &root) {
                 driver.report()
                     .report_level(Level::Error)
                     .report_loc(index->get_loc().value())
-                    .report_msg("Array index should be integer.");
+                    .report_msg("Array index should be integer.", 5);
                 type_res = Type::make_error_type();
                 break;
             }
@@ -115,8 +118,9 @@ Type *Semantic::expr(Token &root) {
                 .report_loc(root.get_loc().value())
                 .report_msg(
                     "Types around operand `" + op.get_value() + "` : `" + a_type->to_string() +
-                    "`" + " and `" + b_type->to_string() +
-                    "` can't perform this arithmetic calculate.");
+                        "`" + " and `" + b_type->to_string() +
+                        "` can't perform this arithmetic calculate.",
+                    6);
             type_res = Type::make_error_type();
         } else {
             type_res = upper_type(a_type, b_type);
@@ -138,8 +142,9 @@ Type *Semantic::expr(Token &root) {
                 .report_loc(root.get_loc().value())
                 .report_msg(
                     "Types around logical operand `" + op.get_value() +
-                    "` must both be `int`, but got : `" + a_type->to_string() + "`" + " and `" +
-                    b_type->to_string() + "`.");
+                        "` must both be `int`, but got : `" + a_type->to_string() + "`" + " and `" +
+                        b_type->to_string() + "`.",
+                    7);
             type_res = Type::make_error_type();
         } else {
             type_res = a_type;
@@ -162,7 +167,8 @@ Type *Semantic::expr(Token &root) {
                 .report_loc(root.get_loc().value())
                 .report_msg(
                     "Types `" + a_type->to_string() + "` and `" + b_type->to_string() +
-                    " is not comparable.");
+                        " is not comparable.",
+                    8);
             type_res = Type::make_error_type();
         } else {
             type_res = Type::make_int_type();
@@ -184,7 +190,8 @@ Type *Semantic::expr(Token &root) {
                 .report_loc(root.get_loc().value())
                 .report_msg(
                     "Condition's type of ternary expression should be `int`, got: `" +
-                    cond_type->to_string() + "`.");
+                        cond_type->to_string() + "`.",
+                    9);
             type_res = Type::make_error_type();
         } else {
             auto upper_one = upper_type(yes_type, no_type);
@@ -194,7 +201,8 @@ Type *Semantic::expr(Token &root) {
                     .report_loc(root.get_loc().value())
                     .report_msg(
                         "Branches' types of ternary expression not match, got `" +
-                        yes_type->to_string() + "`" + " and `" + no_type->to_string() + "`.");
+                            yes_type->to_string() + "`" + " and `" + no_type->to_string() + "`.",
+                        10);
                 type_res = Type::make_error_type();
             } else {
                 type_res = upper_one;
@@ -211,7 +219,7 @@ Type *Semantic::expr(Token &root) {
             driver.report()
                 .report_level(Level::Error)
                 .report_loc(root.get_loc().value())
-                .report_msg("Can't use member expresssion on non-struct value.");
+                .report_msg("Can't use member expresssion on non-struct value.", 11);
             type_res = Type::make_error_type();
         } else {
             if (struct_type->members.find(member_name) == struct_type->members.cend()) {
@@ -220,7 +228,8 @@ Type *Semantic::expr(Token &root) {
                     .report_loc(root.get_loc().value())
                     .report_msg(
                         "Struct type `" + struct_type->to_string() +
-                        "` doesn't have member named `" + member_name + "`.");
+                            "` doesn't have member named `" + member_name + "`.",
+                        12);
             } else {
                 type_res = struct_type->members.at(member_name);
             }
@@ -242,7 +251,8 @@ Type *Semantic::expr(Token &root) {
                 .report_loc(func.get_loc().value())
                 .report_msg(
                     "Variable `" + func.get_value() + "` with type `" + func_type->to_string() +
-                    "` is not callable.");
+                        "` is not callable.",
+                    13);
             type_res = Type::make_error_type();
         } else {
             if (func_type->args.size() != args.size()) {
@@ -251,8 +261,9 @@ Type *Semantic::expr(Token &root) {
                     .report_loc(func.get_loc().value())
                     .report_msg(
                         "Function `" + func.get_value() + "` requires " +
-                        to_string(func_type->args.size()) + " parameters, but " +
-                        to_string(args.size()) + " is given.");
+                            to_string(func_type->args.size()) + " parameters, but " +
+                            to_string(args.size()) + " is given.",
+                        14);
                 type_res = Type::make_error_type();
             } else {
                 auto arg_iter   = args.begin();
@@ -266,8 +277,9 @@ Type *Semantic::expr(Token &root) {
                             .report_loc(arg_iter->get_loc().value())
                             .report_msg(
                                 "Function `" + func.get_value() + "`requires type `" +
-                                (*param_iter)->to_string() + "` as parameter, but type `" +
-                                arg_type->to_string() + "` is given.");
+                                    (*param_iter)->to_string() + "` as parameter, but type `" +
+                                    arg_type->to_string() + "` is given.",
+                                15);
                         type_res = Type::make_error_type();
                         is_ok    = false;
                         break;
@@ -296,7 +308,8 @@ Type *Semantic::expr(Token &root) {
                 .report_loc(rhs.get_loc().value())
                 .report_msg(
                     "Type around assignment operator `=` is not assignable: `" +
-                    lhs_type->to_string() + "` and `" + rhs_type->to_string() + ".");
+                        lhs_type->to_string() + "` and `" + rhs_type->to_string() + ".",
+                    16);
             type_res = Type::make_error_type();
         } else {
             type_res = lhs_type;
@@ -317,8 +330,9 @@ Type *Semantic::expr(Token &root) {
                 .report_loc(rhs.get_loc().value())
                 .report_msg(
                     "Type around assignment operator `" + op.get_value() +
-                    "` is not assignable: `" + lhs_type->to_string() + "` and `" +
-                    rhs_type->to_string() + ".");
+                        "` is not assignable: `" + lhs_type->to_string() + "` and `" +
+                        rhs_type->to_string() + ".",
+                    17);
             type_res = Type::make_error_type();
         } else {
             type_res = lhs_type;
@@ -340,8 +354,9 @@ Type *Semantic::expr(Token &root) {
                 .report_loc(rhs.get_loc().value())
                 .report_msg(
                     "Type around logical compound assignment operator `" + op.get_value() +
-                    "` should be `int`, but got `" + lhs_type->to_string() + "` and `" +
-                    rhs_type->to_string() + ".");
+                        "` should be `int`, but got `" + lhs_type->to_string() + "` and `" +
+                        rhs_type->to_string() + ".",
+                    18);
             type_res = Type::make_error_type();
         } else {
             if (!can_convert(rhs_type, lhs_type)) {
@@ -351,8 +366,9 @@ Type *Semantic::expr(Token &root) {
                     .report_loc(rhs.get_loc().value())
                     .report_msg(
                         "Type around assignment operator `" + op.get_value() +
-                        "` is not assignable: `" + lhs_type->to_string() + "` and `" +
-                        rhs_type->to_string() + ".");
+                            "` is not assignable: `" + lhs_type->to_string() + "` and `" +
+                            rhs_type->to_string() + ".",
+                        19);
                 type_res = Type::make_error_type();
             } else {
                 type_res = lhs_type;
@@ -378,7 +394,8 @@ Type *Semantic::expr(Token &root) {
                     .report_loc(root.get_loc().value())
                     .report_msg(
                         "Operand of prefix expression `" + op_str +
-                        "` should be arithmetic, but got `" + item_type->to_string() + "`");
+                            "` should be arithmetic, but got `" + item_type->to_string() + "`",
+                        20);
                 type_res = Type::make_error_type();
             }
         } else {
@@ -388,7 +405,8 @@ Type *Semantic::expr(Token &root) {
                     .report_loc(root.get_loc().value())
                     .report_msg(
                         "Operand of prefix expression `" + op_str + "` should be `int`, but got `" +
-                        item_type->to_string() + "`");
+                            item_type->to_string() + "`",
+                        21);
                 type_res = Type::make_error_type();
             } else {
                 type_res = item_type;
@@ -407,7 +425,8 @@ Type *Semantic::expr(Token &root) {
                 .report_loc(root.get_loc().value())
                 .report_msg(
                     "Operand of postfix expression `" + op_str + "` should be `int`, but got `" +
-                    item_type->to_string() + "`");
+                        item_type->to_string() + "`",
+                    22);
             type_res = Type::make_error_type();
         } else {
             type_res = item_type;
@@ -439,7 +458,8 @@ void Semantic::stmt(Token &root) {
         for (auto &child : children) {
             stmt(child);
         }
-        leave_scope();
+        root.set_func_stack_size(global_stack_size);
+        leave_scope(global_stack_size);
     } else if (kind == "BlockStmt") {
         // 块级语句，可能是新的作用域
         // 有别于函数体、循环体的块，这俩单独处理，不在这里搞
@@ -447,21 +467,22 @@ void Semantic::stmt(Token &root) {
         for (auto &child : children) {
             stmt(child);
         }
-        leave_scope();
+        leave_scope(local_stack_size);
     } else if (kind == "Struct") {
         // 声明Struct类型，需要Identifier与Struct体，通过名字收录
         if (children.empty()) {
             driver.report()
                 .report_level(Level::Error)
                 .report_loc(root.get_loc().value())
-                .report_msg("Incomplete struct type `" + root.get_value() + "`.");
+                .report_msg("Incomplete struct type `" + root.get_value() + "`.", 23);
             return;
         }
         if (type_table.find(root.get_value()) != type_table.end()) {
             driver.report()
                 .report_level(Level::Error)
                 .report_loc(root.get_loc().value())
-                .report_msg("Struct type `" + root.get_value() + "` has already been declared.");
+                .report_msg(
+                    "Struct type `" + root.get_value() + "` has already been declared.", 24);
             return;
         }
         auto struct_type = Type::build_type(root, {}, type_table);
@@ -523,7 +544,8 @@ void Semantic::stmt(Token &root) {
                         .report_loc(rhs.get_loc().value())
                         .report_msg(
                             "Type around assignment operator `=` is not assignable: `" +
-                            lhs_type->to_string() + "` and `" + rhs_type->to_string() + ".");
+                                lhs_type->to_string() + "` and `" + rhs_type->to_string() + ".",
+                            16);
                 }
             }
         }
@@ -572,7 +594,8 @@ void Semantic::stmt(Token &root) {
         for (auto &child : root.get_child(3).get_children()) {
             stmt(child);
         }
-        leave_scope();
+        leave_scope(local_stack_size);
+        root.set_func_stack_size(local_stack_size);
         // 退出函数后需要将局部栈清空，也就是这个RBP的寿命结束了
         local_stack_size = 0;
 
@@ -584,9 +607,10 @@ void Semantic::stmt(Token &root) {
                 .report_loc(root.get_child(0).get_loc().value())
                 .report_msg(
                     "Return type not match: Function `" + name_node.get_value() +
-                    "` requires return type: `" + ret_type->to_string() + "`, but `" +
-                    (inner_return_ty == nullptr ? "void" : inner_return_ty->to_string()) +
-                    "` was given.");
+                        "` requires return type: `" + ret_type->to_string() + "`, but `" +
+                        (inner_return_ty == nullptr ? "void" : inner_return_ty->to_string()) +
+                        "` was given.",
+                    25);
         }
         // END OF [FuncDef]
     } else if (kind == "ReturnStmt") {
@@ -605,7 +629,7 @@ void Semantic::stmt(Token &root) {
             driver.report()
                 .report_level(Level::Error)
                 .report_loc(root.get_loc().value())
-                .report_msg("Keyword `continue` should stay in loop blocks.");
+                .report_msg("Keyword `continue` should stay in loop blocks.", 26);
         }
         // END OF [ContinueStmt]
     } else if (kind == "BreakStmt") {
@@ -614,7 +638,7 @@ void Semantic::stmt(Token &root) {
             driver.report()
                 .report_level(Level::Error)
                 .report_loc(root.get_loc().value())
-                .report_msg("Keyword `break` should stay in loop blocks.");
+                .report_msg("Keyword `break` should stay in loop blocks.", 27);
         }
         // END OF [BreakStmt]
     } else if (kind == "WhileStmt") {
@@ -675,7 +699,7 @@ Type *Semantic::parse_type(Token &root) {
                     .report_level(Level::Error)
                     .report_loc(root.get_loc().value())
                     .report_msg(
-                        "Struct type `" + root.get_value() + "` is used before declaration.");
+                        "Struct type `" + root.get_value() + "` is used before declaration.", 28);
                 type_res = Type::make_error_type();
             } else {
                 type_res = type_table.at(root.get_value());

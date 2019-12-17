@@ -1,16 +1,18 @@
-struct A {
-    int a;
-};
+int a;
 
-struct B {
-    char     a;
-    struct A b[5];
-    int      c;
-} t1;
+int a(float b) {
+    int m = (b ? 1 : 2);
+    return c + b[10] + a[1.2];
+}
+
+struct {
+    int a;
+    struct {
+        int b;
+    } p;
+} pp;
 
 int main() {
-    struct B p[5];
-    int      p1 = p[0].a;
-    int      p2 = t1.b[2].a;
-    return p1 + p2;
+    // cmt
+    return pp.a + pp.p.b;
 }

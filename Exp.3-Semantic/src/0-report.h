@@ -18,16 +18,18 @@ class Report {
   public:
     Report();
 
-    Report &report_msg(const string &msg);
+    Report &report_msg(const string &msg, unsigned enb);
     Report &report_level(Level lvl);
     Report &report_loc(const location &loc);
 
     string &          get_msg();
+    unsigned          get_errno();
     Level             get_level();
     vector<location> &get_loc();
 
   private:
     string           msg;
+    unsigned         error_number;
     vector<location> locs;
     Level            level;
     /*

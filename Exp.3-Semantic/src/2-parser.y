@@ -472,5 +472,5 @@ void Parser::error(const location &loc, const string &msg) {
     driver.report()
           .report_level(Level::Error)
           .report_loc(loc)
-          .report_msg(msg);
+          .report_msg(msg, 1);
 }

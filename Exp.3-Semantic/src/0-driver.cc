@@ -83,7 +83,9 @@ void Driver::print_reports() {
         auto  level = report.get_level();
         auto &loc   = report.get_loc();
 
-        ss << BOLD_RED << "error: " << RESET_COLOR << msg << endl;
+        ss << BOLD_RED << "error: "
+           << "[Limc - " << report.get_errno() << "]" << endl;
+        ss << RESET_COLOR << msg << endl;
         ss << BLUE << "  -->" << RESET_COLOR << " : " << YELLOW << loc[0] << RESET_COLOR << endl;
 
         auto &[begin, end] = loc[0];
