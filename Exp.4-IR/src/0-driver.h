@@ -5,6 +5,8 @@
 #include "0-token.h"
 #include "1-scanner.h"
 #include "3-analyzer.h"
+#include "4-gen_ir.h"
+
 using std::vector;
 
 namespace Limc {
@@ -14,7 +16,12 @@ class Driver {
     Driver();
 
     int  parse();
-    void analyze();
+    void analyze(); // with hir_gen
+    void gen_ir();
+
+    void alloc_reg();
+    void optimize();
+    void gen_x86_64();
 
     void clear();
 
@@ -26,6 +33,7 @@ class Driver {
     friend class Parser;
     friend class Scanner;
     friend class Semantic;
+    friend class GenIR;
 
   private:
     void add_token(const Token &token);
@@ -40,6 +48,7 @@ class Driver {
     Scanner  scanner;
     Parser   parser;
     Semantic analyzer;
+    GenIR    ir_maker;
 
     vector<Token> tokens;
     location      loc;

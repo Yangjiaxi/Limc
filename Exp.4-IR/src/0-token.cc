@@ -86,16 +86,29 @@ string Token::print(const string pre, const string ch_pre) const {
         }
     }
 
+    build_str(s, "}");
+
     if (func_stack_size != nullopt) {
-        s << ", ";
-        build_str(s, to_string(*func_stack_size), BOLD_CYAN);
+        build_str(s, " [");
+        build_str(s, "Size: " + to_string(*func_stack_size), BOLD_YELLOW);
+        build_str(s, "]");
     }
 
-    build_str(s, "}");
+    if (is_global != nullopt && is_global.value()) {
+        build_str(s, "[");
+        build_str(s, "Global", BOLD_YELLOW);
+        build_str(s, "]");
+    }
+
+    if (offset != nullopt) {
+        build_str(s, "[");
+        build_str(s, "Offset: " + to_string(*offset), BOLD_YELLOW);
+        build_str(s, "]");
+    }
 
     if (type != nullptr) {
         build_str(s, " [");
-        build_str(s, type->to_string(), BOLD_CYAN);
+        build_str(s, type->to_string(), BOLD_YELLOW);
         build_str(s, "]");
     }
 
@@ -129,3 +142,7 @@ void Token::set_type(Type *new_type) { type = new_type; }
 Type *&Token::get_type() { return type; }
 
 void Token::set_func_stack_size(unsigned n) { func_stack_size = n; }
+
+void Token::set_offset(unsigned n) { offset = n; }
+
+void Token::set_is_global(bool is_glb) { is_global = is_glb; }

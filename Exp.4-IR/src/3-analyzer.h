@@ -21,7 +21,7 @@ class Semantic {
   private:
     // 对于函数来说，并不需要偏移
     /// TODO 待证实
-    void try_insert_symbol(Token &identifier, Type *type, unsigned offset = 0);
+    void try_insert_symbol(Token &identifier, Type *type, bool is_glb, unsigned offset = 0);
 
     void enter_scope(const string &name);
     void leave_scope(unsigned frame_size);

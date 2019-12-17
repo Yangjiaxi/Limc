@@ -40,8 +40,9 @@ void Semantic::leave_scope(unsigned frame_size) {
     current_table = &tables.back();
 }
 
-void Semantic::try_insert_symbol(Token &identifier, Type *type, unsigned offset) {
-    auto already_exist = current_table->insert_symbol(Symbol(identifier.get_value(), type, offset));
+void Semantic::try_insert_symbol(Token &identifier, Type *type, bool is_glb, unsigned offset) {
+    auto already_exist =
+        current_table->insert_symbol(Symbol(identifier.get_value(), type, offset, is_glb));
     if (already_exist) {
         driver.report()
             .report_level(Level::Error)
@@ -61,6 +62,8 @@ Type *Semantic::expr(Token &root) {
             if (symbol != nullopt) {
                 type_res = symbol.value().type;
                 shot     = true;
+                root.set_offset(symbol.value().offset);
+                root.set_is_global(symbol.value().is_global);
                 break;
             }
         }
@@ -308,7 +311,7 @@ Type *Semantic::expr(Token &root) {
                 .report_loc(rhs.get_loc().value())
                 .report_msg(
                     "Type around assignment operator `=` is not assignable: `" +
-                        lhs_type->to_string() + "` and `" + rhs_type->to_string() + ".",
+                        lhs_type->to_string() + "` and `" + rhs_type->to_string() + "`.",
                     16);
             type_res = Type::make_error_type();
         } else {
@@ -521,11 +524,12 @@ void Semantic::stmt(Token &root) {
             if (kind == "GlobalVarDecl") {
                 global_stack_size = align_memory(global_stack_size, type_res->align);
                 // 插入符号表 and 全局偏移
-                try_insert_symbol(name, type_res, global_stack_size);
+                try_insert_symbol(name, type_res, true, global_stack_size);
                 global_stack_size += type_res->size;
             } else if (kind == "LocalVarDecl") {
                 local_stack_size = align_memory(local_stack_size, type_res->align);
-                try_insert_symbol(name, type_res, local_stack_size);
+                try_insert_symbol(name, type_res, false, local_stack_size);
+                ident_node_wrap.set_offset(local_stack_size);
                 local_stack_size += type_res->size;
             }
 
@@ -544,7 +548,7 @@ void Semantic::stmt(Token &root) {
                         .report_loc(rhs.get_loc().value())
                         .report_msg(
                             "Type around assignment operator `=` is not assignable: `" +
-                                lhs_type->to_string() + "` and `" + rhs_type->to_string() + ".",
+                                lhs_type->to_string() + "` and `" + rhs_type->to_string() + "`.",
                             16);
                 }
             }
@@ -564,7 +568,7 @@ void Semantic::stmt(Token &root) {
         auto &name_node = root.get_child(1);
 
         auto func_type = Type::build_type(root, {}, type_table);
-        try_insert_symbol(name_node, func_type);
+        try_insert_symbol(name_node, func_type, true);
 
         enter_scope("F(" + name_node.get_value() + ")");
 
@@ -586,7 +590,7 @@ void Semantic::stmt(Token &root) {
             }
 
             local_stack_size = align_memory(local_stack_size, param_type->align);
-            try_insert_symbol(name, param_type, local_stack_size);
+            try_insert_symbol(name, param_type, false, local_stack_size);
             local_stack_size += param_type->size;
         }
 
@@ -679,6 +683,7 @@ void Semantic::stmt(Token &root) {
         expr(root);
     }
 }
+
 Type *Semantic::parse_type(Token &root) {
     Type *type_res = nullptr;
     if (root.get_kind() == "Struct") {

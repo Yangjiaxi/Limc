@@ -47,6 +47,8 @@ class Token {
     Type *&get_type();
 
     void set_func_stack_size(unsigned n);
+    void set_offset(unsigned n);
+    void set_is_global(bool is_glb);
 
   private:
     string             kind;
@@ -54,9 +56,18 @@ class Token {
     optional<location> loc;
     vector<Token>      children;
 
-    optional<unsigned> func_stack_size;
-
     Type *type = nullptr;
+
+    // token的一些属性
+    optional<unsigned> func_stack_size; // 函数的栈大小
+    /*
+     * 偏移
+     *      1. 局部变量的定义
+     *      2. 取成员操作的目标成员偏移
+     *      3. 标识符操作，给出标识符在当前段的偏移
+     */
+    optional<unsigned> offset;
+    optional<bool>     is_global; // 变量是否是全局
 };
 } // namespace Limc
 

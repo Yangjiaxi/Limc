@@ -7,8 +7,8 @@
 using namespace Limc;
 using namespace std;
 
-Symbol::Symbol(string name, Type *type, unsigned offset)
-    : name(move(name)), type(type), offset(offset) {}
+Symbol::Symbol(string name, Type *type, unsigned offset, bool is_glb)
+    : name(move(name)), type(type), offset(offset), is_global(is_glb) {}
 
 int SymbolTable::insert_symbol(const Symbol &symbol) {
     if (table.find(symbol.name) != table.end()) {

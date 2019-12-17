@@ -11,10 +11,12 @@ namespace Limc {
 // Var(Lvar | GVar) | Func | StringLiteral
 class Symbol {
   public:
-    Symbol(string name, Type *type, unsigned offset);
+    Symbol(string name, Type *type, unsigned offset, bool is_glb);
 
     // 变量的名字
     string name;
+
+    bool is_global;
 
     // 类型，对于所有都有效
     // 平凡类型 | 数组 | 结构体 | 函数
