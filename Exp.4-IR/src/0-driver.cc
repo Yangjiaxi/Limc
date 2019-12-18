@@ -38,6 +38,7 @@ void Driver::gen_ir() {
     for (auto &token : tokens) {
         ir_maker.gen_stmt(token);
     }
+    ir_maker.show_irs();
     cout << BOLD_GREEN << "Finish!" << RESET_COLOR << endl;
 }
 

@@ -401,7 +401,7 @@ Type *Semantic::expr(Token &root) {
                         20);
                 type_res = Type::make_error_type();
             }
-        } else {
+        } else { // --/++
             if (!item_type->is_int()) {
                 driver.report()
                     .report_level(Level::Error)
@@ -676,6 +676,10 @@ void Semantic::stmt(Token &root) {
         }
         --loops;
     } else if (kind == "IfStmt") {
+        for (auto &child : root.get_children()) {
+            stmt(child);
+        }
+    } else if (kind == "ElseStmt") {
         for (auto &child : root.get_children()) {
             stmt(child);
         }

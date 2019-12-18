@@ -31,8 +31,16 @@ class IRContainer {
 
     IR &append();
 
+    void show();
+
+    unsigned size() const;
+
+    IR &operator[](unsigned i);
+
   private:
     vector<IR> container;
+
+    static void show_head();
 };
 
 } // namespace Limc

@@ -1,1 +1,1 @@
-void fn() { 1 + 3; }
+int fn() { return 21 && 12; }
