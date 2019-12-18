@@ -5,7 +5,7 @@
 #include "0-token.h"
 #include "1-scanner.h"
 #include "3-analyzer.h"
-#include "4-gen_ir.h"
+// #include "4-gen_ir.h"
 
 using std::vector;
 
@@ -48,7 +48,7 @@ class Driver {
     Scanner  scanner;
     Parser   parser;
     Semantic analyzer;
-    GenIR    ir_maker;
+    // GenIR    ir_maker;
 
     vector<Token> tokens;
     location      loc;

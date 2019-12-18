@@ -6,7 +6,7 @@
 using namespace Limc;
 
 Driver::Driver()
-    : tokens(), scanner(*this), parser(scanner, *this), analyzer(*this), ir_maker(*this),
+    : tokens(), scanner(*this), parser(scanner, *this), analyzer(*this), /* ir_maker(*this), */
       loc(location()), input_file() {}
 
 Token &Driver::get_root() { return tokens.at(0); }
@@ -33,14 +33,14 @@ void Driver::analyze() {
     }
 }
 
-void Driver::gen_ir() {
-    cout << BOLD_GREEN << "Generating IR..." << RESET_COLOR << endl;
-    for (auto &token : tokens) {
-        ir_maker.gen_stmt(token);
-    }
-    ir_maker.show_irs();
-    cout << BOLD_GREEN << "Finish!" << RESET_COLOR << endl;
-}
+// void Driver::gen_ir() {
+//     cout << BOLD_GREEN << "Generating IR..." << RESET_COLOR << endl;
+//     for (auto &token : tokens) {
+//         ir_maker.gen_stmt(token);
+//     }
+//     ir_maker.show_irs();
+//     cout << BOLD_GREEN << "Finish!" << RESET_COLOR << endl;
+// }
 
 string Driver::print() const {
     stringstream s;

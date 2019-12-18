@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
 
     driver.analyze();
     cout << driver.print() << endl;
-    driver.gen_ir();
+    // driver.gen_ir();
     // if (opts_res.count("t") || opts_res.count("tree")) {
     //     cout << driver.print() << endl;
     // }
