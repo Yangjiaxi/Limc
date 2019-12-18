@@ -25,7 +25,7 @@ class Token {
 
     Token();
 
-    Token &build_AST(const Token &child);
+    Token &build_AST(Token child);
 
     string print(string pre = "", string ch_pre = "") const;
 
@@ -49,6 +49,11 @@ class Token {
     void set_func_stack_size(unsigned n);
     void set_offset(unsigned n);
     void set_is_global(bool is_glb);
+
+    unsigned get_offset();
+    unsigned get_func_stack_size();
+
+    void replace_childs(vector<Token> new_nodes);
 
   private:
     string             kind;

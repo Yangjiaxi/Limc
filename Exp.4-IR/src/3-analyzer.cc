@@ -498,6 +498,8 @@ void Semantic::stmt(Token &root) {
         //
 
         // [构建类型] -> [构建数组尺度] -> [构建符号] -> [统计全局/局部增长]
+        vector<Token> new_nodes;
+
         auto &type_node = root.get_child(0);
 
         Type *type_res = parse_type(type_node);
@@ -505,35 +507,40 @@ void Semantic::stmt(Token &root) {
         // VarList
         auto &ident_list = root.get_child(1).get_children();
         for (auto &ident_node_wrap : ident_list) {
+            Token new_node("VarDef");
             // if (ident_node_wrap.get_kind() == "VarDecl") {
 
             // 可能有 VarDecl VarDef
             // VarDef需要进行赋值，但也需要定义类型与插入符号表，因此合并公操作
+            Type *stand = type_res;
+
             auto &ident_node = ident_node_wrap.get_child(0);
             Token name;
             if (ident_node.get_kind() == "IndexExpr") {
                 // 为数组
                 name        = ident_node.get_child(0);
                 auto depths = Type::make_array_depths(ident_node);
-                type_res    = Type::wrap_array(type_res, depths);
+                stand       = Type::wrap_array(type_res, depths);
             } else if (ident_node.get_kind() == "Identifier") {
                 // 为普通标识符
                 name = ident_node;
             }
 
             if (kind == "GlobalVarDecl") {
-                global_stack_size = align_memory(global_stack_size, type_res->align);
+                global_stack_size = align_memory(global_stack_size, stand->align);
                 // 插入符号表 and 全局偏移
-                try_insert_symbol(name, type_res, true, global_stack_size);
-                global_stack_size += type_res->size;
+                try_insert_symbol(name, stand, true, global_stack_size);
+                global_stack_size += stand->size;
             } else if (kind == "LocalVarDecl") {
-                local_stack_size = align_memory(local_stack_size, type_res->align);
-                try_insert_symbol(name, type_res, false, local_stack_size);
+                local_stack_size = align_memory(local_stack_size, stand->align);
+                try_insert_symbol(name, stand, false, local_stack_size);
                 ident_node_wrap.set_offset(local_stack_size);
-                local_stack_size += type_res->size;
+                local_stack_size += stand->size;
             }
 
             expr(ident_node);
+
+            new_node.build_AST(ident_node);
 
             if (ident_node_wrap.get_kind() == "VarDef") {
                 auto &lhs = ident_node;
@@ -551,9 +558,11 @@ void Semantic::stmt(Token &root) {
                                 lhs_type->to_string() + "` and `" + rhs_type->to_string() + "`.",
                             16);
                 }
+                new_node.build_AST(rhs);
             }
+            new_nodes.push_back(move(new_node));
         }
-        // END OF [GlobalVarDecl] AND [LocalVarDecl]
+        root.replace_childs(new_nodes);
     } else if (kind == "FuncDef") {
         // 函数定义，有实现的代码块部分
         /*
@@ -592,6 +601,14 @@ void Semantic::stmt(Token &root) {
             local_stack_size = align_memory(local_stack_size, param_type->align);
             try_insert_symbol(name, param_type, false, local_stack_size);
             local_stack_size += param_type->size;
+
+            expr(param_name);
+
+            if (param_name.get_kind() == "IndexExpr") {
+                param = param_name.get_child(0);
+            } else if (param_name.get_kind() == "Identifier") {
+                param = param_name;
+            }
         }
 
         // 函数体

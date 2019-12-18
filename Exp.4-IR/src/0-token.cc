@@ -20,8 +20,8 @@ Token::Token(string kind, location loc)
 
 Token::Token() = default;
 
-Token &Token::build_AST(const Token &child) {
-    children.push_back(child);
+Token &Token::build_AST(Token child) {
+    children.push_back(move(child));
     return *this;
 }
 
@@ -146,3 +146,13 @@ void Token::set_func_stack_size(unsigned n) { func_stack_size = n; }
 void Token::set_offset(unsigned n) { offset = n; }
 
 void Token::set_is_global(bool is_glb) { is_global = is_glb; }
+
+unsigned Token::get_offset() { return offset.value(); }
+
+unsigned Token::get_func_stack_size() { return func_stack_size.value(); }
+
+void Token::replace_childs(vector<Token> new_nodes) {
+    children.clear();
+    children.insert(
+        children.end(), make_move_iterator(new_nodes.begin()), make_move_iterator(new_nodes.end()));
+}

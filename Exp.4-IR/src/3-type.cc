@@ -141,7 +141,28 @@ Type::build_type(Token &root, const vector<unsigned> &array_depth, map<string, T
         current->align = current->size = 0;
         for (auto &arg : arguments) {
             assert(arg.get_kind() == "ParamDecl");
-            current->args.push_back(build_type(arg.get_child(0), {}, type_table));
+            // current->args.push_back(build_type(arg.get_child(0), {}, type_table));
+            Type *inner_type = build_type(arg.get_child(0), {}, type_table);
+            auto &ident_node = arg.get_child(1);
+            if (ident_node.get_kind() == "Identifier") {
+                cout << "ident" << endl;
+                current->args.push_back(inner_type);
+            } else {
+                cout << "array" << endl;
+                assert(ident_node.get_kind() == "IndexExpr");
+                auto inner_depths = make_array_depths(ident_node);
+                inner_type        = wrap_array(inner_type, inner_depths);
+                current->args.push_back(inner_type);
+            }
+            // if (ident_node.get_kind() == "IndexExpr") {
+            //     // 为数组
+            //     name        = ident_node.get_child(0);
+            //     auto depths = Type::make_array_depths(ident_node);
+            //     type_res    = Type::wrap_array(type_res, depths);
+            // } else if (ident_node.get_kind() == "Identifier") {
+            //     // 为普通标识符
+            //     name = ident_node;
+            // }
         }
     }
     make_array_info(new_type);
