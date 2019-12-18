@@ -124,10 +124,10 @@ string Token::print(const string pre, const string ch_pre) const {
     if (!children.empty()) {
         for (auto &item : children) {
             if (&item == &children.back()) {
-                s << item.print(ch_pre + "└──", ch_pre + "     ");
+                s << item.print(ch_pre + "└──", ch_pre + "   ");
                 // s << item.print(ch_pre + "`---", ch_pre + "    ");
             } else {
-                s << item.print(ch_pre + "├──", ch_pre + "│   ");
+                s << item.print(ch_pre + "├──", ch_pre + "│  ");
                 // s << item.print(ch_pre + "|---", ch_pre + "|   ");
             }
         }

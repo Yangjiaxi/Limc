@@ -16,7 +16,7 @@ enum IROp {
     MulImm,
     Div,
     Imm,
-    SetBP,
+    BpOffset,
     Mov,
     Return,
     Call,
@@ -38,7 +38,7 @@ enum IROp {
     Unless,
     Load,
     Store,
-    StoreArg,
+    StoreParam,
     Kill,
     Nop
 };
@@ -46,6 +46,19 @@ enum IROp {
 class IR {
   public:
     IR(IROp op, optional<unsigned> lhs, optional<unsigned> rhs);
+
+    string to_string();
+
+    // Call
+    optional<string>           call_name      = nullopt;
+    optional<unsigned>         call_args_len  = nullopt;
+    optional<vector<unsigned>> call_args_regs = nullopt;
+
+    // LabelAddr
+    optional<string> label_addr_name = nullopt;
+
+    // Load, Store, StoreParam
+    optional<unsigned> data_size = nullopt;
 
   private:
     IROp               op;
@@ -57,21 +70,37 @@ class BasicFunc {
   public:
     BasicFunc(string name, vector<IR> ir, unsigned stack_size);
 
+    void print_ir();
+
   private:
     string     func_name;
     vector<IR> ir_list;
     unsigned   stack_size;
+};
 
-    // Call
-    optional<string>           call_name      = nullopt;
-    optional<unsigned>         call_args_len  = nullopt;
-    optional<vector<unsigned>> call_args_regs = nullopt;
+enum IRType {
+    TyNoArg,
+    TyReg,
+    TyImm,
+    TyMem,
+    TyJmp,
+    TyLabel,
+    TyLabelAddr,
+    TyRegReg,
+    TyRegImm,
+    TyStoreParam,
+    TyRegLabel,
+    TyCall,
+};
 
-    // LabelAddr
-    optional<string> label_addr_name = nullopt;
+class IRInfo {
+  public:
+    IRInfo() = default;
+    IRInfo(string name, IRType ir_kind);
+    string name;
+    IRType ir_kind;
 
-    // Load, Store, StoreArg
-    optional<unsigned> data_size = nullopt;
+    static IRInfo convert(IROp op);
 };
 
 } // namespace Limc

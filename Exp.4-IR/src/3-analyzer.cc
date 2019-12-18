@@ -540,7 +540,11 @@ void Semantic::stmt(Token &root) {
 
             expr(ident_node);
 
-            new_node.build_AST(ident_node);
+            if (ident_node.get_kind() == "IndexExpr") {
+                new_node.build_AST(ident_node.get_child(0));
+            } else if (ident_node.get_kind() == "Identifier") {
+                new_node.build_AST(ident_node);
+            }
 
             if (ident_node_wrap.get_kind() == "VarDef") {
                 auto &lhs = ident_node;

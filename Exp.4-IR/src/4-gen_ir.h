@@ -9,20 +9,30 @@ namespace Limc {
 class Driver;
 
 class GenIR {
+    using opt_uint = optional<unsigned>;
+
   public:
     explicit GenIR(Driver &driver);
 
     vector<BasicFunc> gen_ir(Token &token);
 
-    void add()
+    IR &add_ir(IROp op, opt_uint lhs, opt_uint rhs);
 
-    void store_param(unsigned size, unsigned bp_offset, unsigned arg_reg);
+    void     gen_stmt(Token &node);
+    opt_uint gen_expr(Token &node);
 
+    void store_param(unsigned size, opt_uint bp_offset, opt_uint arg_reg);
+    void store(unsigned size, opt_uint to, opt_uint from);
+    void kill(opt_uint reg);
 
   private:
     Driver &          driver;
     vector<IR>        codes;
     vector<BasicFunc> funcs;
+
+    unsigned num_regs = 0;
+
+    unsigned new_reg();
 };
 
 } // namespace Limc
