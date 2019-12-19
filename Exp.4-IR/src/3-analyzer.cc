@@ -394,7 +394,7 @@ Type *Semantic::expr(Token &root) {
 
         auto item_type = expr(item);
         auto op_str    = op.get_value();
-        if (op_str == "-" || op_str == "+") {
+        if (op_str == "-") {
             if (item_type->is_arith()) {
                 type_res = item_type;
             } else {

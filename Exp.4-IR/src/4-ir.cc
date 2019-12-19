@@ -1,10 +1,11 @@
 #include "4-ir.h"
-
 #include "0-driver.h"
 #include "util.h"
 
 using namespace Limc;
 using namespace std;
+
+#define WIDTH 15
 
 using opt_uint = optional<unsigned>;
 
@@ -18,17 +19,32 @@ string opt(opt_uint &ref) {
     }
 }
 
-string print_reg(opt_uint x, bool is_arg = false) {
-    stringstream ss;
-    build_str(ss, string(is_arg ? "a" : "") + "R(" + opt(x) + ")", BOLD_MAGENTA, 8);
-    return ss.str();
+void print_reg(stringstream &ss, opt_uint x, bool is_arg = false) {
+    build_str(ss, string(is_arg ? "Arg" : "") + "R[" + opt(x) + "]", BOLD_MAGENTA, WIDTH);
 }
 
-string print_mem(opt_uint x) {}
+void print_code(stringstream &ss, const string &name, opt_uint size = nullopt) {
+    if (size != nullopt) {
+        build_str(ss, name, BOLD_GREEN, WIDTH - 1);
+        build_str(ss, opt(size), BOLD_GREEN);
+    } else {
+        build_str(ss, name, BOLD_GREEN, WIDTH);
+    }
+}
 
-string print_imm(opt_uint x) {}
+void print_mem(stringstream &ss, opt_uint x) {
+    build_str(ss, "M[R[" + opt(x) + "]]", BOLD_CYAN, WIDTH);
+}
 
-string print_label(opt_uint x) {}
+void print_imm(stringstream &ss, opt_uint x) { build_str(ss, opt(x), BOLD_YELLOW, WIDTH); }
+
+void print_label(stringstream &ss, opt_uint x, bool left = false) {
+    build_str(ss, ".L" + opt(x), BOLD_RED, left ? 0 : WIDTH);
+}
+
+void print_label_addr(stringstream &ss, optional<string> &name) {
+    build_str(ss, name.value_or("ERROR"), BOLD_RED, WIDTH);
+}
 
 string IR::to_string() {
     stringstream ss;
@@ -41,65 +57,63 @@ string IR::to_string() {
      *      标签名： BOLD_BLUE
      */
     switch (info.ir_kind) {
+        case IRType::TyComment:
+            ss << "; " << text.value_or("");
+            break;
         case IRType::TyStoreParam:
-            // ss << "\t";
-            build_str(ss, info.name, BOLD_GREEN, 14);
-            build_str(ss, opt(data_size), BOLD_GREEN);
-            build_str(ss, "M(" + opt(lhs) + ")", BOLD_CYAN, 8);
+            print_code(ss, info.name, data_size);
+            // print_mem(ss, lhs);
+            ss << BOLD_CYAN << setw(WIDTH) << "M[BP-R[" + opt(lhs) + "]]" << RESET_COLOR;
             ss << ",";
-            ss << print_reg(rhs, true);
-            // build_str(ss, "aR(" + opt(rhs) + ")", BOLD_MAGENTA, 8);
+            print_reg(ss, rhs, true);
             break;
         case IRType::TyRegImm:
-            // ss << "\t";
-            build_str(ss, info.name, BOLD_GREEN, 15);
-            ss << print_reg(lhs);
-            // build_str(ss, "R(" + opt(lhs) + ")", BOLD_MAGENTA, 8);
+            print_code(ss, info.name);
+            print_reg(ss, lhs);
             ss << ",";
-            build_str(ss, opt(rhs), BOLD_YELLOW, 8);
+            print_imm(ss, rhs);
             break;
         case IRType::TyMem:
-            // ss << "\t";
-            build_str(ss, info.name, BOLD_GREEN, 14);
-            build_str(ss, opt(data_size), BOLD_GREEN);
-            ss << print_reg(lhs);
-            // build_str(ss, "R(" + opt(lhs) + ")", BOLD_MAGENTA, 8);
-            ss << ",";
-            build_str(ss, "M(" + opt(rhs) + ")", BOLD_CYAN, 8);
+            print_code(ss, info.name, data_size);
+            if (op == IROp::Load) {
+                print_reg(ss, lhs);
+                ss << ",";
+                print_mem(ss, rhs);
+            } else {
+                print_mem(ss, lhs);
+                ss << ",";
+                print_reg(ss, rhs);
+            }
             break;
         case IRType::TyReg:
-            // ss << "\t";
-            build_str(ss, info.name, BOLD_GREEN, 15);
-            ss << print_reg(lhs);
-            // build_str(ss, "R(" + opt(lhs) + ")", BOLD_MAGENTA, 8);
+            print_code(ss, info.name);
+            print_reg(ss, lhs);
             break;
         case IRType::TyLabelAddr:
-            // ss << "\t";
-            build_str(ss, info.name, BOLD_GREEN, 15);
-            ss << print_reg(lhs);
-            // build_str(ss, "R(" + opt(lhs) + ")", BOLD_MAGENTA, 8);
+            print_code(ss, info.name);
+            print_reg(ss, lhs);
             ss << ",";
-            build_str(ss, label_addr_name.value_or("ERROR"), BOLD_RED, 8);
+            print_label_addr(ss, label_addr_name);
             break;
         case IRType::TyRegReg:
-            // ss << "\t";
-            build_str(ss, info.name, BOLD_GREEN, 15);
-            ss << print_reg(lhs);
-            // build_str(ss, "R(" + opt(lhs) + ")", BOLD_MAGENTA, 8);
+            print_code(ss, info.name);
+            print_reg(ss, lhs);
             ss << ",";
-            ss << print_reg(rhs);
-            // build_str(ss, "R(" + opt(rhs) + ")", BOLD_MAGENTA, 8);
+            print_reg(ss, rhs);
             break;
         case IRType::TyRegLabel:
-            // ss << "\t";
-            build_str(ss, info.name, BOLD_GREEN, 15);
-            ss << print_reg(lhs);
-            // build_str(ss, "R(" + opt(lhs) + ")", BOLD_MAGENTA, 8);
+            print_code(ss, info.name);
+            print_reg(ss, lhs);
             ss << ",";
-            build_str(ss, ".L" + opt(rhs), BOLD_RED, 8);
+            print_label(ss, rhs);
             break;
         case IRType::TyLabel:
-            build_str(ss, ".L" + opt(lhs), BOLD_RED);
+            print_label(ss, lhs, true);
+            break;
+        case IRType::TyJmp:
+            print_code(ss, info.name);
+            print_label(ss, lhs);
+            break;
         default:
             break;
     }
@@ -124,7 +138,7 @@ IRInfo IRInfo::convert(IROp op) {
     // cout << "IROp: " << op << endl;
     switch (op) {
         case IROp::StoreParam:
-            return IRInfo("PUSH", IRType::TyStoreParam);
+            return IRInfo("STORE_ARG", IRType::TyStoreParam);
         case IROp::BpOffset:
             return IRInfo("BPOFF", IRType::TyRegImm);
         case IROp::Store:
@@ -155,6 +169,34 @@ IRInfo IRInfo::convert(IROp op) {
             return IRInfo("MOV", IRType::TyRegReg);
         case IROp::Label:
             return IRInfo("", IRType::TyLabel);
+        case IROp::Jmp:
+            return IRInfo("JMP", IRType::TyJmp);
+        case IROp::Comment:
+            return IRInfo("", IRType::TyComment);
+        case IROp::And:
+            return IRInfo("AND", IRType::TyRegReg);
+        case IROp::Or:
+            return IRInfo("OR", IRType::TyRegReg);
+        case IROp::Xor:
+            return IRInfo("XOR", IRType::TyRegReg);
+        case IROp::Shl:
+            return IRInfo("SHL", IRType::TyRegReg);
+        case IROp::Shr:
+            return IRInfo("SHR", IRType::TyRegReg);
+        case IROp::GT:
+            return IRInfo("GT", IRType::TyRegReg);
+        case IROp::LT:
+            return IRInfo("LT", IRType::TyRegReg);
+        case IROp::GE:
+            return IRInfo("GE", IRType::TyRegReg);
+        case IROp::LE:
+            return IRInfo("LE", IRType::TyRegReg);
+        case IROp::EQ:
+            return IRInfo("EQ", IRType::TyRegReg);
+        case IROp::NE:
+            return IRInfo("NE", IRType::TyRegReg);
+        case IROp::Neg:
+            return IRInfo("NEG", IRType::TyReg);
         default:
             break;
     }

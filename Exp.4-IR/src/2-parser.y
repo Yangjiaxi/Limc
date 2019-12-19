@@ -371,19 +371,11 @@ Expr:
     } | DELIM_PARENTHESIS_LEFT Expr DELIM_PARENTHESIS_RIGHT {
         $$ = Token("ParenthesisExpr");
         $$.build_AST($2);
-    } | OP_PLUS Expr %prec OP_UNARY_PLUS {
-        $$ = Token("PrefixExpr");
-        $$.build_AST(Token("Operator", $1, @1))
-          .build_AST($2);
     } | OP_MINUS Expr %prec OP_UNARY_MINUS {
         $$ = Token("PrefixExpr");
         $$.build_AST(Token("Operator", $1, @1))
           .build_AST($2);
     } | OP_LOGICAL_NOT Expr {
-        $$ = Token("PrefixExpr");
-        $$.build_AST(Token("Operator", $1, @1))
-          .build_AST($2);
-    } | OP_BITWISE_NOT Expr {
         $$ = Token("PrefixExpr");
         $$.build_AST(Token("Operator", $1, @1))
           .build_AST($2);
