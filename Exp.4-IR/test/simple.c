@@ -1,1 +1,3 @@
-void fn(int d) { int a = 12; }
+void fn(int a, int b) {
+    a && b;
+}

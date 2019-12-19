@@ -124,10 +124,10 @@ string Token::print(const string pre, const string ch_pre) const {
     if (!children.empty()) {
         for (auto &item : children) {
             if (&item == &children.back()) {
-                s << item.print(ch_pre + "└──", ch_pre + "   ");
+                s << item.print(ch_pre + "└──", ch_pre + "     ");
                 // s << item.print(ch_pre + "`---", ch_pre + "    ");
             } else {
-                s << item.print(ch_pre + "├──", ch_pre + "│  ");
+                s << item.print(ch_pre + "├──", ch_pre + "│   ");
                 // s << item.print(ch_pre + "|---", ch_pre + "|   ");
             }
         }
@@ -156,3 +156,5 @@ void Token::replace_childs(vector<Token> new_nodes) {
     children.insert(
         children.end(), make_move_iterator(new_nodes.begin()), make_move_iterator(new_nodes.end()));
 }
+
+bool Token::get_is_global() { return is_global.value(); }

@@ -33,7 +33,7 @@ using namespace std;
 
 namespace Limc {
 
-enum Ctype { Plain, Array, Struct, Function, ErrorType };
+enum Ctype { Plain, Array, Pointer, Struct, Function, ErrorType };
 enum PlainType { Char = 0, Int = 1, Float = 2, Void };
 
 class Token;
@@ -49,6 +49,9 @@ class Type {
     // Array:
     Type *   base_type;
     unsigned length;
+
+    // Pointer:
+    Type *point_to;
 
     // Struct:
     map<string, Type *> members;

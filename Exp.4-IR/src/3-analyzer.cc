@@ -84,16 +84,21 @@ Type *Semantic::expr(Token &root) {
         for (auto index = children.begin() + 1; index != children.end(); ++index) {
             auto index_type = expr(index->get_child(0));
             if (index_type->is_int()) {
-                if (current->c_type != Ctype::Array) {
+                if (current->c_type == Ctype::Array) {
+                    current  = current->base_type;
+                    type_res = current;
+                    *index   = index->get_child(0);
+                } else if (current->c_type == Ctype::Pointer) {
+                    current  = current->point_to;
+                    type_res = current;
+                    *index   = index->get_child(0);
+                } else {
                     driver.report()
                         .report_level(Level::Error)
                         .report_loc(array_root.get_loc().value())
                         .report_msg("Type `" + current->to_string() + "` can not be indexed.", 4);
                     type_res = Type::make_error_type();
                     break;
-                } else {
-                    current  = current->base_type;
-                    type_res = current;
                 }
             } else {
                 driver.report()
@@ -235,6 +240,7 @@ Type *Semantic::expr(Token &root) {
                         12);
             } else {
                 type_res = struct_type->members.at(member_name);
+                root.set_offset(type_res->member_offset);
             }
         }
         // END OF [MemberExpr]
@@ -529,13 +535,13 @@ void Semantic::stmt(Token &root) {
             if (kind == "GlobalVarDecl") {
                 global_stack_size = align_memory(global_stack_size, stand->align);
                 // 插入符号表 and 全局偏移
-                try_insert_symbol(name, stand, true, global_stack_size);
                 global_stack_size += stand->size;
+                try_insert_symbol(name, stand, true, global_stack_size);
             } else if (kind == "LocalVarDecl") {
                 local_stack_size = align_memory(local_stack_size, stand->align);
+                local_stack_size += stand->size;
                 try_insert_symbol(name, stand, false, local_stack_size);
                 ident_node_wrap.set_offset(local_stack_size);
-                local_stack_size += stand->size;
             }
 
             expr(ident_node);
@@ -594,17 +600,22 @@ void Semantic::stmt(Token &root) {
             Token name;
             if (param_name.get_kind() == "IndexExpr") {
                 // 为数组
-                name        = param_name.get_child(0);
-                auto depths = Type::make_array_depths(param_name);
-                param_type  = Type::wrap_array(param_type, depths);
+                name                  = param_name.get_child(0);
+                auto depths           = Type::make_array_depths(param_name);
+                param_type            = Type::wrap_array(param_type, depths);
+                param_type->c_type    = Ctype::Pointer;
+                param_type->size      = 8;
+                param_type->align     = 8;
+                param_type->point_to  = param_type->base_type;
+                param_type->base_type = nullptr;
             } else if (param_name.get_kind() == "Identifier") {
                 // 为普通标识符
                 name = param_name;
             }
 
             local_stack_size = align_memory(local_stack_size, param_type->align);
-            try_insert_symbol(name, param_type, false, local_stack_size);
             local_stack_size += param_type->size;
+            try_insert_symbol(name, param_type, false, local_stack_size);
 
             expr(param_name);
 
@@ -753,33 +764,40 @@ bool Semantic::can_convert(Type *from, Type *to) {
     /*
      *  Char -> Int
      *  Int -> Float
+     *  Array -> Pointer
      */
     if ((from != nullptr && to == nullptr) || (from == nullptr && to != nullptr))
         return false;
-    if (from->c_type == Ctype::Function) {
-        return false;
-    }
-    if (from->c_type != to->c_type) {
-        return false;
-    }
-    if (from->c_type == Ctype::Array) {
-        return from->length == to->length && can_convert(from->base_type, to->base_type);
-    }
-    if (from->c_type == Ctype::Struct) {
-        if (from->members.size() != to->members.size()) {
-            return false;
-        }
-        auto from_iter = from->members.cbegin();
-        auto to_iter   = to->members.cbegin();
-        while (from_iter != from->members.cend()) {
-            if (!can_convert(from_iter->second, to_iter->second))
-                return false;
-            ++from_iter;
-            ++to_iter;
-        }
-        return true;
-    }
-    if (from->is_plain()) {
+    // if (from->c_type == Ctype::Function) {
+    //     return false;
+    // }
+    // if (from->c_type != to->c_type) {
+    //     return false;
+    // }
+    // if (from->c_type == Ctype::Array) {
+    //     return from->length == to->length && can_convert(from->base_type, to->base_type);
+    // }
+    // if (from->c_type == Ctype::Struct) {
+    //     if (from->members.size() != to->members.size()) {
+    //         return false;
+    //     }
+    //     auto from_iter = from->members.cbegin();
+    //     auto to_iter   = to->members.cbegin();
+    //     while (from_iter != from->members.cend()) {
+    //         if (!can_convert(from_iter->second, to_iter->second))
+    //             return false;
+    //         ++from_iter;
+    //         ++to_iter;
+    //     }
+    //     return true;
+    // }
+    if (from->c_type == Ctype::Array && to->c_type == Ctype::Array) {
+        if (can_convert(from->base_type, to->base_type))
+            return true;
+    } else if (from->c_type == Ctype::Array && to->c_type == Ctype::Pointer) {
+        if (can_convert(from->base_type, to->point_to))
+            return true;
+    } else if (from->is_plain()) {
         if (from->plain_type == to->plain_type) {
             return true;
         }

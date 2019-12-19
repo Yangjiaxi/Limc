@@ -53,6 +53,8 @@ class Token {
     unsigned get_offset();
     unsigned get_func_stack_size();
 
+    bool get_is_global();
+
     void replace_childs(vector<Token> new_nodes);
 
   private:
