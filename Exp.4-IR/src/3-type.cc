@@ -338,3 +338,4 @@ bool Type::is_arith() const {
     }
     return false;
 }
+bool Type::is_pointer() const { return c_type == Ctype::Pointer; }

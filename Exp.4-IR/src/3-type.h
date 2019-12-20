@@ -75,6 +75,8 @@ class Type {
 
     bool is_plain() const;
 
+    bool is_pointer() const;
+
     static Type *
     build_type(Token &root, const vector<unsigned> &array_depth, map<string, Type *> type_table);
 

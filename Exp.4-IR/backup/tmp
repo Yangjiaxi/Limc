@@ -1,0 +1,44 @@
+add():
+        STORE_ARG8 8, 0
+        STORE_ARG4 12, 1
+        MOV r0, 0
+        BPREL r1, 16
+        STORE4 r1, 0
+        KILL r1
+        KILL r0
+        .L1:
+        BPREL r2, 16
+        LOAD4 r2, 2
+        MOV r3, 10
+        LT r2, r3
+        KILL r3
+        UNLESS r2, .L2
+        KILL r2
+        BPREL r4, 12
+        LOAD4 r4, 4
+        BPREL r5, 8
+        LOAD8 r5, 5
+        BPREL r6, 16
+        LOAD4 r6, 6
+        MOV r7, 4
+        MUL r6, r7
+        KILL r7
+        ADD r5, r6
+        KILL r6
+        LOAD4 r8, 5
+        ADD r8, r4
+        KILL r4
+        STORE4 r5, 8
+        KILL r5
+        KILL r8
+        MOV r9, 1
+        BPREL r10, 16
+        LOAD4 r11, 10
+        ADD r11, r9
+        KILL r9
+        STORE4 r10, 11
+        KILL r10
+        KILL r11
+        JMP .L1
+        .L2:
+        .L3:

@@ -3,7 +3,7 @@
 #include "0-driver.h"
 #include "util.h"
 
-#define DEBUG
+// #define DEBUG
 // #define DEBUG_INPLACE
 
 using namespace Limc;
@@ -24,7 +24,9 @@ opt_uint GenIR::gen_expr(Token &node) {
 #endif
     if (kind == "Identifier") {
         auto reg = gen_left_value(node);
-        load(node.get_type()->size, reg, reg);
+        if (node.get_type()->is_plain() || node.get_type()->is_pointer()) {
+            load(node.get_type()->size, reg, reg);
+        }
         return reg;
         // END OF [Identifier]
     } else if (kind == "IndexExpr") {
@@ -310,10 +312,55 @@ void GenIR::gen_stmt(Token &node) {
         break_labels.pop_back();
         // END OF [WhileStmt]
     } else if (kind == "DoWhileStmt") {
+        auto start_label = new_label();
+        auto end_label   = new_label();
+        continue_labels.push_back(start_label);
+        break_labels.push_back(end_label);
 
+        label(start_label);
+        gen_stmt(children[0]);
+
+        auto cond_reg = gen_expr(children[1]);
+        add_ir(IROp::If, cond_reg, start_label);
+        kill(cond_reg);
+
+        label(end_label);
+
+        continue_labels.pop_back();
+        break_labels.pop_back();
         // END OF [DoWhileStmt]
     } else if (kind == "ForStmt") {
+        auto start_label = new_label();
+        auto end_label   = new_label();
+        auto next_label  = new_label();
+        continue_labels.push_back(next_label);
+        break_labels.push_back(end_label);
 
+        auto &init = children[0];
+        auto &cond = children[1];
+        auto &step = children[2];
+        auto &body = children[3];
+
+        gen_stmt(init);
+        label(start_label);
+
+        auto cond_reg = gen_expr(cond);
+        add_ir(IROp::Unless, cond_reg, end_label);
+        kill(cond_reg);
+
+        gen_stmt(body);
+        /*
+         *  出现在for循环中的continue的行为与(do)while不同
+         *  前者需要执行step再去执行下一次循环，而后者直接开始下一次循环
+         */
+        label(next_label);
+        gen_expr(step);
+
+        jmp(start_label);
+        label(end_label);
+
+        continue_labels.pop_back();
+        break_labels.pop_back();
         // END OF [ForStmt]
     } else if (kind == "IfStmt") {
         auto &cond_node = children[0];
@@ -461,7 +508,6 @@ opt_uint GenIR::gen_left_value(Token &node) {
         Type *current = ident.get_type();
 
         for (auto iter = children.begin() + 1; iter != children.end(); ++iter) {
-            cout << "Pos: " << iter->get_value() << " Size: " << current->size << endl;
             if (current->c_type == Ctype::Array)
                 current = current->base_type;
             else if (current->c_type == Ctype::Pointer)
@@ -476,10 +522,10 @@ opt_uint GenIR::gen_left_value(Token &node) {
             add_ir(IROp::Imm, current_size, current->size);
             // 相乘得到偏移
             add_ir(IROp::Mul, current_pos, current_size);
+            kill(current_size);
             // 加回目标寄存器
             add_ir(IROp::Add, base_reg, current_pos);
             kill(current_pos);
-            kill(current_size);
             // add to base reg
         }
         return base_reg;
@@ -498,7 +544,6 @@ void GenIR::comment(string text) {
 
 IROp GenIR::convert_compound_op(Token &op) {
     auto opc = op.get_value();
-    cout << ": " << opc << endl;
     IROp res = IROp::Nop;
     if (opc == "+=") {
         res = IROp::Add;

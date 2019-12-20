@@ -63,6 +63,10 @@ string IR::to_string() {
      *      内存：   BOLD_CYAN
      *      标签名： BOLD_BLUE
      */
+    // temp use
+    stringstream tmp;
+    unsigned     width = 0;
+
     switch (info.ir_kind) {
         case IRType::TyComment:
             ss << "; " << text.value_or("");
@@ -124,14 +128,23 @@ string IR::to_string() {
         case IRType::TyCall:
             print_code(ss, info.name);
             print_reg(ss, lhs);
-            ss << ",\t" << BOLD_RED << text.value() << "(" << RESET_COLOR;
+            ss << ", ";
+            tmp << BOLD_RED << text.value() << "(" << RESET_COLOR;
+            width += text.value().size() + 2;
             for (unsigned i = 0; i < call_args_len; ++i) {
                 if (i != 0) {
-                    ss << ", ";
+                    tmp << ", ";
+                    width += 2;
                 }
-                print_reg(ss, call_args_regs.value()[i], false, true);
+                print_reg(tmp, call_args_regs.value()[i], false, true);
+                width += 3 + std::to_string(call_args_regs.value()[i]).size();
             }
-            ss << BOLD_RED << ")" << RESET_COLOR;
+            tmp << BOLD_RED << ")" << RESET_COLOR;
+            width += 1;
+            if (width < WIDTH) {
+                ss << string(WIDTH - width, ' ');
+            }
+            ss << tmp.str();
             break;
         default:
             break;
@@ -184,8 +197,10 @@ IRInfo IRInfo::convert(IROp op) {
             return IRInfo("DIV", IRType::TyRegReg);
         case IROp::Mod:
             return IRInfo("MOD", IRType::TyRegReg);
+        case IROp::If:
+            return IRInfo("IF", IRType::TyRegLabel);
         case IROp::Unless:
-            return IRInfo("IFNOT", IRType::TyRegLabel);
+            return IRInfo("UNLESS", IRType::TyRegLabel);
         case IROp::Mov:
             return IRInfo("MOV", IRType::TyRegReg);
         case IROp::Label:

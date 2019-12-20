@@ -1,7 +1,5 @@
-void min() {
-    while(0) {
-        while (1) {
-            1;
-        }
+void add(int a[10], int num) {
+    for(int i = 0; i < 10; ++i) {
+        a[i] += num;
     }
 }
