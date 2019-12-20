@@ -1,0 +1,9 @@
+1. 添加字符串常量类型
+    - 对于每个字符串，保存到全局变量表中
+    - <StringLiteral, "blahblah">
+        => <StringLiteral, .L.str{num}>
+    - 在asm中放置于.data段，用.L.str{num}指出
+
+2. 寄存器分配
+
+3. 生成x86-64
