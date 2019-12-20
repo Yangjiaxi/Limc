@@ -1,5 +1,5 @@
 // #define STAGE 1 // 1->file 2->cmd
-#define FILENAME "./test/simple.c"
+#define FILENAME "../test/simple.c"
 
 #include "0-color.h"
 #include "0-driver.h"

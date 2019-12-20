@@ -24,10 +24,13 @@ class GenIR {
     unsigned num_regs   = 0;
     unsigned num_labels = 1;
 
+    vector<unsigned> break_labels;
+    vector<unsigned> continue_labels;
+
     unsigned new_reg();
     unsigned new_label();
 
-    IROp convert_compound_op(Token &op);
+    static IROp convert_compound_op(Token &op);
 
     IR &add_ir(IROp op, opt_uint lhs, opt_uint rhs);
 
@@ -37,6 +40,8 @@ class GenIR {
     opt_uint gen_left_value(Token &node);
     opt_uint gen_binary_op(IROp op, Token &lhs, Token &rhs);
     opt_uint gen_comp_assign(IROp op, unsigned size, Token &lhs, Token &rhs);
+    opt_uint gen_pre_inc(unsigned size, Token &node, int num);
+    opt_uint gen_post_inc(unsigned size, Token &node, int num);
 
     void comment(string text);
     void store_param(unsigned size, opt_uint bp_offset, opt_uint arg_reg);

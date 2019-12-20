@@ -1,1 +1,7 @@
-void fn(int b) { b = b + 1; }
+void min() {
+    while(0) {
+        while (1) {
+            1;
+        }
+    }
+}

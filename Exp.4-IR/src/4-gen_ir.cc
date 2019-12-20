@@ -10,7 +10,8 @@ using namespace Limc;
 using namespace std;
 using opt_uint = optional<unsigned>;
 
-GenIR::GenIR(Driver &driver) : driver(driver), funcs(), codes() {}
+GenIR::GenIR(Driver &driver)
+    : driver(driver), funcs(), codes(), break_labels(), continue_labels() {}
 
 opt_uint GenIR::gen_expr(Token &node) {
     auto  kind     = node.get_kind();
@@ -54,6 +55,7 @@ opt_uint GenIR::gen_expr(Token &node) {
         auto &rhs = children[2];
         auto  op  = children[1].get_value();
         if (op == "&&") {
+            // 逻辑与，短路求值
             auto end_label = new_label();
 
             auto reg1 = gen_expr(lhs);
@@ -69,6 +71,7 @@ opt_uint GenIR::gen_expr(Token &node) {
             label(end_label);
             return reg1;
         } else if (op == "||") {
+            // 逻辑或，短路求值
             auto second_start = new_label();
             auto end_label    = new_label();
 
@@ -147,7 +150,30 @@ opt_uint GenIR::gen_expr(Token &node) {
         return reg;
         // END OF [MemberExpr]
     } else if (kind == "CallExpr") {
+        /*
+         * 函数调用
+         *  最多传递八个参数，
+         *  因为x86-64在剔除7个148寄存器后
+         *  只有6对148参数寄存器
+         */
+        vector<unsigned> args_regs(6, 0);
+        auto &           args = children[1].get_children();
+        auto             len  = args.size();
 
+        for (int i = 0; i < len; ++i) {
+            args_regs[i] = gen_expr(args.at(i)).value();
+        }
+
+        auto  res          = new_reg();
+        auto &tmp          = add_ir(IROp::Call, res, nullopt);
+        tmp.call_args_len  = len;
+        tmp.call_args_regs = args_regs;
+        tmp.text           = children[0].get_value();
+
+        for (int i = 0; i < len; ++i) {
+            kill(args_regs[i]);
+        }
+        return res;
         // END OF [CallExpr]
     } else if (kind == "AssignmentExpr") {
         auto rhs = gen_expr(children[2]);
@@ -192,12 +218,23 @@ opt_uint GenIR::gen_expr(Token &node) {
             return res;
         } else if (op == "++") {
             // 前置自增
+            return gen_pre_inc(item.get_type()->size, item, 1);
         } else if (op == "--") {
             // 前置自减
+            return gen_pre_inc(item.get_type()->size, item, -1);
         }
         // END OF [PrefixExpr]
     } else if (kind == "PostfixExpr") {
-
+        // ++ | --
+        auto &item = children[0];
+        auto  op   = children[1].get_value();
+        if (op == "++") {
+            // 后置自增
+            return gen_post_inc(item.get_type()->size, item, 1);
+        } else if (op == "--") {
+            // 后置自减
+            return gen_post_inc(item.get_type()->size, item, -1);
+        }
         // END OF [PostfixExpr]
     } else if (kind == "IntegerLiteral") {
         auto reg = new_reg();
@@ -241,16 +278,36 @@ void GenIR::gen_stmt(Token &node) {
         }
         // END OF [BlockStmt]
     } else if (kind == "ReturnStmt") {
-
+        auto reg = gen_expr(children[0]);
+        add_ir(IROp::Return, reg, nullopt);
+        kill(reg);
         // END OF [ReturnStmt]
     } else if (kind == "ContinueStmt") {
-
+        auto lbl = continue_labels.back();
+        jmp(lbl);
         // END OF [ContinueStmt]
     } else if (kind == "BreakStmt") {
-
+        auto lbl = break_labels.back();
+        jmp(lbl);
         // END OF [BreakStmt]
     } else if (kind == "WhileStmt") {
+        auto start_label = new_label();
+        auto end_label   = new_label();
+        continue_labels.push_back(start_label);
+        break_labels.push_back(end_label);
 
+        label(start_label);
+
+        auto cond_reg = gen_expr(children[0]);
+        add_ir(IROp::Unless, cond_reg, end_label);
+        kill(cond_reg);
+
+        gen_stmt(children[1]);
+        jmp(start_label);
+        label(end_label);
+
+        continue_labels.pop_back();
+        break_labels.pop_back();
         // END OF [WhileStmt]
     } else if (kind == "DoWhileStmt") {
 
@@ -259,8 +316,42 @@ void GenIR::gen_stmt(Token &node) {
 
         // END OF [ForStmt]
     } else if (kind == "IfStmt") {
+        auto &cond_node = children[0];
+        auto &then_node = children[1];
+        if (children.size() == 3) {
+            // if-stmt-else
+            auto &else_node = children[2];
 
+            auto else_start = new_label();
+            auto end_label  = new_label();
+
+            auto cond_reg = gen_expr(cond_node);
+            add_ir(IROp::Unless, cond_reg, else_start);
+            kill(cond_reg);
+            gen_stmt(then_node);
+            jmp(end_label);
+
+            label(else_start);
+            gen_stmt(else_node);
+            label(end_label);
+            return;
+        } else {
+            // if-stmt
+            auto end_label = new_label();
+            auto cond_reg  = gen_expr(cond_node);
+
+            add_ir(IROp::Unless, cond_reg, end_label);
+            kill(cond_reg);
+            gen_stmt(then_node);
+            label(end_label);
+            return;
+        }
         // END OF [IfStmt]
+    } else if (kind == "ElseStmt") {
+        for (auto &child : children) {
+            gen_stmt(child);
+        }
+        // END OF [ElseStmt]
     }
     // Fall to Expr
     else {
@@ -283,9 +374,8 @@ vector<BasicFunc> GenIR::gen_ir(Token &node) {
             auto &body   = block.get_child(3);
 
             for (unsigned long i = 0; i < params.size(); ++i) {
-                auto &node = params[i];
-                cout << node.get_value() << endl;
-                store_param(node.get_type()->size, node.get_offset(), i);
+                auto &param = params[i];
+                store_param(param.get_type()->size, param.get_offset(), i);
             }
 
             gen_stmt(body);
@@ -359,7 +449,7 @@ opt_uint GenIR::gen_left_value(Token &node) {
 
     } else if (kind == "IndexExpr") {
         /*
-         *     数组下标操作
+         *   数组下标操作
          *     1. 获得变量的offset
          *     2. 一层一层展开
          *     3. 上一次偏移+这一层位置*这一层宽度
@@ -409,7 +499,7 @@ void GenIR::comment(string text) {
 IROp GenIR::convert_compound_op(Token &op) {
     auto opc = op.get_value();
     cout << ": " << opc << endl;
-    IROp res;
+    IROp res = IROp::Nop;
     if (opc == "+=") {
         res = IROp::Add;
     } else if (opc == "-=") {
@@ -445,4 +535,23 @@ opt_uint GenIR::gen_comp_assign(IROp op, unsigned size, Token &lhs, Token &rhs) 
     store(size, to, res);
     kill(to);
     return res;
+}
+
+opt_uint GenIR::gen_pre_inc(unsigned size, Token &node, int num) {
+    auto target = gen_left_value(node);
+    auto value  = new_reg();
+
+    load(size, value, target);
+    add_ir(IROp::AddImm, value, num);
+    store(size, target, value);
+    kill(target);
+    return value;
+}
+
+opt_uint GenIR::gen_post_inc(unsigned size, Token &node, int num) {
+    // 先把修改完的值存回去
+    auto value = gen_pre_inc(size, node, num);
+    // 再恢复到修改前的值
+    add_ir(IROp::SubImm, value, num);
+    return value;
 }

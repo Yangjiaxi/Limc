@@ -11,7 +11,7 @@ using opt_uint = optional<unsigned>;
 
 IR::IR(IROp op, opt_uint lhs, opt_uint rhs) : op(op), lhs(lhs), rhs(rhs) {}
 
-string opt(opt_uint &ref) {
+template <typename T> string opt(optional<T> &ref) {
     if (ref == nullopt) {
         return "None";
     } else {
@@ -19,8 +19,9 @@ string opt(opt_uint &ref) {
     }
 }
 
-void print_reg(stringstream &ss, opt_uint x, bool is_arg = false) {
-    build_str(ss, string(is_arg ? "Arg" : "") + "R[" + opt(x) + "]", BOLD_MAGENTA, WIDTH);
+void print_reg(stringstream &ss, opt_uint x, bool is_arg = false, bool no_pad = false) {
+    build_str(
+        ss, string(is_arg ? "Arg" : "") + "R[" + opt(x) + "]", BOLD_MAGENTA, no_pad ? 0 : WIDTH);
 }
 
 void print_code(stringstream &ss, const string &name, opt_uint size = nullopt) {
@@ -36,7 +37,13 @@ void print_mem(stringstream &ss, opt_uint x) {
     build_str(ss, "M[R[" + opt(x) + "]]", BOLD_CYAN, WIDTH);
 }
 
-void print_imm(stringstream &ss, opt_uint x) { build_str(ss, opt(x), BOLD_YELLOW, WIDTH); }
+void print_imm(stringstream &ss, opt_uint x) {
+    string str = "None";
+    if (x != nullopt) {
+        str = to_string((int)x.value());
+    }
+    build_str(ss, str, BOLD_YELLOW, WIDTH);
+}
 
 void print_label(stringstream &ss, opt_uint x, bool left = false) {
     build_str(ss, ".L" + opt(x), BOLD_RED, left ? 0 : WIDTH);
@@ -63,7 +70,7 @@ string IR::to_string() {
         case IRType::TyStoreParam:
             print_code(ss, info.name, data_size);
             // print_mem(ss, lhs);
-            ss << BOLD_CYAN << setw(WIDTH) << "M[BP-R[" + opt(lhs) + "]]" << RESET_COLOR;
+            ss << BOLD_CYAN << setw(WIDTH) << "M[BP-" + opt(lhs) + "]" << RESET_COLOR;
             ss << ",";
             print_reg(ss, rhs, true);
             break;
@@ -114,6 +121,18 @@ string IR::to_string() {
             print_code(ss, info.name);
             print_label(ss, lhs);
             break;
+        case IRType::TyCall:
+            print_code(ss, info.name);
+            print_reg(ss, lhs);
+            ss << ",\t" << BOLD_RED << text.value() << "(" << RESET_COLOR;
+            for (unsigned i = 0; i < call_args_len; ++i) {
+                if (i != 0) {
+                    ss << ", ";
+                }
+                print_reg(ss, call_args_regs.value()[i], false, true);
+            }
+            ss << BOLD_RED << ")" << RESET_COLOR;
+            break;
         default:
             break;
     }
@@ -153,6 +172,8 @@ IRInfo IRInfo::convert(IROp op) {
             return IRInfo("LABEL_ADDR", IRType::TyLabelAddr);
         case IROp::AddImm:
             return IRInfo("ADD", IRType::TyRegImm);
+        case IROp::SubImm:
+            return IRInfo("SUB", IRType::TyRegImm);
         case IROp::Add:
             return IRInfo("ADD", IRType::TyRegReg);
         case IROp::Sub:
@@ -197,6 +218,10 @@ IRInfo IRInfo::convert(IROp op) {
             return IRInfo("NE", IRType::TyRegReg);
         case IROp::Neg:
             return IRInfo("NEG", IRType::TyReg);
+        case IROp::Call:
+            return IRInfo("CALL", IRType::TyCall);
+        case IROp::Return:
+            return IRInfo("RET", IRType::TyReg);
         default:
             break;
     }
