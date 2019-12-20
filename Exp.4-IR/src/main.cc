@@ -42,6 +42,8 @@ int main(int argc, char **argv) {
     //     cout << driver.print() << endl;
     // }
 
+    cout << driver.print() << endl;
+
     // end
     if (!res) {
         cout << BOLD_GREEN << "Parse Finish!" << RESET_COLOR << endl;
@@ -51,8 +53,9 @@ int main(int argc, char **argv) {
     }
 
     driver.analyze();
-    // cout << driver.print() << endl;
+    cout << driver.print() << endl;
     driver.gen_ir();
+
     // driver.dump_ir();
     // driver.alloc_reg();
     // driver.dump_ir();

@@ -131,7 +131,7 @@ Type::build_type(Token &root, const vector<unsigned> &array_depth, map<string, T
             current->align = s_align;
             current->size  = s_size;
         }
-    } else if (node_kind == "FuncDecl" || node_kind == "FuncDef") {
+    } else if (node_kind == "FuncDef") {
         auto &ret            = root.get_child(0);
         auto &arguments      = root.get_child(2).get_children();
         current->c_type      = Ctype::Function;
@@ -274,9 +274,13 @@ vector<unsigned> Type::make_array_depths(Token &root) {
     vector<unsigned> res;
     auto &           children = root.get_children();
     for (auto iter = children.begin() + 1; iter != children.end(); ++iter) {
-        auto &c0 = iter->get_child(0);
-        assert(c0.get_kind() == "IntegerLiteral");
-        res.push_back(stoi(c0.get_value()));
+        if (iter->get_children().empty()) {
+            res.push_back(0);
+        } else {
+            auto &c0 = iter->get_child(0);
+            assert(c0.get_kind() == "IntegerLiteral");
+            res.push_back(stoi(c0.get_value()));
+        }
     }
     return res;
 }
@@ -339,3 +343,12 @@ bool Type::is_arith() const {
     return false;
 }
 bool Type::is_pointer() const { return c_type == Ctype::Pointer; }
+
+Type *Type::make_ptr_type(Type *base) {
+    Type *current     = new Type();
+    current->c_type   = Ctype::Pointer;
+    current->point_to = base;
+    current->align    = 8;
+    current->size     = 8;
+    return current;
+}

@@ -224,6 +224,9 @@ opt_uint GenIR::gen_expr(Token &node) {
         } else if (op == "--") {
             // 前置自减
             return gen_pre_inc(item.get_type()->size, item, -1);
+        } else if (op == "&") {
+            // 取地址操作
+            return gen_left_value(children[1]);
         }
         // END OF [PrefixExpr]
     } else if (kind == "PostfixExpr") {
@@ -422,6 +425,7 @@ vector<BasicFunc> GenIR::gen_ir(Token &node) {
 
             for (unsigned long i = 0; i < params.size(); ++i) {
                 auto &param = params[i];
+                cout << "Name: " << param.get_value() << endl;
                 store_param(param.get_type()->size, param.get_offset(), i);
             }
 

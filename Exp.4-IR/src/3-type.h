@@ -92,6 +92,8 @@ class Type {
 
     static Type *make_int_type();
 
+    static Type *make_ptr_type(Type *base);
+
     static Type *make_error_type();
 
   private:

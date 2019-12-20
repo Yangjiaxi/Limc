@@ -407,6 +407,8 @@ Type *Semantic::expr(Token &root) {
                         20);
                 type_res = Type::make_error_type();
             }
+        } else if (op_str == "&") {
+            type_res = Type::make_ptr_type(item_type);
         } else { // --/++
             if (!item_type->is_int()) {
                 driver.report()
@@ -617,13 +619,13 @@ void Semantic::stmt(Token &root) {
             local_stack_size += param_type->size;
             try_insert_symbol(name, param_type, false, local_stack_size);
 
-            expr(param_name);
-
             if (param_name.get_kind() == "IndexExpr") {
                 param = param_name.get_child(0);
             } else if (param_name.get_kind() == "Identifier") {
                 param = param_name;
             }
+            param.set_type(param_type);
+            param.set_offset(local_stack_size);
         }
 
         // 函数体

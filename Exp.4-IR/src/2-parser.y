@@ -68,6 +68,7 @@
 %nonassoc KW_ELSE
 %nonassoc OP_UNARY_MINUS OP_UNARY_PLUS
 %nonassoc OP_INCREMENT OP_DECREMENT
+%nonassoc ADDR
 
 %start Program
 
@@ -384,6 +385,10 @@ Expr:
         $$.build_AST(Token("Operator", $1, @1))
           .build_AST($2);
     } | OP_DECREMENT Assignable {
+        $$ = Token("PrefixExpr");
+        $$.build_AST(Token("Operator", $1, @1))
+          .build_AST($2);
+    } | OP_BITWISE_AND Assignable %prec ADDR {
         $$ = Token("PrefixExpr");
         $$.build_AST(Token("Operator", $1, @1))
           .build_AST($2);
