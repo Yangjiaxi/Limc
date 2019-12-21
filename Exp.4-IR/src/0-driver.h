@@ -6,6 +6,7 @@
 #include "1-scanner.h"
 #include "3-analyzer.h"
 #include "4-gen_ir.h"
+#include <map>
 
 using std::vector;
 
@@ -15,9 +16,10 @@ class Driver {
   public:
     Driver();
 
-    int  parse();
-    void analyze(); // with hir_gen
+    bool parse();
+    bool analyze();
     void gen_ir();
+    void print_ir();
 
     void alloc_reg();
     void optimize();
@@ -57,7 +59,12 @@ class Driver {
 
     vector<string> input_file;
 
-    vector<BasicFunc> funcs_ir;
+    vector<BasicFunc>   funcs_ir;
+    map<string, Symbol> globals;
+    map<string, string> str_lits;
+
+    bool parse_ok   = false;
+    bool analyze_ok = false;
 };
 } // namespace Limc
 

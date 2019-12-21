@@ -15,10 +15,12 @@ class Semantic {
   public:
     explicit Semantic(Driver &driver);
 
-    void  stmt(Token &root);
-    Type *expr(Token &root);
+    void                stmt(Token &root);
+    map<string, string> get_str_lit_table();
+    map<string, Symbol> get_global_table();
 
   private:
+    Type *expr(Token &root);
     // 对于函数来说，并不需要偏移
     /// TODO 待证实
     void try_insert_symbol(Token &identifier, Type *type, bool is_glb, unsigned offset = 0);
@@ -26,6 +28,14 @@ class Semantic {
     void enter_scope(const string &name);
     void leave_scope(unsigned frame_size);
 
+    void insert_lib_func(Token &root);
+
+    // 调用C语言的函数
+    vector<string>    lib_func_list;
+    map<string, bool> lib_func;
+
+    unsigned            string_label = 0;
+    map<string, string> string_literal_table;
     // 符号表链，栈顶存放的是当前语句块的符号表
     vector<SymbolTable> tables;
     // 指向目前的顶，用来快速插入

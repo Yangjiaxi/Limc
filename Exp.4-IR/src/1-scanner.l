@@ -66,6 +66,7 @@ WHITESPACE  [ \t\v\f]
 "while"     { ACTION(KW_WHILE); }
 "do"        { ACTION(KW_DO); }
 "struct"    { ACTION(KW_STRUCT); }
+"use"       { ACTION(KW_USE); }
 
 {IDENTIFIER}    { ACTION_ARG(IDENTIFIER); }
 

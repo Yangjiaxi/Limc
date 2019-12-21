@@ -24,9 +24,11 @@ opt_uint GenIR::gen_expr(Token &node) {
 #endif
     if (kind == "Identifier") {
         auto reg = gen_left_value(node);
+
         if (node.get_type()->is_plain() || node.get_type()->is_pointer()) {
             load(node.get_type()->size, reg, reg);
         }
+
         return reg;
         // END OF [Identifier]
     } else if (kind == "IndexExpr") {
@@ -246,8 +248,12 @@ opt_uint GenIR::gen_expr(Token &node) {
         add_ir(IROp::Imm, reg, stoi(node.get_value()));
         return reg;
         // END OF [IntegerLiteral]
-    } else if (kind == "FloatLiteral" || kind == "CharLiteral" || kind == "StringLiteral") {
+    } else if (kind == "StringLiteral") {
+        cout << "String Literal" << endl;
+        return 999;
+    } else if (kind == "FloatLiteral" || kind == "CharLiteral") {
         /// TODO
+        throw runtime_error("Uncaught Token Kind: `" + kind + "`.");
     } else {
         throw runtime_error("Uncaught Token Kind: `" + kind + "`.");
     }
@@ -425,15 +431,12 @@ vector<BasicFunc> GenIR::gen_ir(Token &node) {
 
             for (unsigned long i = 0; i < params.size(); ++i) {
                 auto &param = params[i];
-                cout << "Name: " << param.get_value() << endl;
                 store_param(param.get_type()->size, param.get_offset(), i);
             }
 
             gen_stmt(body);
 
             funcs.emplace_back(move(BasicFunc(name, codes, stk_sz)));
-            funcs.back().print_ir();
-            // auto &
         } else {
 #ifdef DEBUG
             cout << "Pass `" << kind << "`." << endl;

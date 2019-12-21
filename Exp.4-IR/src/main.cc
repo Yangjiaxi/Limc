@@ -1,5 +1,5 @@
 // #define STAGE 1 // 1->file 2->cmd
-#define FILENAME "../test/simple.c"
+#define FILENAME "./test/simple.c"
 
 #include "0-color.h"
 #include "0-driver.h"
@@ -35,30 +35,36 @@ int main(int argc, char **argv) {
     ifstream file(FILENAME);
     driver.set_entry(&file);
 
-    int    res  = driver.parse();
-    string line = string(50, '-');
+    bool parse_ok = driver.parse();
 
     // if (opts_res.count("t") || opts_res.count("tree")) {
     //     cout << driver.print() << endl;
     // }
 
-    cout << driver.print() << endl;
+    // cout << driver.print() << endl;
 
-    // end
-    if (!res) {
+    if (parse_ok) {
         cout << BOLD_GREEN << "Parse Finish!" << RESET_COLOR << endl;
     } else {
         cout << BOLD_RED << "Parse Failed!" << RESET_COLOR << endl;
         return 1;
     }
 
-    driver.analyze();
-    cout << driver.print() << endl;
+    bool analyze_ok = driver.analyze();
+
+    if (analyze_ok) {
+        cout << BOLD_GREEN << "Analyze Finish!" << RESET_COLOR << endl;
+    } else {
+        cout << BOLD_RED << "Analyze Failed!" << RESET_COLOR << endl;
+        return 1;
+    }
+
     driver.gen_ir();
 
-    // driver.dump_ir();
+    driver.print_ir();
+
     // driver.alloc_reg();
-    // driver.dump_ir();
+    // driver.print_ir();
     // driver.gen_x86_64();
     // if (opts_res.count("t") || opts_res.count("tree")) {
     //     cout << driver.print() << endl;

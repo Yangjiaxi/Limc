@@ -7,16 +7,16 @@ using namespace Limc;
 
 Driver::Driver()
     : tokens(), scanner(*this), parser(scanner, *this), analyzer(*this), ir_maker(*this),
-      loc(location()), input_file(), funcs_ir() {}
+      loc(location()), input_file(), funcs_ir(), globals(), str_lits() {}
 
 Token &Driver::get_root() { return tokens.at(0); }
 
-int Driver::parse() {
+bool Driver::parse() {
     reports.clear();
     loc.initialize();
-    auto res = parser.parse();
+    parse_ok = (parser.parse() == 0);
     print_reports();
-    return res;
+    return parse_ok;
 }
 
 void Driver::clear() {
@@ -24,7 +24,7 @@ void Driver::clear() {
     tokens.clear();
 }
 
-void Driver::analyze() {
+bool Driver::analyze() {
     reports.clear();
     string line(50, '-');
 
@@ -32,16 +32,29 @@ void Driver::analyze() {
     auto &token = tokens[0];
 
     analyzer.stmt(token);
+    globals  = analyzer.get_global_table();
+    str_lits = analyzer.get_str_lit_table();
+
+    for (auto &[k, v] : str_lits) {
+        cout << k << " -> " << v << endl;
+    }
+
     print_reports();
+
+    analyze_ok = reports.empty();
+    return analyze_ok;
 }
 
 void Driver::gen_ir() {
-    cout << BOLD_GREEN << "Generating IR..." << RESET_COLOR << endl;
-
     assert(tokens.size() == 1);
     auto &token = tokens[0];
     funcs_ir    = ir_maker.gen_ir(token);
-    cout << BOLD_GREEN << "Finish!" << RESET_COLOR << endl;
+}
+
+void Driver::print_ir() {
+    for (auto &func : funcs_ir) {
+        func.print_ir();
+    }
 }
 
 string Driver::print() const {
@@ -49,7 +62,7 @@ string Driver::print() const {
 
     assert(tokens.size() == 1);
     auto &token = tokens[0];
-    
+
     s << token.print() << endl;
     return s.str();
 }

@@ -1,6 +1,8 @@
 #include "4-ir.h"
+
 #include "0-driver.h"
 #include "util.h"
+#include <utility>
 
 using namespace Limc;
 using namespace std;
@@ -154,11 +156,11 @@ string IR::to_string() {
 }
 
 BasicFunc::BasicFunc(string name, vector<IR> ir, unsigned stack_size)
-    : func_name(name), ir_list(move(ir)), stack_size(stack_size) {}
+    : func_name(move(name)), ir_list(move(ir)), stack_size(stack_size) {}
 
 void BasicFunc::print_ir() {
     cout << string(50, '-') << endl;
-    cout << func_name << "(): " << stack_size << endl;
+    cout << BOLD_WHITE << func_name << "(): " << stack_size << RESET_COLOR << endl;
     for (auto &item : ir_list) {
         cout << item.to_string() << endl;
     }

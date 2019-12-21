@@ -206,6 +206,8 @@ string Type::str_wrap() const {
         ss << "Ptr<";
     } else if (c_type == Ctype::Function) {
         ss << "Fn(";
+    } else if (c_type == Ctype::Str) {
+        ss << "StrLit";
     }
 
     ss << str_content();
@@ -221,6 +223,8 @@ string Type::str_wrap() const {
     } else if (c_type == Ctype::Function) {
         ss << ")"
            << "->" << return_type->str_wrap();
+    } else if (c_type == Ctype::Str) {
+        ss << "";
     }
 
     if (c_type != Ctype::Function) {
@@ -261,10 +265,14 @@ string Type::str_content() const {
             first = false;
         }
     } else if (c_type == Ctype::Function) {
-        bool first = true;
-        for (auto &arg : args) {
-            ss << (first ? "" : ",") << arg->str_wrap();
-            first = false;
+        if (is_lib) {
+            ss << "...";
+        } else {
+            bool first = true;
+            for (auto &arg : args) {
+                ss << (first ? "" : ",") << arg->str_wrap();
+                first = false;
+            }
         }
     }
     return ss.str();
@@ -342,7 +350,10 @@ bool Type::is_arith() const {
     }
     return false;
 }
+
 bool Type::is_pointer() const { return c_type == Ctype::Pointer; }
+
+bool Type::is_func() const { return c_type == Ctype::Function; }
 
 Type *Type::make_ptr_type(Type *base) {
     Type *current     = new Type();
@@ -350,5 +361,10 @@ Type *Type::make_ptr_type(Type *base) {
     current->point_to = base;
     current->align    = 8;
     current->size     = 8;
+    return current;
+}
+Type *Type::make_str_type() {
+    Type *current   = new Type();
+    current->c_type = Ctype::Str;
     return current;
 }

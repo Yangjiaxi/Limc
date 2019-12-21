@@ -66,3 +66,4 @@ string SymbolTable::table_head() {
     ss << endl << string(50, '-') << endl;
     return ss.str();
 }
+map<string, Symbol> SymbolTable::get_data() { return move(table); }

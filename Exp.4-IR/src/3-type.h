@@ -33,7 +33,7 @@ using namespace std;
 
 namespace Limc {
 
-enum Ctype { Plain, Array, Pointer, Struct, Function, ErrorType };
+enum Ctype { Plain, Array, Pointer, Struct, Function, Str, ErrorType };
 enum PlainType { Char = 0, Int = 1, Float = 2, Void };
 
 class Token;
@@ -62,6 +62,7 @@ class Type {
     // Function:
     Type *         return_type;
     vector<Type *> args;
+    bool           is_lib = false;
 
     // array, struct,
     unsigned size;
@@ -76,6 +77,8 @@ class Type {
     bool is_plain() const;
 
     bool is_pointer() const;
+
+    bool is_func() const;
 
     static Type *
     build_type(Token &root, const vector<unsigned> &array_depth, map<string, Type *> type_table);
@@ -95,6 +98,8 @@ class Type {
     static Type *make_ptr_type(Type *base);
 
     static Type *make_error_type();
+
+    static Type *make_str_type();
 
   private:
     string str_wrap() const;

@@ -7,7 +7,12 @@
 using namespace Limc;
 
 Semantic::Semantic(Driver &driver)
-    : driver(driver), inner_return_ty(nullptr), current_table(nullptr) {}
+    : driver(driver), inner_return_ty(nullptr), lib_func(), string_literal_table(),
+      current_table(nullptr), lib_func_list{"printf", "scanf"} {
+    for (auto &name : lib_func_list) {
+        lib_func.insert({name, true});
+    }
+}
 
 void Semantic::enter_scope(const string &name) {
     tables.emplace_back(name);
@@ -21,7 +26,7 @@ void Semantic::leave_scope(unsigned frame_size) {
 #ifdef DEBUG
     cout << "<<< Leave Scope\t: [" << tables.back().get_alias() << "]"
          << " Local Stack Size: " << local_stack_size << endl;
-#endif
+
     string line(50, '=');
 
     cout << endl << line << endl;
@@ -35,6 +40,7 @@ void Semantic::leave_scope(unsigned frame_size) {
     cout << current_table->describe();
 
     cout << BOLD_RED << "<TABLE END>" << RESET_COLOR << endl;
+#endif
 
     tables.pop_back();
     current_table = &tables.back();
@@ -264,7 +270,15 @@ Type *Semantic::expr(Token &root) {
                     13);
             type_res = Type::make_error_type();
         } else {
-            if (func_type->args.size() != args.size()) {
+            if (func_type->is_lib) {
+                auto arg_iter = args.begin();
+                while (arg_iter != args.end()) {
+                    expr(*arg_iter);
+                    ++arg_iter;
+                }
+                type_res = func_type->return_type;
+
+            } else if (func_type->args.size() != args.size()) {
                 driver.report()
                     .report_level(Level::Error)
                     .report_loc(func.get_loc().value())
@@ -443,11 +457,19 @@ Type *Semantic::expr(Token &root) {
             type_res = item_type;
         }
         // END OF [PostfixExpr]
+    } else if (kind == "StringLiteral") {
+        // 字符串字面量替换为指向数据段的label
+        string alias = ".L.str" + to_string(string_label++);
+        string_literal_table.insert({alias, root.get_value()});
+
+        Token new_glb_str("Identifier", alias, root.get_loc().value());
+        type_res = Type::make_str_type();
+        new_glb_str.set_is_global(true);
+        new_glb_str.set_type(type_res);
+        root = move(new_glb_str);
     }
     // FALL TO
-    else if (
-        kind == "IntegerLiteral" || kind == "FloatLiteral" || kind == "CharLiteral" ||
-        kind == "StringLiteral") {
+    else if (kind == "IntegerLiteral" || kind == "FloatLiteral" || kind == "CharLiteral") {
         type_res = Type::build_literal(root);
     } else {
         throw runtime_error("Uncaught Token Kind: `" + kind + "`.");
@@ -470,7 +492,9 @@ void Semantic::stmt(Token &root) {
             stmt(child);
         }
         root.set_func_stack_size(global_stack_size);
-        leave_scope(global_stack_size);
+        // leave_scope(global_stack_size);
+    } else if (kind == "LibraryUse") {
+        insert_lib_func(root);
     } else if (kind == "BlockStmt") {
         // 块级语句，可能是新的作用域
         // 有别于函数体、循环体的块，这俩单独处理，不在这里搞
@@ -602,13 +626,15 @@ void Semantic::stmt(Token &root) {
             Token name;
             if (param_name.get_kind() == "IndexExpr") {
                 // 为数组
-                name                  = param_name.get_child(0);
-                auto depths           = Type::make_array_depths(param_name);
-                param_type            = Type::wrap_array(param_type, depths);
-                param_type->c_type    = Ctype::Pointer;
-                param_type->size      = 8;
-                param_type->align     = 8;
-                param_type->point_to  = param_type->base_type;
+                name        = param_name.get_child(0);
+                auto depths = Type::make_array_depths(param_name);
+                param_type  = Type::wrap_array(param_type, depths);
+
+                param_type->c_type   = Ctype::Pointer;
+                param_type->size     = 8;
+                param_type->align    = 8;
+                param_type->point_to = param_type->base_type;
+
                 param_type->base_type = nullptr;
             } else if (param_name.get_kind() == "Identifier") {
                 // 为普通标识符
@@ -863,4 +889,30 @@ bool Semantic::comparable(Type *a, Type *b) {
         return true;
     }
     return false;
+}
+void Semantic::insert_lib_func(Token &root) {
+    auto name = root.get_value();
+    if (lib_func.find(name) == lib_func.cend()) {
+        driver.report()
+            .report_level(Level::Error)
+            .report_loc(root.get_loc().value())
+            .report_msg(
+                "Undefined gcc-lib function `" + root.get_value() +
+                    "`. You may want to use: `printf` or `scanf`.",
+                29);
+        return;
+    }
+
+    Type *lib_t        = new Type();
+    lib_t->c_type      = Ctype::Function;
+    lib_t->return_type = Type::make_int_type();
+    lib_t->is_lib      = true;
+
+    try_insert_symbol(root, lib_t, true, 0);
+}
+map<string, string> Semantic::get_str_lit_table() { return move(string_literal_table); }
+
+map<string, Symbol> Semantic::get_global_table() {
+    assert(tables.size() == 1);
+    return move(tables[0].get_data());
 }
