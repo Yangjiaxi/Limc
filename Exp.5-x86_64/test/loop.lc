@@ -1,0 +1,22 @@
+use printf;
+
+int main() {
+    do {
+        printf("do-while\n");
+    } while (0);
+
+    for (int i = 0; i < 10; i++) {
+        if (i & 1)
+            continue;
+        printf("%d-for\n", i);
+    }
+
+    return 0;
+}
+
+// do-while
+// 0-for
+// 2-for
+// 4-for
+// 6-for
+// 8-for

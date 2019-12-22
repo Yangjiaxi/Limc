@@ -23,3 +23,6 @@ int main() {
     printf("%d ^ %d = %d\n", a, b, res);
     return 0;
 }
+
+// [a^b] Input a b: 3 10
+// 3 ^ 10 = 59049

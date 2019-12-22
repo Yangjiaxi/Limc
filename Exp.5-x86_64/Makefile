@@ -22,6 +22,10 @@ arr:
 	@./$(target) ./test/arr.lc ./tmp/a.s
 	@make runasm
 
+loop:
+	@./$(target) ./test/loop.lc ./tmp/a.s
+	@make runasm
+
 fp:
 	@./$(target) ./test/fp.lc ./tmp/a.s
 	@make runasm
