@@ -7,7 +7,8 @@ using namespace Limc;
 
 Driver::Driver()
     : tokens(), scanner(*this), parser(scanner, *this), analyzer(*this), ir_maker(*this),
-      reg_maker(*this), loc(location()), input_file(), funcs_ir(), globals(), str_lits() {}
+      asm_maker(*this), reg_maker(*this), loc(location()), input_file(), funcs_ir(), globals(),
+      str_lits() {}
 
 Token &Driver::get_root() { return tokens.at(0); }
 
@@ -35,10 +36,6 @@ bool Driver::analyze() {
     globals  = analyzer.get_global_table();
     str_lits = analyzer.get_str_lit_table();
 
-    for (auto &[k, v] : str_lits) {
-        cout << k << " -> " << v << endl;
-    }
-
     print_reports();
 
     analyze_ok = reports.empty();
@@ -58,6 +55,15 @@ void Driver::print_ir() {
 }
 
 void Driver::alloc_reg() { reg_maker.reg_alloc(funcs_ir); }
+
+void Driver::gen_x86_64() { asm_box = asm_maker.gen_x86_64(funcs_ir, globals, str_lits); }
+
+void Driver::dump_x86_64(ostream &os) {
+    stringstream ss;
+    for (auto &code : asm_box) {
+        os << code.show();
+    }
+}
 
 string Driver::print() const {
     stringstream s;

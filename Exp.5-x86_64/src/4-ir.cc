@@ -13,14 +13,6 @@ using opt_uint = optional<unsigned>;
 
 IR::IR(IROp op, opt_uint lhs, opt_uint rhs) : op(op), lhs(lhs), rhs(rhs) {}
 
-template <typename T> string opt(optional<T> &ref) {
-    if (ref == nullopt) {
-        return "None";
-    } else {
-        return to_string(ref.value());
-    }
-}
-
 void print_reg(stringstream &ss, opt_uint x, bool is_arg = false, bool no_pad = false) {
     build_str(
         ss, string(is_arg ? "Arg" : "") + "R[" + opt(x) + "]", BOLD_MAGENTA, no_pad ? 0 : WIDTH);

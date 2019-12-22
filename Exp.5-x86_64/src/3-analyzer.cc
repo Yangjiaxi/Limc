@@ -87,17 +87,23 @@ Type *Semantic::expr(Token &root) {
         auto &children   = root.get_children();
         auto &array_root = children[0];
         auto  current    = expr(array_root);
-        for (auto index = children.begin() + 1; index != children.end(); ++index) {
-            auto index_type = expr(index->get_child(0));
+        bool  fir        = true;
+        for (auto &idx : children) {
+            if (fir) {
+                fir = false;
+                continue;
+            }
+            auto index_type = expr(idx.get_child(0));
+            // cout << "E:" << index_type->to_string() << endl;
             if (index_type->is_int()) {
                 if (current->c_type == Ctype::Array) {
                     current  = current->base_type;
                     type_res = current;
-                    *index   = index->get_child(0);
+                    // idx      = move(idx.get_child(0));
                 } else if (current->c_type == Ctype::Pointer) {
                     current  = current->point_to;
                     type_res = current;
-                    *index   = index->get_child(0);
+                    // idx      = move(idx.get_child(0));
                 } else {
                     driver.report()
                         .report_level(Level::Error)
@@ -109,7 +115,7 @@ Type *Semantic::expr(Token &root) {
             } else {
                 driver.report()
                     .report_level(Level::Error)
-                    .report_loc(index->get_loc().value())
+                    .report_loc(idx.get_loc().value())
                     .report_msg("Array index should be integer.", 5);
                 type_res = Type::make_error_type();
                 break;
@@ -398,7 +404,7 @@ Type *Semantic::expr(Token &root) {
             }
         }
         // END OF [CompoundLogAssignmentExpr]
-    } else if (kind == "ParenthesisExpr") {
+    } else if (kind == "ParenthesisExpr" || kind == "Index") {
         auto &inner = root.get_child(0);
         type_res    = expr(inner);
         // END OF [ParenthesisExpr]
@@ -824,6 +830,9 @@ bool Semantic::can_convert(Type *from, Type *to) {
             return true;
     } else if (from->c_type == Ctype::Array && to->c_type == Ctype::Pointer) {
         if (can_convert(from->base_type, to->point_to))
+            return true;
+    } else if (from->c_type == Ctype::Pointer && to->c_type == Ctype::Pointer) {
+        if (can_convert(from->point_to, to->point_to))
             return true;
     } else if (from->is_plain()) {
         if (from->plain_type == to->plain_type) {

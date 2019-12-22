@@ -12,6 +12,36 @@ using opt_uint = optional<unsigned>;
 GenIR::GenIR(Driver &driver)
     : driver(driver), funcs(), codes(), break_labels(), continue_labels() {}
 
+vector<BasicFunc> GenIR::gen_ir(Token &node) {
+    // TODO
+    for (auto &block : node.get_children()) {
+
+        auto kind = block.get_kind();
+        if (kind == "FuncDef") {
+            codes.clear();
+
+            auto  name   = block.get_child(1).get_value();
+            auto  stk_sz = block.get_func_stack_size();
+            auto &params = block.get_child(2).get_children();
+            auto &body   = block.get_child(3);
+
+            for (unsigned long i = 0; i < params.size(); ++i) {
+                auto &param = params[i];
+                store_param(param.get_type()->size, param.get_offset(), i);
+            }
+
+            gen_stmt(body);
+
+            funcs.emplace_back(move(BasicFunc(name, codes, stk_sz)));
+        } else {
+#ifdef DEBUG
+            cout << "Pass `" << kind << "`." << endl;
+#endif
+        }
+    }
+    return move(funcs);
+}
+
 opt_uint GenIR::gen_expr(Token &node) {
     auto  kind     = node.get_kind();
     auto &children = node.get_children();
@@ -159,7 +189,7 @@ opt_uint GenIR::gen_expr(Token &node) {
          *  因为x86-64在剔除7个148寄存器后
          *  只有6对148参数寄存器
          */
-        vector<unsigned> args_regs(6, 0);
+        vector<unsigned> args_regs(ARG_REG_NUM, 0);
         auto &           args = children[1].get_children();
         auto             len  = args.size();
 
@@ -199,7 +229,7 @@ opt_uint GenIR::gen_expr(Token &node) {
         auto  op  = convert_compound_op(children[1]);
         return gen_comp_assign(op, node.get_type()->size, lhs, rhs);
         // END OF [CompoundLogAssignmentExpr]
-    } else if (kind == "ParenthesisExpr") {
+    } else if (kind == "ParenthesisExpr" || kind == "Index") {
         return gen_expr(children[0]);
         // END OF [ParenthesisExpr]
     } else if (kind == "PrefixExpr") {
@@ -416,36 +446,6 @@ void GenIR::gen_stmt(Token &node) {
         auto reg = gen_expr(node);
         kill(reg);
     }
-}
-
-vector<BasicFunc> GenIR::gen_ir(Token &node) {
-    // TODO
-    for (auto &block : node.get_children()) {
-
-        auto kind = block.get_kind();
-        if (kind == "FuncDef") {
-            codes.clear();
-
-            auto  name   = block.get_child(1).get_value();
-            auto  stk_sz = block.get_func_stack_size();
-            auto &params = block.get_child(2).get_children();
-            auto &body   = block.get_child(3);
-
-            for (unsigned long i = 0; i < params.size(); ++i) {
-                auto &param = params[i];
-                store_param(param.get_type()->size, param.get_offset(), i);
-            }
-
-            gen_stmt(body);
-
-            funcs.emplace_back(move(BasicFunc(name, codes, stk_sz)));
-        } else {
-#ifdef DEBUG
-            cout << "Pass `" << kind << "`." << endl;
-#endif
-        }
-    }
-    return move(funcs);
 }
 
 void GenIR::store_param(unsigned size, opt_uint bp_offset, opt_uint arg_reg) {

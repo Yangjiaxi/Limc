@@ -49,6 +49,7 @@ enum IROp {
 
 class IR {
     friend class RegAllocator;
+    friend class GenX86_64;
 
   public:
     IR(IROp op, optional<unsigned> lhs, optional<unsigned> rhs);
@@ -74,6 +75,7 @@ class IR {
 
 class BasicFunc {
     friend class RegAllocator;
+    friend class GenX86_64;
 
   public:
     BasicFunc(string name, vector<IR> ir, unsigned stack_size);

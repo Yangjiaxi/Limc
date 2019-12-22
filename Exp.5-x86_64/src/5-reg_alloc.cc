@@ -1,11 +1,10 @@
 #include "5-reg_alloc.h"
 #include "0-driver.h"
+#include "util.h"
 
 using namespace Limc;
 using namespace std;
 using opt_uint = optional<unsigned>;
-
-constexpr unsigned REG_NUM = 7;
 
 RegAllocator::RegAllocator(Driver &driver)
     : driver(driver), prev_mapped_regs(1 << 10, nullopt), current_in_use(REG_NUM, false) {}

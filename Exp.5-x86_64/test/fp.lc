@@ -1,0 +1,25 @@
+use printf;
+use scanf;
+
+int fast_pow(int a, int b) // compute a^b
+{
+    int res  = 1;
+    int base = a;
+    while (b) {
+        if (b & 1) {
+            res *= base;
+        }
+        b >>= 1;
+        base *= base;
+    }
+    return res;
+}
+
+int main() {
+    int a, b;
+    printf("[a^b] Input a b: ");
+    scanf("%d%d", &a, &b);
+    int res = fast_pow(a, b);
+    printf("%d ^ %d = %d\n", a, b, res);
+    return 0;
+}

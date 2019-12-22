@@ -1,25 +1,34 @@
-target = build/Semantic
+target = build/Gen-x86_64
 # target = cmake-build-debug/Semantic
 flags = --tree
 
 
 init:
-	ln -s -f ./$(target)	./entry
-
-fibo:
-	./$(target)	-f ./test/fibo.c	$(flags)
+	ln -s -f ./$(target)	./limc
 
 ss:
-	./$(target)	-f ./test/simple.c	$(flags)
+	@./$(target) ./test/ss.lc ./tmp/a.s
+	@make runasm
 
-cmt:
-	./$(target) -f ./test/comment.c	$(flags)
+fact:
+	@./$(target) ./test/fact.lc ./tmp/a.s
+	@make runasm
 
-copy:
-	./$(target) -f ./test/copy.c	$(flags)
+qs:
+	@./$(target) ./test/qs.lc ./tmp/a.s
+	@make runasm
 
-error:
-	./$(target) -f ./test/error.c	$(flags)
+arr:
+	@./$(target) ./test/arr.lc ./tmp/a.s
+	@make runasm
+
+fp:
+	@./$(target) ./test/fp.lc ./tmp/a.s
+	@make runasm
+
+runasm:
+	@gcc -o ./tmp/a.out ./tmp/a.s
+	@./tmp/a.out
 
 clean:
-	rm -rf ./build
+	rm -rf ./build ./tmp/*
