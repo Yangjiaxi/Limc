@@ -4,22 +4,22 @@
 .data
 ## String Literals:
 .L.str0:
-	.asciz	"[a^b] Input a b: "
+	.asciz	"Input n: "
 .L.str1:
-	.asciz	"%d%d"
+	.asciz	"%d"
 .L.str2:
-	.asciz	"%d ^ %d = %d\n"
+	.asciz	"%d! = %d\n"
 
 ## Global Variables:
 
-## Function Call: fast_pow
+## Function Call: fact
 .text
-.global	_fast_pow
-_fast_pow:
+.global	_fact
+_fact:
 ## Active Record: 
 	push	rbp
 	mov	rbp,	rsp
-## Stack Size: 16
+## Stack Size: 4
 	sub	rsp,	16
 	push	r12
 	push	r13
@@ -28,52 +28,36 @@ _fast_pow:
 ## end of prologue
 
 	mov	[rbp-4],	edi
-	mov	[rbp-8],	esi
-	mov	r10,	1
-	lea	r11,	[rbp-12]
-	mov	[r11],	r10d
 	lea	r10,	[rbp-4]
 	mov	r10d,	[r10]
-	lea	r11,	[rbp-16]
-	mov	[r11],	r10d
-.L1:
-	lea	r10,	[rbp-8]
-	mov	r10d,	[r10]
-	cmp	r10,	0
-	je	.L2
-	lea	r10,	[rbp-8]
-	mov	r10d,	[r10]
 	mov	r11,	1
-	and	r10,	r11
+	cmp	r10,	r11
+	setle	r10b
+	movzx	r10,	r10b
 	cmp	r10,	0
-	je	.L3
-	lea	r10,	[rbp-16]
-	mov	r10d,	[r10]
-	lea	r11,	[rbp-12]
-	mov	ebx,	[r11]
-	mov	rax,	r10
-	mul	rbx
-	mov	rbx,	rax
-	mov	[r11],	ebx
-.L3:
+	je	.L1
 	mov	r10,	1
-	lea	r11,	[rbp-8]
-	mov	ebx,	[r11]
-	mov	cl,	r10b
-	shr	rbx,	cl
-	mov	[r11],	ebx
-	lea	r10,	[rbp-16]
-	mov	r10d,	[r10]
-	lea	r11,	[rbp-16]
-	mov	ebx,	[r11]
 	mov	rax,	r10
-	mul	rbx
-	mov	rbx,	rax
-	mov	[r11],	ebx
-	jmp	.L1
-.L2:
-	lea	r10,	[rbp-12]
+	jmp	.Lend0
+.L1:
+	lea	r10,	[rbp-4]
 	mov	r10d,	[r10]
+	lea	r11,	[rbp-4]
+	mov	r11d,	[r11]
+	mov	rbx,	1
+	sub	r11,	rbx
+	mov	rdi,	r11
+	push	r10
+	push	r11
+	mov	rax,	0
+## Call function: fact
+	call	_fact
+	pop	r11
+	pop	r10
+	mov	rbx,	rax
+	mov	rax,	rbx
+	mul	r10
+	mov	r10,	rax
 	mov	rax,	r10
 	jmp	.Lend0
 
@@ -94,7 +78,7 @@ _main:
 ## Active Record: 
 	push	rbp
 	mov	rbp,	rsp
-## Stack Size: 12
+## Stack Size: 4
 	sub	rsp,	16
 	push	r12
 	push	r13
@@ -114,10 +98,8 @@ _main:
 	mov	r11,	rax
 	lea	r10,	[rip+.L.str1]
 	lea	r11,	[rbp-4]
-	lea	rbx,	[rbp-8]
 	mov	rdi,	r10
 	mov	rsi,	r11
-	mov	rdx,	rbx
 	push	r10
 	push	r11
 	mov	rax,	0
@@ -125,34 +107,24 @@ _main:
 	call	_scanf
 	pop	r11
 	pop	r10
-	mov	r12,	rax
-	lea	r10,	[rbp-4]
-	mov	r10d,	[r10]
-	lea	r11,	[rbp-8]
-	mov	r11d,	[r11]
-	mov	rdi,	r10
-	mov	rsi,	r11
-	push	r10
-	push	r11
-	mov	rax,	0
-## Call function: fast_pow
-	call	_fast_pow
-	pop	r11
-	pop	r10
 	mov	rbx,	rax
-	lea	r10,	[rbp-12]
-	mov	[r10],	ebx
 	lea	r10,	[rip+.L.str2]
 	lea	r11,	[rbp-4]
 	mov	r11d,	[r11]
-	lea	rbx,	[rbp-8]
+	lea	rbx,	[rbp-4]
 	mov	ebx,	[rbx]
-	lea	r12,	[rbp-12]
-	mov	r12d,	[r12]
+	mov	rdi,	rbx
+	push	r10
+	push	r11
+	mov	rax,	0
+## Call function: fact
+	call	_fact
+	pop	r11
+	pop	r10
+	mov	r12,	rax
 	mov	rdi,	r10
 	mov	rsi,	r11
-	mov	rdx,	rbx
-	mov	rcx,	r12
+	mov	rdx,	r12
 	push	r10
 	push	r11
 	mov	rax,	0
@@ -160,7 +132,7 @@ _main:
 	call	_printf
 	pop	r11
 	pop	r10
-	mov	r13,	rax
+	mov	rbx,	rax
 	mov	r10,	0
 	mov	rax,	r10
 	jmp	.Lend1

@@ -7,7 +7,7 @@ init:
 	ln -s -f ./$(target)	./limc
 
 ss:
-	@./$(target) ./test/ss.lc ./tmp/a.s
+	@./$(target) ./test/simple.lc ./tmp/a.s
 	@make runasm
 
 fact:

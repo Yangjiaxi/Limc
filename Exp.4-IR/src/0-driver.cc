@@ -35,10 +35,6 @@ bool Driver::analyze() {
     globals  = analyzer.get_global_table();
     str_lits = analyzer.get_str_lit_table();
 
-    for (auto &[k, v] : str_lits) {
-        cout << k << " -> " << v << endl;
-    }
-
     print_reports();
 
     analyze_ok = reports.empty();

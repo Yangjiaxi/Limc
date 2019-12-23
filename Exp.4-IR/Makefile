@@ -1,25 +1,28 @@
-target = build/Semantic
-# target = cmake-build-debug/Semantic
+target = build/GenIR
+# target = cmake-build-debug/GenIR
 flags = --tree
 
 
 init:
-	ln -s -f ./$(target)	./entry
-
-fibo:
-	./$(target)	-f ./test/fibo.c	$(flags)
+	ln -s -f ./$(target)	./limc
 
 ss:
-	./$(target)	-f ./test/simple.c	$(flags)
+	@./$(target) ./test/simple.lc
 
-cmt:
-	./$(target) -f ./test/comment.c	$(flags)
+fact:
+	@./$(target) ./test/fact.lc
 
-copy:
-	./$(target) -f ./test/copy.c	$(flags)
+qs:
+	@./$(target) ./test/qs.lc
 
-error:
-	./$(target) -f ./test/error.c	$(flags)
+arr:
+	@./$(target) ./test/arr.lc
+
+loop:
+	@./$(target) ./test/loop.lc
+
+fp:
+	@./$(target) ./test/fp.lc
 
 clean:
 	rm -rf ./build
