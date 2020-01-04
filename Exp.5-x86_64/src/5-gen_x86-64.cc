@@ -175,10 +175,16 @@ void GenX86_64::emit_code(IR &ir) {
             emit3("mov", reg(lhs), "rax");
             break;
         case IROp::Div:
-            /// TODO
+            emit3("mov", "rax", reg(lhs));
+            emit().text("cqo").ok();
+            emit2("div", reg(rhs));
+            emit3("mov", reg(lhs), "rax");
             break;
         case IROp::Mod:
-            /// TODO
+            emit3("mov", "rax", reg(lhs));
+            emit().text("cqo").ok();
+            emit2("div", reg(rhs));
+            emit3("mov", reg(lhs), "rdx");
             break;
         case IROp::If:
             emit3("cmp", reg(lhs), "0");

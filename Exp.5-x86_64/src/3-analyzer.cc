@@ -8,7 +8,7 @@ using namespace Limc;
 
 Semantic::Semantic(Driver &driver)
     : driver(driver), inner_return_ty(nullptr), lib_func(), string_literal_table(),
-      current_table(nullptr), lib_func_list{"printf", "scanf"} {
+      current_table(nullptr), lib_func_list{"printf", "scanf", "srand", "time", "rand"} {
     for (auto &name : lib_func_list) {
         lib_func.insert({name, true});
     }
@@ -907,7 +907,7 @@ void Semantic::insert_lib_func(Token &root) {
             .report_loc(root.get_loc().value())
             .report_msg(
                 "Undefined gcc-lib function `" + root.get_value() +
-                    "`. You may want to use: `printf` or `scanf`.",
+                    "`. You may want to use: `printf`, `scanf`, `srand`, `time` or `rand`.",
                 29);
         return;
     }

@@ -14,12 +14,16 @@ fact:
 	@./$(target) ./test/fact.lc ./tmp/a.s
 	@make runasm
 
-qs:
-	@./$(target) ./test/qs.lc ./tmp/a.s
+fib:
+	@./$(target) ./test/fib.lc ./tmp/a.s
 	@make runasm
 
 arr:
 	@./$(target) ./test/arr.lc ./tmp/a.s
+	@make runasm
+
+prime:
+	@./$(target) ./test/prime.lc ./tmp/a.s
 	@make runasm
 
 loop:
