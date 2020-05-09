@@ -31,66 +31,68 @@ WHITESPACE  [ \t\v\f]
 
 "/*"                    { BEGIN(COMMENT_BLOCK); }
 <COMMENT_BLOCK>"*/"     { BEGIN(INITIAL); }
-<COMMENT_BLOCK>\n       { current_line++; n_lines++ }
+<COMMENT_BLOCK>\n       { current_line++; n_lines++; }
 <COMMENT_BLOCK>.        { }
 <COMMENT_BLOCK><<EOF>>  { }
 
-\/\/(.*)    { current_line++; }
+\/\/(.*)    {  }
 
 {INTEGER}       { ACTION_ARG(LITERAL_INTEGER); }
 {FLOAT}         { ACTION_ARG(LITERAL_FLOAT); }
 {CHAR}          { ACTION_ARG(LITERAL_CHAR); }
 {STRING}        { ACTION_ARG(LITERAL_STRING); }
 
-"int"|"float"|"long"|"char"|"double"|"void"|"short" { ACTION_ARG(KEYWORD_TYPE); }
+"int"|"char"|"float"|"void" { ACTION_ARG(KW_TYPE); }
 
-"return"    { ACTION(KEYWORD_RETURN); }
-"break"     { ACTION(KEYWORD_BREAK); }
-"continue"  { ACTION(KEYWORD_CONTINUE); }
-"for"       { ACTION(KEYWORD_FOR); }
-"if"        { ACTION(KEYWORD_IF); }
-"else"      { ACTION(KEYWORD_ELSE); }
-"while"     { ACTION(KEYWORD_WHILE); }
-"do"        { ACTION(KEYWORD_DO); }
-"switch"    { ACTION(KEYWORD_SWITCH); }
-"case"      { ACTION(KEYWORD_CASE); }
-"default"   { ACTION(KEYWORD_DEFAULT); }
+"return"    { ACTION(KW_RETURN); }
+"break"     { ACTION(KW_BREAK); }
+"continue"  { ACTION(KW_CONTINUE); }
+"for"       { ACTION(KW_FOR); }
+"if"        { ACTION(KW_IF); }
+"else"      { ACTION(KW_ELSE); }
+"while"     { ACTION(KW_WHILE); }
+"do"        { ACTION(KW_DO); }
+"struct"    { ACTION(KW_STRUCT); }
+"use"       { ACTION(KW_USE); }
 
 {IDENTIFIER}    { ACTION_ARG(IDENTIFIER); }
 
-"+="|"-="|"*="|"/="|"%="|"&="|"|="|"^="|"<<="|">>=" { ACTION_ARG(OPERATOR_COMPOUND_ASSIGNMENT); }
+"+="|"-="|"*="|"/="|"%="    { ACTION_ARG(OP_ARITH_COMPOUND_ASSIGNMENT); }
+"&="|"|="|"^="|"<<="|">>="  { ACTION_ARG(OP_LOG_COMPOUND_ASSIGNMENT); }
 
-"++"    { ACTION_ARG(OPERATOR_INCREMENT); }
-"--"    { ACTION_ARG(OPERATOR_DECREMENT); }
+"++"    { ACTION_ARG(OP_INCREMENT); }
+"--"    { ACTION_ARG(OP_DECREMENT); }
 
-">"|"<"|">="|"<="|"=="|"!=" { ACTION_ARG(OPERATOR_RELATIONAL); }
+">"|"<"|">="|"<="|"=="|"!=" { ACTION_ARG(OP_RELATIONAL); }
 
-"="     { ACTION_ARG(OPERATOR_ASSIGNMENT);  }
-">>"    { ACTION_ARG(OPERATOR_SHIFT_RIGHT); }
-"<<"    { ACTION_ARG(OPERATOR_SHIFT_LEFT); }
-"+"     { ACTION_ARG(OPERATOR_PLUS);  }
-"-"     { ACTION_ARG(OPERATOR_MINUS);  }
-"*"     { ACTION_ARG(OPERATOR_MULTIPLY);  }
-"/"     { ACTION_ARG(OPERATOR_DIVIDE);  }
-"%"     { ACTION_ARG(OPERATOR_MODULUS);  }
-"&&"    { ACTION_ARG(OPERATOR_LOGICAL_AND); }
-"&"     { ACTION_ARG(OPERATOR_BITWISE_AND); }
-"||"    { ACTION_ARG(OPERATOR_LOGICAL_OR); }
-"|"     { ACTION_ARG(OPERATOR_BITWISE_OR); }
-"^"     { ACTION_ARG(OPERATOR_BITWISE_XOR); }
-"~"     { ACTION_ARG(OPERATOR_BITWISE_NOT); }
-"!"     { ACTION_ARG(OPERATOR_LOGICAL_NOT); }
+"="     { ACTION_ARG(OP_ASSIGNMENT);  }
 
-"?"     { ACTION(OPERATOR_QUESTION); }
-":"     { ACTION(PUNCTUATOR_COLON); }
-"("     { ACTION(PUNCTUATOR_PARENTHESIS_LEFT); }
-")"     { ACTION(PUNCTUATOR_PARENTHESIS_RIGHT); }
-"{"     { ACTION(PUNCTUATOR_BRACE_LEFT); }
-"}"     { ACTION(PUNCTUATOR_BRACE_RIGHT); }
-"["     { ACTION(PUNCTUATOR_BRACKET_LEFT); }
-"]"     { ACTION(PUNCTUATOR_BRACKET_RIGHT); }
-";"     { ACTION(PUNCTUATOR_SEMICOLON); }
-","     { ACTION(PUNCTUATOR_COMMA); }
+">>"    { ACTION_ARG(OP_SHIFT_RIGHT); }
+"<<"    { ACTION_ARG(OP_SHIFT_LEFT); }
+"+"     { ACTION_ARG(OP_PLUS);  }
+"-"     { ACTION_ARG(OP_MINUS);  }
+"*"     { ACTION_ARG(OP_MULTIPLY);  }
+"/"     { ACTION_ARG(OP_DIVIDE);  }
+"%"     { ACTION_ARG(OP_MODULUS);  }
+"&&"    { ACTION_ARG(OP_LOGICAL_AND); }
+"&"     { ACTION_ARG(OP_BITWISE_AND); }
+"||"    { ACTION_ARG(OP_LOGICAL_OR); }
+"|"     { ACTION_ARG(OP_BITWISE_OR); }
+"^"     { ACTION_ARG(OP_BITWISE_XOR); }
+"~"     { ACTION_ARG(OP_BITWISE_NOT); }
+"!"     { ACTION_ARG(OP_LOGICAL_NOT); }
+"."     { ACTION_ARG(OP_DOT); }
+
+"?"     { ACTION(DELIM_QUESTION); }
+":"     { ACTION(DELIM_COLON); }
+"("     { ACTION(DELIM_PARENTHESIS_LEFT); }
+")"     { ACTION(DELIM_PARENTHESIS_RIGHT); }
+"{"     { ACTION(DELIM_BRACE_LEFT); }
+"}"     { ACTION(DELIM_BRACE_RIGHT); }
+"["     { ACTION(DELIM_BRACKET_LEFT); }
+"]"     { ACTION(DELIM_BRACKET_RIGHT); }
+";"     { ACTION(DELIM_SEMICOLON); }
+","     { ACTION(DELIM_COMMA); }
 
 {NEWLINE}       { current_line++; n_lines++; }
 {WHITESPACE}    {}
