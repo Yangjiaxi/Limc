@@ -10,7 +10,7 @@ Report &Report::report_loc(const location &loc) {
 }
 
 Report &Report::report_msg(const string &_msg, unsigned enb) {
-    msg          = _msg;
+    msg = _msg;
     error_number = enb;
     return *this;
 }
@@ -25,4 +25,4 @@ string &Report::Report::get_msg() { return msg; }
 Level Report::get_level() { return level; }
 
 vector<location> &Report::get_loc() { return locs; }
-unsigned          Report::get_errno() { return error_number; }
+unsigned Report::get_errno() { return error_number; }

@@ -13,9 +13,14 @@ using opt_uint = optional<unsigned>;
 
 IR::IR(IROp op, opt_uint lhs, opt_uint rhs) : op(op), lhs(lhs), rhs(rhs) {}
 
-void print_reg(stringstream &ss, opt_uint x, bool is_arg = false, bool no_pad = false) {
-    build_str(
-        ss, string(is_arg ? "Arg" : "") + "R[" + opt(x) + "]", BOLD_MAGENTA, no_pad ? 0 : WIDTH);
+void print_reg(stringstream &ss,
+               opt_uint x,
+               bool is_arg = false,
+               bool no_pad = false) {
+    build_str(ss,
+              string(is_arg ? "Arg" : "") + "R[" + opt(x) + "]",
+              BOLD_MAGENTA,
+              no_pad ? 0 : WIDTH);
 }
 
 void print_code(stringstream &ss, const string &name, opt_uint size = nullopt) {
@@ -49,7 +54,7 @@ void print_label_addr(stringstream &ss, optional<string> &name) {
 
 string IR::to_string() {
     stringstream ss;
-    auto         info = IRInfo::convert(op);
+    auto info = IRInfo::convert(op);
 
     /*
      *      寄存器： BOLD_MAGENTA
@@ -59,7 +64,7 @@ string IR::to_string() {
      */
     // temp use
     stringstream tmp;
-    unsigned     width = 0;
+    unsigned width = 0;
 
     switch (info.ir_kind) {
         case IRType::TyComment:
@@ -68,7 +73,8 @@ string IR::to_string() {
         case IRType::TyStoreParam:
             print_code(ss, info.name, data_size);
             // print_mem(ss, lhs);
-            ss << BOLD_CYAN << setw(WIDTH) << "M[BP-" + opt(lhs) + "]" << RESET_COLOR;
+            ss << BOLD_CYAN << setw(WIDTH) << "M[BP-" + opt(lhs) + "]"
+               << RESET_COLOR;
             ss << ",";
             print_reg(ss, rhs, true);
             break;
@@ -155,13 +161,15 @@ BasicFunc::BasicFunc(string name, vector<IR> ir, unsigned stack_size)
 
 void BasicFunc::print_ir() {
     cout << string(50, '-') << endl;
-    cout << BOLD_WHITE << func_name << "(): " << stack_size << RESET_COLOR << endl;
+    cout << BOLD_WHITE << func_name << "(): " << stack_size << RESET_COLOR
+         << endl;
     for (auto &item : ir_list) {
         cout << item.to_string() << endl;
     }
 }
 
-IRInfo::IRInfo(string name, IRType ir_kind) : name(move(name)), ir_kind(ir_kind) {}
+IRInfo::IRInfo(string name, IRType ir_kind)
+    : name(move(name)), ir_kind(ir_kind) {}
 
 IRInfo IRInfo::convert(IROp op) {
     // cout << "IROp: " << op << endl;

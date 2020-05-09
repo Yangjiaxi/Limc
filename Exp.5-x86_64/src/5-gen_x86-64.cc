@@ -41,7 +41,7 @@ void GenX86_64::emit_global(map<string, Symbol> &globals, map<string, string> &s
     emit().text(".data").ok();
 
     emit().comment("String Literals:").ok();
-    // 字符串符号
+    // String Literals
     for (auto &[label, str] : str_lits) {
         emit().text(label).text(":").ok();
         emit().tab().text(".asciz").tab().text(str).ok();

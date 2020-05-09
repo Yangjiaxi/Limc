@@ -32,8 +32,8 @@ class Driver {
     void clear();
 
     string print() const;
-    void   set_entry(istream *is);
-    void   print_reports();
+    void set_entry(istream *is);
+    void print_reports();
     Token &get_root();
 
     friend class Parser;
@@ -53,27 +53,27 @@ class Driver {
 
     Report &report();
 
-    Scanner      scanner;
-    Parser       parser;
-    Semantic     analyzer;
-    GenIR        ir_maker;
+    Scanner scanner;
+    Parser parser;
+    Semantic analyzer;
+    GenIR ir_maker;
     RegAllocator reg_maker;
-    GenX86_64    asm_maker;
+    GenX86_64 asm_maker;
 
     vector<Token> tokens;
-    location      loc;
+    location loc;
 
     vector<Report> reports;
 
     vector<string> input_file;
 
-    vector<BasicFunc>   funcs_ir;
+    vector<BasicFunc> funcs_ir;
     map<string, Symbol> globals;
     map<string, string> str_lits;
 
     vector<Code> asm_box;
 
-    bool parse_ok   = false;
+    bool parse_ok = false;
     bool analyze_ok = false;
 };
 } // namespace Limc

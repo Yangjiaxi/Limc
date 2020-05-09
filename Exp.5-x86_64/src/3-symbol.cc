@@ -32,7 +32,9 @@ int SymbolTable::insert_symbol(const Symbol &symbol) {
 optional<Symbol> SymbolTable::find_symbol(const string &name) {
     try {
         return table.at(name);
-    } catch (...) { return nullopt; }
+    } catch (...) {
+        return nullopt;
+    }
 }
 
 string SymbolTable::describe() const {

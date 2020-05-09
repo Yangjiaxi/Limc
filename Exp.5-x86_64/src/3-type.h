@@ -47,7 +47,7 @@ class Type {
     PlainType plain_type;
 
     // Array:
-    Type *   base_type;
+    Type *base_type;
     unsigned length;
 
     // Pointer:
@@ -60,9 +60,9 @@ class Type {
     unsigned member_offset;
 
     // Function:
-    Type *         return_type;
+    Type *return_type;
     vector<Type *> args;
-    bool           is_lib = false;
+    bool is_lib = false;
 
     // array, struct,
     unsigned size;
@@ -80,8 +80,9 @@ class Type {
 
     bool is_func() const;
 
-    static Type *
-    build_type(Token &root, const vector<unsigned> &array_depth, map<string, Type *> type_table);
+    static Type *build_type(Token &root,
+                            const vector<unsigned> &array_depth,
+                            map<string, Type *> type_table);
 
     static Type *build_literal(Token &root);
 

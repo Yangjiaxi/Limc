@@ -7,7 +7,8 @@ using namespace std;
 using opt_uint = optional<unsigned>;
 
 RegAllocator::RegAllocator(Driver &driver)
-    : driver(driver), prev_mapped_regs(1 << 10, nullopt), current_in_use(REG_NUM, false) {}
+    : driver(driver), prev_mapped_regs(1 << 10, nullopt),
+      current_in_use(REG_NUM, false) {}
 
 unsigned RegAllocator::map_reg(unsigned fake_reg) {
     if (prev_mapped_regs.at(fake_reg) != nullopt) {
@@ -17,7 +18,7 @@ unsigned RegAllocator::map_reg(unsigned fake_reg) {
         if (current_in_use[i])
             continue;
         prev_mapped_regs[fake_reg] = i;
-        current_in_use[i]          = true;
+        current_in_use[i] = true;
         return i;
     }
     throw runtime_error("Fatal: Register out of use!");
@@ -26,8 +27,8 @@ unsigned RegAllocator::map_reg(unsigned fake_reg) {
 void RegAllocator::alloc_ir(vector<IR> &irs) {
 
     for (auto &ir : irs) {
-        auto  info = IRInfo::convert(ir.op);
-        auto &ref  = ir.call_args_regs;
+        auto info = IRInfo::convert(ir.op);
+        auto &ref = ir.call_args_regs;
         switch (info.ir_kind) {
             case IRType::TyRegImm:
             case IRType::TyReg:
@@ -52,7 +53,7 @@ void RegAllocator::alloc_ir(vector<IR> &irs) {
 
         if (ir.op == IROp::Kill) {
             current_in_use[ir.lhs.value()] = false;
-            ir.op                          = IROp::Nop;
+            ir.op = IROp::Nop;
         }
     }
 }

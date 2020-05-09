@@ -175,8 +175,9 @@ Type::build_type(Token &root, const vector<unsigned> &array_depth, map<string, T
 pair<unsigned, unsigned> Type::make_array_info(Type *root) {
     if (root->c_type == Ctype::Array) {
         auto [base_size, base_align] = make_array_info(root->base_type);
-        root->size                   = base_size * root->length;
-        root->align                  = base_align;
+
+        root->size  = base_size * root->length;
+        root->align = base_align;
         return make_pair(root->size, root->align);
     } else {
         return make_pair(root->size, root->align);

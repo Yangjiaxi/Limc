@@ -17,11 +17,11 @@ class GenIR {
     vector<BasicFunc> gen_ir(Token &token);
 
   private:
-    Driver &          driver;
-    vector<IR>        codes;
+    Driver &driver;
+    vector<IR> codes;
     vector<BasicFunc> funcs;
 
-    unsigned num_regs   = 0;
+    unsigned num_regs = 0;
     unsigned num_labels = 1;
 
     vector<unsigned> break_labels;
@@ -34,7 +34,7 @@ class GenIR {
 
     IR &add_ir(IROp op, opt_uint lhs, opt_uint rhs);
 
-    void     gen_stmt(Token &node);
+    void gen_stmt(Token &node);
     opt_uint gen_expr(Token &node);
 
     opt_uint gen_left_value(Token &node);

@@ -190,15 +190,17 @@ opt_uint GenIR::gen_expr(Token &node) {
          *  只有6对148参数寄存器
          */
         vector<unsigned> args_regs(ARG_REG_NUM, 0);
-        auto &           args = children[1].get_children();
-        auto             len  = args.size();
+
+        auto &args = children[1].get_children();
+        auto  len  = args.size();
 
         for (int i = 0; i < len; ++i) {
             args_regs[i] = gen_expr(args.at(i)).value();
         }
 
-        auto  res          = new_reg();
-        auto &tmp          = add_ir(IROp::Call, res, nullopt);
+        auto  res = new_reg();
+        auto &tmp = add_ir(IROp::Call, res, nullopt);
+
         tmp.call_args_len  = len;
         tmp.call_args_regs = args_regs;
         tmp.text           = children[0].get_value();

@@ -17,11 +17,11 @@ class RegAllocator {
   private:
     Driver &driver;
 
-    void     alloc_ir(vector<IR> &ir);
+    void alloc_ir(vector<IR> &ir);
     unsigned map_reg(unsigned fake_reg);
 
     vector<opt_uint> prev_mapped_regs;
-    vector<bool>     current_in_use;
+    vector<bool> current_in_use;
 };
 
 } // namespace Limc

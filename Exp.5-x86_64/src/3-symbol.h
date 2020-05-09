@@ -19,7 +19,8 @@ class Symbol {
     bool is_global;
 
     // 类型，对于所有都有效
-    // 平凡类型 | 数组 | 结构体 | 函数 | 字符串(其实不放在符号表里) | 指针(函数参数提供)
+    // 平凡类型 | 数组 | 结构体 | 函数 | 字符串(其实不放在符号表里) |
+    // 指针(函数参数提供)
     Type *type;
 
     // 对于整个函数，有一个栈大小
@@ -49,7 +50,7 @@ class SymbolTable {
     map<string, Symbol> get_data();
 
   private:
-    string              name;
+    string name;
     map<string, Symbol> table;
 };
 } // namespace Limc

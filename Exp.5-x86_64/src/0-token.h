@@ -43,7 +43,7 @@ class Token {
 
     bool operator==(const string &str) const;
 
-    void   set_type(Type *new_type);
+    void set_type(Type *new_type);
     Type *&get_type();
 
     void set_func_stack_size(unsigned n);
@@ -58,10 +58,10 @@ class Token {
     void replace_childs(vector<Token> new_nodes);
 
   private:
-    string             kind;
-    string             value;
+    string kind;
+    string value;
     optional<location> loc;
-    vector<Token>      children;
+    vector<Token> children;
 
     Type *type = nullptr;
 
@@ -74,7 +74,7 @@ class Token {
      *      3. 标识符操作，给出标识符在当前段的偏移
      */
     optional<unsigned> offset;
-    optional<bool>     is_global; // 变量是否是全局
+    optional<bool> is_global; // 变量是否是全局
 };
 } // namespace Limc
 

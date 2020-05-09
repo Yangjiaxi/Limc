@@ -15,5 +15,3 @@ int main() {
     return 0;
 }
 
-// Input n: 10
-// 10! = 3628800

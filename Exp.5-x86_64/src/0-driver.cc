@@ -6,9 +6,9 @@
 using namespace Limc;
 
 Driver::Driver()
-    : tokens(), scanner(*this), parser(scanner, *this), analyzer(*this), ir_maker(*this),
-      asm_maker(*this), reg_maker(*this), loc(location()), input_file(), funcs_ir(), globals(),
-      str_lits() {}
+    : tokens(), scanner(*this), parser(scanner, *this), analyzer(*this),
+      ir_maker(*this), asm_maker(*this), reg_maker(*this), loc(location()),
+      input_file(), funcs_ir(), globals(), str_lits() {}
 
 Token &Driver::get_root() { return tokens.at(0); }
 
@@ -33,7 +33,7 @@ bool Driver::analyze() {
     auto &token = tokens[0];
 
     analyzer.stmt(token);
-    globals  = analyzer.get_global_table();
+    globals = analyzer.get_global_table();
     str_lits = analyzer.get_str_lit_table();
 
     print_reports();
@@ -45,7 +45,7 @@ bool Driver::analyze() {
 void Driver::gen_ir() {
     assert(tokens.size() == 1);
     auto &token = tokens[0];
-    funcs_ir    = ir_maker.gen_ir(token);
+    funcs_ir = ir_maker.gen_ir(token);
 }
 
 void Driver::print_ir() {
@@ -56,7 +56,9 @@ void Driver::print_ir() {
 
 void Driver::alloc_reg() { reg_maker.reg_alloc(funcs_ir); }
 
-void Driver::gen_x86_64() { asm_box = asm_maker.gen_x86_64(funcs_ir, globals, str_lits); }
+void Driver::gen_x86_64() {
+    asm_box = asm_maker.gen_x86_64(funcs_ir, globals, str_lits);
+}
 
 void Driver::dump_x86_64(ostream &os) {
     stringstream ss;
@@ -78,7 +80,7 @@ string Driver::print() const {
 void Driver::set_entry(istream *is) {
     loc.initialize();
     istream *file_is = is;
-    string   s;
+    string s;
     while (!is->eof()) {
         std::getline(*file_is, s);
         input_file.push_back(s);
@@ -110,16 +112,17 @@ Report &Driver::report() {
 
 void Driver::print_reports() {
     stringstream ss;
-    string       line(50, '-');
+    string line(50, '-');
     for (auto &report : reports) {
-        auto &msg   = report.get_msg();
-        auto  level = report.get_level();
-        auto &loc   = report.get_loc();
+        auto &msg = report.get_msg();
+        auto level = report.get_level();
+        auto &loc = report.get_loc();
 
         ss << BOLD_RED << "error: "
            << "[Limc - " << report.get_errno() << "]" << endl;
         ss << RESET_COLOR << msg << endl;
-        ss << BLUE << "  -->" << RESET_COLOR << " : " << YELLOW << loc[0] << RESET_COLOR << endl;
+        ss << BLUE << "  -->" << RESET_COLOR << " : " << YELLOW << loc[0]
+           << RESET_COLOR << endl;
 
         auto &[begin, end] = loc[0];
         if (begin.line == end.line) {

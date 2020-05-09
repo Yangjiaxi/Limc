@@ -54,24 +54,26 @@ class GenX86_64 {
   public:
     explicit GenX86_64(Driver &driver);
 
-    vector<Code> gen_x86_64(
-        vector<BasicFunc> &funcs_ir, map<string, Symbol> &globals, map<string, string> &str_lits);
+    vector<Code> gen_x86_64(vector<BasicFunc> &funcs_ir,
+                            map<string, Symbol> &globals,
+                            map<string, string> &str_lits);
 
   private:
-    Driver &     driver;
+    Driver &driver;
     vector<Code> asm_box;
 
     unsigned ret_label = 0;
-    string   end_label;
+    string end_label;
 
     Code &emit();
-    void  emit2(const string &code, const string &arg);
-    void  emit3(const string &code, const string &arg1, const string &arg2);
-    void  emit_header();
-    void  emit_global(map<string, Symbol> &globals, map<string, string> &str_lits);
-    void  emit_func(BasicFunc &func);
-    void  emit_code(IR &ir);
-    void  emit_relation(IR &ir, const string &test_cond);
+    void emit2(const string &code, const string &arg);
+    void emit3(const string &code, const string &arg1, const string &arg2);
+    void emit_header();
+    void emit_global(map<string, Symbol> &globals,
+                     map<string, string> &str_lits);
+    void emit_func(BasicFunc &func);
+    void emit_code(IR &ir);
+    void emit_relation(IR &ir, const string &test_cond);
 
     static string arg_reg(opt_uint reg_no, opt_uint size = 8);
     static string reg(opt_uint reg_no, opt_uint size = 8);

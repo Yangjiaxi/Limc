@@ -7,8 +7,10 @@
 using namespace Limc;
 
 Semantic::Semantic(Driver &driver)
-    : driver(driver), inner_return_ty(nullptr), lib_func(), string_literal_table(),
-      current_table(nullptr), lib_func_list{"printf", "scanf", "srand", "time", "rand"} {
+    : driver(driver), inner_return_ty(nullptr), lib_func(),
+      string_literal_table(),
+      current_table(nullptr), lib_func_list{
+                                  "printf", "scanf", "srand", "time", "rand"} {
     for (auto &name : lib_func_list) {
         lib_func.insert({name, true});
     }
@@ -30,7 +32,8 @@ void Semantic::leave_scope(unsigned frame_size) {
     string line(50, '=');
 
     cout << endl << line << endl;
-    cout << "Scope: " << BOLD_YELLOW << current_table->get_alias() << RESET_COLOR << endl;
+    cout << "Scope: " << BOLD_YELLOW << current_table->get_alias()
+         << RESET_COLOR << endl;
 
     cout << "Frame Size: " << BOLD_WHITE << frame_size << RESET_COLOR << endl;
 
@@ -46,28 +49,33 @@ void Semantic::leave_scope(unsigned frame_size) {
     current_table = &tables.back();
 }
 
-void Semantic::try_insert_symbol(Token &identifier, Type *type, bool is_glb, unsigned offset) {
-    auto already_exist =
-        current_table->insert_symbol(Symbol(identifier.get_value(), type, offset, is_glb));
+void Semantic::try_insert_symbol(Token &identifier,
+                                 Type *type,
+                                 bool is_glb,
+                                 unsigned offset) {
+    auto already_exist = current_table->insert_symbol(
+        Symbol(identifier.get_value(), type, offset, is_glb));
     if (already_exist) {
         driver.report()
             .report_level(Level::Error)
             .report_loc(identifier.get_loc().value())
-            .report_msg("Symbol `" + identifier.get_value() + "` has already been declared. ", 2);
+            .report_msg("Symbol `" + identifier.get_value() +
+                            "` has already been declared. ",
+                        2);
     }
 }
 
 Type *Semantic::expr(Token &root) {
     // 返回表达式的类型
     Type *type_res = Type::make_void_type();
-    auto  kind     = root.get_kind();
+    auto kind = root.get_kind();
     if (kind == "Identifier") {
         bool shot = false;
         for (auto iter = tables.rbegin(); iter != tables.rend(); ++iter) {
             auto symbol = iter->find_symbol(root.get_value());
             if (symbol != nullopt) {
                 type_res = symbol.value().type;
-                shot     = true;
+                shot = true;
                 root.set_offset(symbol.value().offset);
                 root.set_is_global(symbol.value().is_global);
                 break;
@@ -78,16 +86,17 @@ Type *Semantic::expr(Token &root) {
             driver.report()
                 .report_level(Level::Error)
                 .report_loc(root.get_loc().value())
-                .report_msg(
-                    "Variable `" + root.get_value() + "` hasn't been declared in this scope.", 3);
+                .report_msg("Variable `" + root.get_value() +
+                                "` hasn't been declared in this scope.",
+                            3);
             type_res = Type::make_error_type();
         }
         // END OF [Identifier]
     } else if (kind == "IndexExpr") {
-        auto &children   = root.get_children();
+        auto &children = root.get_children();
         auto &array_root = children[0];
-        auto  current    = expr(array_root);
-        bool  fir        = true;
+        auto current = expr(array_root);
+        bool fir = true;
         for (auto &idx : children) {
             if (fir) {
                 fir = false;
@@ -97,18 +106,20 @@ Type *Semantic::expr(Token &root) {
             // cout << "E:" << index_type->to_string() << endl;
             if (index_type->is_int()) {
                 if (current->c_type == Ctype::Array) {
-                    current  = current->base_type;
+                    current = current->base_type;
                     type_res = current;
                     // idx      = move(idx.get_child(0));
                 } else if (current->c_type == Ctype::Pointer) {
-                    current  = current->point_to;
+                    current = current->point_to;
                     type_res = current;
                     // idx      = move(idx.get_child(0));
                 } else {
                     driver.report()
                         .report_level(Level::Error)
                         .report_loc(array_root.get_loc().value())
-                        .report_msg("Type `" + current->to_string() + "` can not be indexed.", 4);
+                        .report_msg("Type `" + current->to_string() +
+                                        "` can not be indexed.",
+                                    4);
                     type_res = Type::make_error_type();
                     break;
                 }
@@ -125,22 +136,22 @@ Type *Semantic::expr(Token &root) {
     } else if (kind == "ArithBinaryExpr") {
         // 算术二元运算，没有额外限制，表达式的结果由权值高的决定
         auto &a_node = root.get_child(0);
-        auto  a_type = expr(a_node);
+        auto a_type = expr(a_node);
 
         auto &op = root.get_child(1);
 
         auto &b_node = root.get_child(2);
-        auto  b_type = expr(b_node);
+        auto b_type = expr(b_node);
 
         if (!a_type->is_plain() || !b_type->is_plain()) {
             driver.report()
                 .report_level(Level::Error)
                 .report_loc(root.get_loc().value())
-                .report_msg(
-                    "Types around operand `" + op.get_value() + "` : `" + a_type->to_string() +
-                        "`" + " and `" + b_type->to_string() +
-                        "` can't perform this arithmetic calculate.",
-                    6);
+                .report_msg("Types around operand `" + op.get_value() +
+                                "` : `" + a_type->to_string() + "`" + " and `" +
+                                b_type->to_string() +
+                                "` can't perform this arithmetic calculate.",
+                            6);
             type_res = Type::make_error_type();
         } else {
             type_res = upper_type(a_type, b_type);
@@ -149,22 +160,22 @@ Type *Semantic::expr(Token &root) {
     } else if (kind == "LogBinaryExpr") {
         // 逻辑二元运算，必须是int类型
         auto &a_node = root.get_child(0);
-        auto  a_type = expr(a_node);
+        auto a_type = expr(a_node);
 
         auto &op = root.get_child(1);
 
         auto &b_node = root.get_child(2);
-        auto  b_type = expr(b_node);
+        auto b_type = expr(b_node);
 
         if (!a_type->is_int() || !b_type->is_int()) {
             driver.report()
                 .report_level(Level::Error)
                 .report_loc(root.get_loc().value())
-                .report_msg(
-                    "Types around logical operand `" + op.get_value() +
-                        "` must both be `int`, but got : `" + a_type->to_string() + "`" + " and `" +
-                        b_type->to_string() + "`.",
-                    7);
+                .report_msg("Types around logical operand `" + op.get_value() +
+                                "` must both be `int`, but got : `" +
+                                a_type->to_string() + "`" + " and `" +
+                                b_type->to_string() + "`.",
+                            7);
             type_res = Type::make_error_type();
         } else {
             type_res = a_type;
@@ -174,21 +185,20 @@ Type *Semantic::expr(Token &root) {
 
         // 关系表达式，平凡类型随意比较，复合类型必须成员相同
         auto &a_node = root.get_child(0);
-        auto  a_type = expr(a_node);
+        auto a_type = expr(a_node);
 
         auto &op = root.get_child(1);
 
         auto &b_node = root.get_child(2);
-        auto  b_type = expr(b_node);
+        auto b_type = expr(b_node);
 
         if (!comparable(a_type, b_type)) {
             driver.report()
                 .report_level(Level::Error)
                 .report_loc(root.get_loc().value())
-                .report_msg(
-                    "Types `" + a_type->to_string() + "` and `" + b_type->to_string() +
-                        " is not comparable.",
-                    8);
+                .report_msg("Types `" + a_type->to_string() + "` and `" +
+                                b_type->to_string() + " is not comparable.",
+                            8);
             type_res = Type::make_error_type();
         } else {
             type_res = Type::make_int_type();
@@ -197,21 +207,21 @@ Type *Semantic::expr(Token &root) {
     } else if (kind == "TernaryExpr") {
         // 三目表达式，条件具有int，分支取高来返回
         auto &cond_value = root.get_child(0);
-        auto &yes_value  = root.get_child(1);
-        auto &no_value   = root.get_child(2);
+        auto &yes_value = root.get_child(1);
+        auto &no_value = root.get_child(2);
 
         auto cond_type = expr(cond_value);
-        auto yes_type  = expr(yes_value);
-        auto no_type   = expr(no_value);
+        auto yes_type = expr(yes_value);
+        auto no_type = expr(no_value);
 
         if (!cond_type->is_int()) {
             driver.report()
                 .report_level(Level::Error)
                 .report_loc(root.get_loc().value())
-                .report_msg(
-                    "Condition's type of ternary expression should be `int`, got: `" +
-                        cond_type->to_string() + "`.",
-                    9);
+                .report_msg("Condition's type of ternary expression should be "
+                            "`int`, got: `" +
+                                cond_type->to_string() + "`.",
+                            9);
             type_res = Type::make_error_type();
         } else {
             auto upper_one = upper_type(yes_type, no_type);
@@ -219,10 +229,11 @@ Type *Semantic::expr(Token &root) {
                 driver.report()
                     .report_level(Level::Error)
                     .report_loc(root.get_loc().value())
-                    .report_msg(
-                        "Branches' types of ternary expression not match, got `" +
-                            yes_type->to_string() + "`" + " and `" + no_type->to_string() + "`.",
-                        10);
+                    .report_msg("Branches' types of ternary expression not "
+                                "match, got `" +
+                                    yes_type->to_string() + "`" + " and `" +
+                                    no_type->to_string() + "`.",
+                                10);
                 type_res = Type::make_error_type();
             } else {
                 type_res = upper_one;
@@ -233,23 +244,25 @@ Type *Semantic::expr(Token &root) {
         // 取成员操作符，a.b
         // a是一个结构体，b是a所属结构体中的一个成员
         auto &struct_node = root.get_child(0);
-        auto  struct_type = expr(struct_node);
-        auto  member_name = root.get_child(1).get_value();
+        auto struct_type = expr(struct_node);
+        auto member_name = root.get_child(1).get_value();
         if (struct_type->c_type != Ctype::Struct) {
             driver.report()
                 .report_level(Level::Error)
                 .report_loc(root.get_loc().value())
-                .report_msg("Can't use member expresssion on non-struct value.", 11);
+                .report_msg("Can't use member expresssion on non-struct value.",
+                            11);
             type_res = Type::make_error_type();
         } else {
-            if (struct_type->members.find(member_name) == struct_type->members.cend()) {
+            if (struct_type->members.find(member_name) ==
+                struct_type->members.cend()) {
                 driver.report()
                     .report_level(Level::Error)
                     .report_loc(root.get_loc().value())
-                    .report_msg(
-                        "Struct type `" + struct_type->to_string() +
-                            "` doesn't have member named `" + member_name + "`.",
-                        12);
+                    .report_msg("Struct type `" + struct_type->to_string() +
+                                    "` doesn't have member named `" +
+                                    member_name + "`.",
+                                12);
             } else {
                 type_res = struct_type->members.at(member_name);
                 root.set_offset(type_res->member_offset);
@@ -263,17 +276,16 @@ Type *Semantic::expr(Token &root) {
             2. 参数数量匹配
             3. 参数类型可转换
          */
-        auto &func      = root.get_child(0);
-        auto &args      = root.get_child(1).get_children();
-        auto  func_type = expr(func);
+        auto &func = root.get_child(0);
+        auto &args = root.get_child(1).get_children();
+        auto func_type = expr(func);
         if (func_type->c_type != Ctype::Function) {
             driver.report()
                 .report_level(Level::Error)
                 .report_loc(func.get_loc().value())
-                .report_msg(
-                    "Variable `" + func.get_value() + "` with type `" + func_type->to_string() +
-                        "` is not callable.",
-                    13);
+                .report_msg("Variable `" + func.get_value() + "` with type `" +
+                                func_type->to_string() + "` is not callable.",
+                            13);
             type_res = Type::make_error_type();
         } else {
             if (func_type->is_lib) {
@@ -288,29 +300,32 @@ Type *Semantic::expr(Token &root) {
                 driver.report()
                     .report_level(Level::Error)
                     .report_loc(func.get_loc().value())
-                    .report_msg(
-                        "Function `" + func.get_value() + "` requires " +
-                            to_string(func_type->args.size()) + " parameters, but " +
-                            to_string(args.size()) + " is given.",
-                        14);
+                    .report_msg("Function `" + func.get_value() +
+                                    "` requires " +
+                                    to_string(func_type->args.size()) +
+                                    " parameters, but " +
+                                    to_string(args.size()) + " is given.",
+                                14);
                 type_res = Type::make_error_type();
             } else {
-                auto arg_iter   = args.begin();
+                auto arg_iter = args.begin();
                 auto param_iter = func_type->args.begin();
-                bool is_ok      = true;
+                bool is_ok = true;
                 while (arg_iter != args.end()) {
                     auto arg_type = expr(*arg_iter);
                     if (!can_convert(arg_type, *param_iter)) {
                         driver.report()
                             .report_level(Level::Error)
                             .report_loc(arg_iter->get_loc().value())
-                            .report_msg(
-                                "Function `" + func.get_value() + "`requires type `" +
-                                    (*param_iter)->to_string() + "` as parameter, but type `" +
-                                    arg_type->to_string() + "` is given.",
-                                15);
+                            .report_msg("Function `" + func.get_value() +
+                                            "`requires type `" +
+                                            (*param_iter)->to_string() +
+                                            "` as parameter, but type `" +
+                                            arg_type->to_string() +
+                                            "` is given.",
+                                        15);
                         type_res = Type::make_error_type();
-                        is_ok    = false;
+                        is_ok = false;
                         break;
                     } else {
                         ++arg_iter;
@@ -337,7 +352,8 @@ Type *Semantic::expr(Token &root) {
                 .report_loc(rhs.get_loc().value())
                 .report_msg(
                     "Type around assignment operator `=` is not assignable: `" +
-                        lhs_type->to_string() + "` and `" + rhs_type->to_string() + "`.",
+                        lhs_type->to_string() + "` and `" +
+                        rhs_type->to_string() + "`.",
                     16);
             type_res = Type::make_error_type();
         } else {
@@ -347,7 +363,7 @@ Type *Semantic::expr(Token &root) {
     } else if (kind == "CompoundArithAssignmentExpr") {
         // 算术结合赋值 [*= +=]
         auto &lhs = root.get_child(0);
-        auto &op  = root.get_child(1);
+        auto &op = root.get_child(1);
         auto &rhs = root.get_child(2);
 
         auto lhs_type = expr(lhs);
@@ -357,11 +373,11 @@ Type *Semantic::expr(Token &root) {
                 .report_level(Level::Error)
                 .report_loc(lhs.get_loc().value())
                 .report_loc(rhs.get_loc().value())
-                .report_msg(
-                    "Type around assignment operator `" + op.get_value() +
-                        "` is not assignable: `" + lhs_type->to_string() + "` and `" +
-                        rhs_type->to_string() + ".",
-                    17);
+                .report_msg("Type around assignment operator `" +
+                                op.get_value() + "` is not assignable: `" +
+                                lhs_type->to_string() + "` and `" +
+                                rhs_type->to_string() + ".",
+                            17);
             type_res = Type::make_error_type();
         } else {
             type_res = lhs_type;
@@ -370,7 +386,7 @@ Type *Semantic::expr(Token &root) {
     } else if (kind == "CompoundLogAssignmentExpr") {
         // 逻辑结合赋值 [|= &= ^=]
         auto &lhs = root.get_child(0);
-        auto &op  = root.get_child(1);
+        auto &op = root.get_child(1);
         auto &rhs = root.get_child(2);
 
         auto lhs_type = expr(lhs);
@@ -382,8 +398,9 @@ Type *Semantic::expr(Token &root) {
                 .report_loc(lhs.get_loc().value())
                 .report_loc(rhs.get_loc().value())
                 .report_msg(
-                    "Type around logical compound assignment operator `" + op.get_value() +
-                        "` should be `int`, but got `" + lhs_type->to_string() + "` and `" +
+                    "Type around logical compound assignment operator `" +
+                        op.get_value() + "` should be `int`, but got `" +
+                        lhs_type->to_string() + "` and `" +
                         rhs_type->to_string() + ".",
                     18);
             type_res = Type::make_error_type();
@@ -393,11 +410,11 @@ Type *Semantic::expr(Token &root) {
                     .report_level(Level::Error)
                     .report_loc(lhs.get_loc().value())
                     .report_loc(rhs.get_loc().value())
-                    .report_msg(
-                        "Type around assignment operator `" + op.get_value() +
-                            "` is not assignable: `" + lhs_type->to_string() + "` and `" +
-                            rhs_type->to_string() + ".",
-                        19);
+                    .report_msg("Type around assignment operator `" +
+                                    op.get_value() + "` is not assignable: `" +
+                                    lhs_type->to_string() + "` and `" +
+                                    rhs_type->to_string() + ".",
+                                19);
                 type_res = Type::make_error_type();
             } else {
                 type_res = lhs_type;
@@ -406,14 +423,14 @@ Type *Semantic::expr(Token &root) {
         // END OF [CompoundLogAssignmentExpr]
     } else if (kind == "ParenthesisExpr" || kind == "Index") {
         auto &inner = root.get_child(0);
-        type_res    = expr(inner);
+        type_res = expr(inner);
         // END OF [ParenthesisExpr]
     } else if (kind == "PrefixExpr") {
-        auto &op   = root.get_child(0);
+        auto &op = root.get_child(0);
         auto &item = root.get_child(1);
 
         auto item_type = expr(item);
-        auto op_str    = op.get_value();
+        auto op_str = op.get_value();
         if (op_str == "-") {
             if (item_type->is_arith()) {
                 type_res = item_type;
@@ -421,10 +438,10 @@ Type *Semantic::expr(Token &root) {
                 driver.report()
                     .report_level(Level::Error)
                     .report_loc(root.get_loc().value())
-                    .report_msg(
-                        "Operand of prefix expression `" + op_str +
-                            "` should be arithmetic, but got `" + item_type->to_string() + "`",
-                        20);
+                    .report_msg("Operand of prefix expression `" + op_str +
+                                    "` should be arithmetic, but got `" +
+                                    item_type->to_string() + "`",
+                                20);
                 type_res = Type::make_error_type();
             }
         } else if (op_str == "&") {
@@ -434,10 +451,10 @@ Type *Semantic::expr(Token &root) {
                 driver.report()
                     .report_level(Level::Error)
                     .report_loc(root.get_loc().value())
-                    .report_msg(
-                        "Operand of prefix expression `" + op_str + "` should be `int`, but got `" +
-                            item_type->to_string() + "`",
-                        21);
+                    .report_msg("Operand of prefix expression `" + op_str +
+                                    "` should be `int`, but got `" +
+                                    item_type->to_string() + "`",
+                                21);
                 type_res = Type::make_error_type();
             } else {
                 type_res = item_type;
@@ -446,18 +463,18 @@ Type *Semantic::expr(Token &root) {
         // END OF [PrefixExpr]
     } else if (kind == "PostfixExpr") {
         auto &item = root.get_child(0);
-        auto &op   = root.get_child(1);
+        auto &op = root.get_child(1);
 
         auto item_type = expr(item);
-        auto op_str    = op.get_value();
+        auto op_str = op.get_value();
         if (!item_type->is_int()) {
             driver.report()
                 .report_level(Level::Error)
                 .report_loc(root.get_loc().value())
-                .report_msg(
-                    "Operand of postfix expression `" + op_str + "` should be `int`, but got `" +
-                        item_type->to_string() + "`",
-                    22);
+                .report_msg("Operand of postfix expression `" + op_str +
+                                "` should be `int`, but got `" +
+                                item_type->to_string() + "`",
+                            22);
             type_res = Type::make_error_type();
         } else {
             type_res = item_type;
@@ -475,7 +492,8 @@ Type *Semantic::expr(Token &root) {
         root = move(new_glb_str);
     }
     // FALL TO
-    else if (kind == "IntegerLiteral" || kind == "FloatLiteral" || kind == "CharLiteral") {
+    else if (kind == "IntegerLiteral" || kind == "FloatLiteral" ||
+             kind == "CharLiteral") {
         type_res = Type::build_literal(root);
     } else {
         throw runtime_error("Uncaught Token Kind: `" + kind + "`.");
@@ -485,7 +503,7 @@ Type *Semantic::expr(Token &root) {
 }
 
 void Semantic::stmt(Token &root) {
-    auto  kind     = root.get_kind();
+    auto kind = root.get_kind();
     auto &children = root.get_children();
 #ifdef DEBUG
     cout << "Walk : `" << kind << "`" << endl;
@@ -515,15 +533,17 @@ void Semantic::stmt(Token &root) {
             driver.report()
                 .report_level(Level::Error)
                 .report_loc(root.get_loc().value())
-                .report_msg("Incomplete struct type `" + root.get_value() + "`.", 23);
+                .report_msg(
+                    "Incomplete struct type `" + root.get_value() + "`.", 23);
             return;
         }
         if (type_table.find(root.get_value()) != type_table.end()) {
             driver.report()
                 .report_level(Level::Error)
                 .report_loc(root.get_loc().value())
-                .report_msg(
-                    "Struct type `" + root.get_value() + "` has already been declared.", 24);
+                .report_msg("Struct type `" + root.get_value() +
+                                "` has already been declared.",
+                            24);
             return;
         }
         auto struct_type = Type::build_type(root, {}, type_table);
@@ -556,16 +576,17 @@ void Semantic::stmt(Token &root) {
             Token name;
             if (ident_node.get_kind() == "IndexExpr") {
                 // 为数组
-                name        = ident_node.get_child(0);
+                name = ident_node.get_child(0);
                 auto depths = Type::make_array_depths(ident_node);
-                stand       = Type::wrap_array(type_res, depths);
+                stand = Type::wrap_array(type_res, depths);
             } else if (ident_node.get_kind() == "Identifier") {
                 // 为普通标识符
                 name = ident_node;
             }
 
             if (kind == "GlobalVarDecl") {
-                global_stack_size = align_memory(global_stack_size, stand->align);
+                global_stack_size =
+                    align_memory(global_stack_size, stand->align);
                 // 插入符号表 and 全局偏移
                 global_stack_size += stand->size;
                 try_insert_symbol(name, stand, true, global_stack_size);
@@ -595,10 +616,11 @@ void Semantic::stmt(Token &root) {
                         .report_level(Level::Error)
                         .report_loc(lhs.get_loc().value())
                         .report_loc(rhs.get_loc().value())
-                        .report_msg(
-                            "Type around assignment operator `=` is not assignable: `" +
-                                lhs_type->to_string() + "` and `" + rhs_type->to_string() + "`.",
-                            16);
+                        .report_msg("Type around assignment operator `=` is "
+                                    "not assignable: `" +
+                                        lhs_type->to_string() + "` and `" +
+                                        rhs_type->to_string() + "`.",
+                                    16);
                 }
                 new_node.build_AST(rhs);
             }
@@ -626,19 +648,19 @@ void Semantic::stmt(Token &root) {
         // 2. 参数列表作为局部定义变量
         auto &params = root.get_child(2).get_children();
         for (auto &param : params) {
-            auto  param_type = parse_type(param.get_child(0));
+            auto param_type = parse_type(param.get_child(0));
             auto &param_name = param.get_child(1);
 
             Token name;
             if (param_name.get_kind() == "IndexExpr") {
                 // 为数组
-                name        = param_name.get_child(0);
+                name = param_name.get_child(0);
                 auto depths = Type::make_array_depths(param_name);
-                param_type  = Type::wrap_array(param_type, depths);
+                param_type = Type::wrap_array(param_type, depths);
 
-                param_type->c_type   = Ctype::Pointer;
-                param_type->size     = 8;
-                param_type->align    = 8;
+                param_type->c_type = Ctype::Pointer;
+                param_type->size = 8;
+                param_type->align = 8;
                 param_type->point_to = param_type->base_type;
 
                 param_type->base_type = nullptr;
@@ -647,7 +669,8 @@ void Semantic::stmt(Token &root) {
                 name = param_name;
             }
 
-            local_stack_size = align_memory(local_stack_size, param_type->align);
+            local_stack_size =
+                align_memory(local_stack_size, param_type->align);
             local_stack_size += param_type->size;
             try_insert_symbol(name, param_type, false, local_stack_size);
 
@@ -675,12 +698,15 @@ void Semantic::stmt(Token &root) {
             driver.report()
                 .report_level(Level::Error)
                 .report_loc(root.get_child(0).get_loc().value())
-                .report_msg(
-                    "Return type not match: Function `" + name_node.get_value() +
-                        "` requires return type: `" + ret_type->to_string() + "`, but `" +
-                        (inner_return_ty == nullptr ? "void" : inner_return_ty->to_string()) +
-                        "` was given.",
-                    25);
+                .report_msg("Return type not match: Function `" +
+                                name_node.get_value() +
+                                "` requires return type: `" +
+                                ret_type->to_string() + "`, but `" +
+                                (inner_return_ty == nullptr
+                                     ? "void"
+                                     : inner_return_ty->to_string()) +
+                                "` was given.",
+                            25);
         }
         // END OF [FuncDef]
     } else if (kind == "ReturnStmt") {
@@ -699,7 +725,8 @@ void Semantic::stmt(Token &root) {
             driver.report()
                 .report_level(Level::Error)
                 .report_loc(root.get_loc().value())
-                .report_msg("Keyword `continue` should stay in loop blocks.", 26);
+                .report_msg("Keyword `continue` should stay in loop blocks.",
+                            26);
         }
         // END OF [ContinueStmt]
     } else if (kind == "BreakStmt") {
@@ -773,8 +800,9 @@ Type *Semantic::parse_type(Token &root) {
                 driver.report()
                     .report_level(Level::Error)
                     .report_loc(root.get_loc().value())
-                    .report_msg(
-                        "Struct type `" + root.get_value() + "` is used before declaration.", 28);
+                    .report_msg("Struct type `" + root.get_value() +
+                                    "` is used before declaration.",
+                                28);
                 type_res = Type::make_error_type();
             } else {
                 type_res = type_table.at(root.get_value());
@@ -800,7 +828,8 @@ bool Semantic::can_convert(Type *from, Type *to) {
      *  Int -> Float
      *  Array -> Pointer
      */
-    if ((from != nullptr && to == nullptr) || (from == nullptr && to != nullptr))
+    if ((from != nullptr && to == nullptr) ||
+        (from == nullptr && to != nullptr))
         return false;
     // if (from->c_type == Ctype::Function) {
     //     return false;
@@ -809,7 +838,8 @@ bool Semantic::can_convert(Type *from, Type *to) {
     //     return false;
     // }
     // if (from->c_type == Ctype::Array) {
-    //     return from->length == to->length && can_convert(from->base_type, to->base_type);
+    //     return from->length == to->length && can_convert(from->base_type,
+    //     to->base_type);
     // }
     // if (from->c_type == Ctype::Struct) {
     //     if (from->members.size() != to->members.size()) {
@@ -838,7 +868,8 @@ bool Semantic::can_convert(Type *from, Type *to) {
         if (from->plain_type == to->plain_type) {
             return true;
         }
-        if (from->plain_type == PlainType::Void || to->plain_type == PlainType::Void) {
+        if (from->plain_type == PlainType::Void ||
+            to->plain_type == PlainType::Void) {
             return false;
         }
         return from->plain_type <= to->plain_type;
@@ -905,21 +936,23 @@ void Semantic::insert_lib_func(Token &root) {
         driver.report()
             .report_level(Level::Error)
             .report_loc(root.get_loc().value())
-            .report_msg(
-                "Undefined gcc-lib function `" + root.get_value() +
-                    "`. You may want to use: `printf`, `scanf`, `srand`, `time` or `rand`.",
-                29);
+            .report_msg("Undefined gcc-lib function `" + root.get_value() +
+                            "`. You may want to use: `printf`, `scanf`, "
+                            "`srand`, `time` or `rand`.",
+                        29);
         return;
     }
 
-    Type *lib_t        = new Type();
-    lib_t->c_type      = Ctype::Function;
+    Type *lib_t = new Type();
+    lib_t->c_type = Ctype::Function;
     lib_t->return_type = Type::make_int_type();
-    lib_t->is_lib      = true;
+    lib_t->is_lib = true;
 
     try_insert_symbol(root, lib_t, true, 0);
 }
-map<string, string> Semantic::get_str_lit_table() { return move(string_literal_table); }
+map<string, string> Semantic::get_str_lit_table() {
+    return move(string_literal_table);
+}
 
 map<string, Symbol> Semantic::get_global_table() {
     assert(tables.size() == 1);

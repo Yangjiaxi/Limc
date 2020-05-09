@@ -14,3 +14,4 @@ void fn() {
     fn += t;
     return t(1.2, 3) + a(12);
 }
+

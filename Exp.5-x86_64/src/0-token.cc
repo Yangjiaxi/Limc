@@ -7,16 +7,20 @@
 using namespace Limc;
 
 Token::Token(string kind, string value)
-    : kind(move(kind)), value(move(value)), children(), loc(nullopt), func_stack_size(nullopt) {}
+    : kind(move(kind)), value(move(value)), children(), loc(nullopt),
+      func_stack_size(nullopt) {}
 
 Token::Token(string kind)
-    : kind(move(kind)), value(), children(), loc(nullopt), func_stack_size(nullopt) {}
+    : kind(move(kind)), value(), children(), loc(nullopt),
+      func_stack_size(nullopt) {}
 
 Token::Token(string kind, string value, location loc)
-    : kind(move(kind)), value(move(value)), children(), loc(loc), func_stack_size(nullopt) {}
+    : kind(move(kind)), value(move(value)), children(), loc(loc),
+      func_stack_size(nullopt) {}
 
 Token::Token(string kind, location loc)
-    : kind(move(kind)), value(), children(), loc(loc), func_stack_size(nullopt) {}
+    : kind(move(kind)), value(), children(), loc(loc),
+      func_stack_size(nullopt) {}
 
 Token::Token() = default;
 
@@ -40,16 +44,16 @@ optional<location> Token::get_loc() const {
     if (loc != nullopt) {
         return loc;
     }
-    auto len   = children.size() - 1;
-    auto left  = 0;
+    auto len = children.size() - 1;
+    auto left = 0;
     auto right = len;
     while (left <= right) {
-        auto left_loc  = children.at(left).get_loc();
+        auto left_loc = children.at(left).get_loc();
         auto right_loc = children.at(right).get_loc();
         if (left_loc != nullopt && right_loc != nullopt) {
             location res;
             res.begin = left_loc.value().begin;
-            res.end   = right_loc.value().end;
+            res.end = right_loc.value().end;
             return res;
         }
         if (left_loc == nullopt)
@@ -124,10 +128,8 @@ string Token::print(const string pre, const string ch_pre) const {
     if (!children.empty()) {
         for (auto &item : children) {
             if (&item == &children.back()) {
-                // s << item.print(ch_pre + "└──", ch_pre + "     ");
                 s << item.print(ch_pre + "`---", ch_pre + "    ");
             } else {
-                // s << item.print(ch_pre + "├──", ch_pre + "│   ");
                 s << item.print(ch_pre + "|---", ch_pre + "|   ");
             }
         }
@@ -153,8 +155,9 @@ unsigned Token::get_func_stack_size() { return func_stack_size.value(); }
 
 void Token::replace_childs(vector<Token> new_nodes) {
     children.clear();
-    children.insert(
-        children.end(), make_move_iterator(new_nodes.begin()), make_move_iterator(new_nodes.end()));
+    children.insert(children.end(),
+                    make_move_iterator(new_nodes.begin()),
+                    make_move_iterator(new_nodes.end()));
 }
 
 bool Token::get_is_global() { return is_global.value(); }

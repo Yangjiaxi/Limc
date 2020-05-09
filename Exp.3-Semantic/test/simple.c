@@ -1,14 +1,19 @@
-struct StringBuffer {
-    char buffer[1024];
-    int  len;
-};
+use printf;
+use scanf;
 
-struct Scanner {
-    struct StringBuffer input[10];
-    int                 max_len;
-};
-
-void read() {
-    struct Scanner handler;
-    int            len = handler.input.len;
+int fact(int n) {
+    if (n <= 1)
+        return 1;
+    return n * fact(n - 1);
 }
+
+int main() {
+    int a;
+    printf("Input n: ");
+    scanf("%d", &a);
+    printf("%d! = %d\n", a, fact(a));
+    return 0;
+}
+
+// Input n: 10
+// 10! = 3628800
