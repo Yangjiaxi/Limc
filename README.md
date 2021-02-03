@@ -11,9 +11,9 @@ Limc Is a Minimal Compiler.
 
 ## 实验环境
 
-- 操作系统：`Mac OS X`
+- 操作系统：`OSX`
 - 开发语言：`C++ 17`
-- 集成环境：`CLion & VSCode`
+- 集成环境：`clion & vscode`
 
 ## Part-1 词法分析器
 
