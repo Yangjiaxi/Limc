@@ -1,5 +1,5 @@
 %skeleton "lalr1.cc"
-%require "3.5"
+%require "3.8"
 %defines
 %define api.namespace { Limc }
 %define api.parser.class { Parser }
